@@ -10,6 +10,14 @@ interface Props {
   searchParams: Promise<{ fecha?: string }>
 }
 
+const DIAS_CORTOS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+const MESES_MIN = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
+
+function formatFechaCorta(isoDate: string) {
+  const d = new Date(isoDate + "T12:00:00Z")
+  return `${DIAS_CORTOS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES_MIN[d.getUTCMonth()]}`
+}
+
 const estadoVariant: Record<string, "default" | "secondary" | "destructive"> = {
   PENDING: "secondary",
   CONFIRMED: "default",
@@ -61,13 +69,6 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
           </Link>
           <h1 className="text-xl font-bold mt-1">Reservas</h1>
         </div>
-        <input
-          type="date"
-          defaultValue={fechaFiltro}
-          onChange={undefined}
-          className="border rounded-md px-3 py-1.5 text-sm"
-          // La navegación la maneja el link de abajo
-        />
       </header>
 
       <section className="max-w-4xl mx-auto p-6 space-y-3">
@@ -77,7 +78,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
             const d = new Date()
             d.setDate(d.getDate() + offset)
             const f = d.toISOString().split("T")[0]
-            const label = offset === 0 ? "Hoy" : offset === 1 ? "Mañana" : f
+            const label = offset === 0 ? "Hoy" : offset === 1 ? "Mañana" : formatFechaCorta(f)
             return (
               <Link
                 key={f}

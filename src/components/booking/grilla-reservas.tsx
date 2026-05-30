@@ -138,7 +138,9 @@ export function GrillaReservas({
   })
   const slotsUnion = [...todosLosSlots].sort()
 
-  const canchasConSlots = canchasFiltradas.map((c) => {
+  const canchasConSlots = canchasFiltradas.filter((c) =>
+    c.schedules.some((s) => s.dayOfWeek === diaSemana)
+  ).map((c) => {
     const sch = c.schedules.find((s) => s.dayOfWeek === diaSemana)
     const slotsCancha = sch
       ? new Set(generarSlots(sch.openTime, sch.closeTime, sch.slotMinutes))
