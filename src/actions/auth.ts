@@ -12,8 +12,10 @@ export async function loginAction(_prevState: unknown, formData: FormData) {
     })
   } catch (error) {
     if (error instanceof AuthError) {
+      console.error("[login] AuthError type:", error.type, error.message)
       return { error: "Email o contraseña incorrectos." }
     }
+    console.log("[login] redirect/non-auth throw:", (error as any)?.digest ?? String(error))
     throw error
   }
 }
