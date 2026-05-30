@@ -1,8 +1,18 @@
+import { redirect } from "next/navigation"
 import { auth } from "@/lib/session"
+import { prisma } from "@/lib/prisma"
 import { cerrarSesion } from "@/actions/auth"
 
 export default async function DashboardPage() {
   const session = await auth()
+
+  if (session?.user?.role === "ADMIN" && session.user.tenantId) {
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: session.user.tenantId },
+      select: { slug: true },
+    })
+    if (tenant) redirect(`/dashboard/${tenant.slug}`)
+  }
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
@@ -20,7 +30,6 @@ export default async function DashboardPage() {
           <p><span className="font-medium">Nombre:</span> {session?.user?.name ?? "—"}</p>
           <p><span className="font-medium">Email:</span> {session?.user?.email}</p>
           <p><span className="font-medium">Rol:</span> {session?.user?.role}</p>
-          <p><span className="font-medium">Tenant:</span> {session?.user?.tenantId ?? "Sin tenant"}</p>
         </div>
       </div>
     </main>
