@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -13,11 +14,26 @@ interface Props {
 const COLORES = ["#2563eb", "#16a34a", "#f59e0b", "#8b5cf6"]
 
 export function IngresosCharts({ porCancha, porDeporte }: Props) {
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener("resize", check)
+    return () => window.removeEventListener("resize", check)
+  }, [])
+
+  const yAxisWidth = isMobile ? 90 : 120
+  const barRightMargin = isMobile ? 48 : 60
+
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
       {/* Barras horizontales por cancha */}
       <div className="bg-white border rounded-lg p-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Por cancha</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
+          Por cancha
+        </p>
         {porCancha.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Sin datos</p>
         ) : (
@@ -25,23 +41,26 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
             <BarChart
               layout="vertical"
               data={porCancha}
-              margin={{ left: 0, right: 60, top: 0, bottom: 0 }}
+              margin={{ left: 0, right: barRightMargin, top: 0, bottom: 0 }}
             >
               <XAxis type="number" hide />
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fontSize: 11 }}
-                width={120}
+                tick={{ fontSize: isMobile ? 10 : 11 }}
+                width={yAxisWidth}
               />
               <Tooltip
                 formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, "Ingresos"]}
               />
-              <Bar dataKey="total" fill="#2563eb" radius={[0, 4, 4, 0]}
+              <Bar
+                dataKey="total"
+                fill="#2563eb"
+                radius={[0, 4, 4, 0]}
                 label={{
                   position: "right",
                   formatter: (v: unknown) => `$${Number(v).toLocaleString("es-AR")}`,
-                  fontSize: 11,
+                  fontSize: isMobile ? 10 : 11,
                   fill: "#6b7280",
                 }}
               />
@@ -52,18 +71,20 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
 
       {/* Donut por deporte */}
       <div className="bg-white border rounded-lg p-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">Por deporte</p>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
+          Por deporte
+        </p>
         {porDeporte.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">Sin datos</p>
         ) : (
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={isMobile ? 180 : 220}>
             <PieChart>
               <Pie
                 data={porDeporte}
                 dataKey="total"
                 nameKey="name"
-                innerRadius={55}
-                outerRadius={85}
+                innerRadius={isMobile ? 45 : 55}
+                outerRadius={isMobile ? 70 : 85}
                 paddingAngle={3}
               >
                 {porDeporte.map((_, i) => (
@@ -76,6 +97,7 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
           </ResponsiveContainer>
         )}
       </div>
+
     </div>
   )
 }
