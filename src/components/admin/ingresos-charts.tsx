@@ -40,7 +40,7 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
               <Bar dataKey="total" fill="#2563eb" radius={[0, 4, 4, 0]}
                 label={{
                   position: "right",
-                  formatter: (v: number) => `$${v.toLocaleString("es-AR")}`,
+                  formatter: (v: unknown) => `$${Number(v).toLocaleString("es-AR")}`,
                   fontSize: 11,
                   fill: "#6b7280",
                 }}
