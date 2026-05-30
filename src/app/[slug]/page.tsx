@@ -1,19 +1,14 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { Sport } from "@/generated/prisma/client"
 import { CalendarCheck, Clock, ArrowRight } from "lucide-react"
 import { SportIcon } from "@/components/ui/sport-icon"
 import { generarSlots } from "@/lib/slots"
+import { getSport, sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ reservado?: string }>
-}
-
-const deporteLabel: Record<Sport, string> = {
-  PADEL: "Pádel",
-  FOOTBALL: "Fútbol",
 }
 
 export default async function TenantPage({ params, searchParams }: Props) {
@@ -61,13 +56,18 @@ export default async function TenantPage({ params, searchParams }: Props) {
     return totalSlots > 0 && ocupados < totalSlots
   }
 
-  const canchasPadel = tenant.courts.filter((c) => c.sport === "PADEL")
-  const canchasFootball = tenant.courts.filter((c) => c.sport === "FOOTBALL")
-
-  const grupos: { titulo: string; sport: Sport; canchas: typeof tenant.courts }[] = [
-    ...(canchasPadel.length > 0 ? [{ titulo: "Pádel", sport: "PADEL" as Sport, canchas: canchasPadel }] : []),
-    ...(canchasFootball.length > 0 ? [{ titulo: "Fútbol", sport: "FOOTBALL" as Sport, canchas: canchasFootball }] : []),
-  ]
+  // Agrupar canchas por deporte, manteniendo el orden de aparición
+  const sportMap = new Map<string, typeof tenant.courts>()
+  for (const court of tenant.courts) {
+    const arr = sportMap.get(court.sport) ?? []
+    arr.push(court)
+    sportMap.set(court.sport, arr)
+  }
+  const grupos = [...sportMap.entries()].map(([sport, canchas]) => ({
+    sport,
+    titulo: sportLabel(sport),
+    canchas,
+  }))
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -107,15 +107,11 @@ export default async function TenantPage({ params, searchParams }: Props) {
             <h2 className="text-xl font-bold text-gray-900">Nuestras canchas</h2>
 
             {grupos.map(({ titulo, sport, canchas }) => (
-              <div key={titulo} className="space-y-3">
+              <div key={sport} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-semibold text-gray-900">{titulo}</h3>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                      sport === "PADEL"
-                        ? "bg-blue-50 text-blue-700 border-blue-200"
-                        : "bg-green-50 text-green-700 border-green-200"
-                    }`}>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClass}`}>
                       {canchas.length} {canchas.length === 1 ? "cancha" : "canchas"}
                     </span>
                   </div>

@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Racquet } from "@phosphor-icons/react"
 import { crearCancha, editarCancha } from "@/actions/canchas"
 import { Sport } from "@/generated/prisma/client"
+import { SPORT_OPTIONS, getSport } from "@/lib/sports"
 
 interface Cancha {
   id: string
@@ -55,8 +57,20 @@ export function CanchaForm({ tenantId, slug, cancha }: Props) {
             <SelectValue placeholder="Seleccioná un deporte" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="PADEL">Pádel</SelectItem>
-            <SelectItem value="FOOTBALL">Fútbol</SelectItem>
+            {SPORT_OPTIONS.map((value) => {
+              const info = getSport(value)
+              return (
+                <SelectItem key={value} value={value}>
+                  <span className="flex items-center gap-2">
+                    {info.emoji === null
+                      ? <Racquet size={16} className={info.iconColor} />
+                      : <span className="text-base leading-none">{info.emoji}</span>
+                    }
+                    {info.label}
+                  </span>
+                </SelectItem>
+              )
+            })}
           </SelectContent>
         </Select>
       </div>

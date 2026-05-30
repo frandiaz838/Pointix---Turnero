@@ -5,6 +5,7 @@ import { auth } from "@/lib/session"
 import { obtenerSlotsOcupados } from "@/actions/reservas"
 import { generarSlots } from "@/lib/slots"
 import { ReservaForm } from "@/components/booking/reserva-form"
+import { sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string; courtId: string }>
@@ -45,7 +46,7 @@ export default async function ReservarPage({ params, searchParams }: Props) {
         </Link>
         <h1 className="text-xl font-bold mt-1">Reservar — {cancha.name}</h1>
         <p className="text-sm text-gray-500">
-          {cancha.sport === "PADEL" ? "Pádel" : "Fútbol"} ·{" "}
+          {sportLabel(cancha.sport)} ·{" "}
           ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
         </p>
       </header>

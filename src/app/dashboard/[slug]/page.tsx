@@ -7,6 +7,7 @@ import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
 import { LogoutBtn } from "@/components/admin/logout-btn"
 import { AdminMobileMenu } from "@/components/admin/mobile-menu"
 import { generarSlots } from "@/lib/slots"
+import { sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -172,7 +173,7 @@ export default async function AdminDashboardPage({ params }: Props) {
                       </span>
                     </div>
                     <p className="text-sm font-medium text-gray-500">
-                      {cancha.sport === "PADEL" ? "Pádel" : "Fútbol"} ·{" "}
+                      {sportLabel(cancha.sport)} ·{" "}
                       ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
                     </p>
                   </div>

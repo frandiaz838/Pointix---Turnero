@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, CalendarDays, Clock } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { es } from "date-fns/locale"
+import { getSport, sportLabel } from "@/lib/sports"
 
 interface Cancha {
   id: string
@@ -64,20 +65,12 @@ function offsetFecha(fecha: string, dias: number) {
   return d.toISOString().split("T")[0]
 }
 
-function deporteLabel(sport: string) {
-  return sport === "PADEL" ? "Pádel" : "Fútbol"
-}
-
 function calcHoraFin(hora: string, slotMinutes: number): string {
   const [h, m] = hora.split(":").map(Number)
   const totalMin = h * 60 + m + slotMinutes
   return `${String(Math.floor(totalMin / 60) % 24).padStart(2, "0")}:${String(totalMin % 60).padStart(2, "0")}`
 }
 
-const deporteBadge: Record<string, string> = {
-  PADEL: "bg-blue-50 text-blue-700 border-blue-200",
-  FOOTBALL: "bg-green-50 text-green-700 border-green-200",
-}
 
 export function GrillaReservas({
   slug,
@@ -254,7 +247,7 @@ export function GrillaReservas({
                     : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                 }`}
               >
-                {dep === "todos" ? "Todos" : deporteLabel(dep)}
+                {dep === "todos" ? "Todos" : sportLabel(dep)}
               </button>
             ))}
           </div>
@@ -308,7 +301,7 @@ export function GrillaReservas({
                 >
                   <td className="px-4 py-3 whitespace-nowrap">
                     <p className="font-semibold text-gray-800">{cancha.name}</p>
-                    <p className="text-xs font-medium text-gray-400">{deporteLabel(cancha.sport)}</p>
+                    <p className="text-xs font-medium text-gray-400">{sportLabel(cancha.sport)}</p>
                   </td>
                   {cancha.slots.map(({ hora, estado }) => {
                     const isSelected =
@@ -363,7 +356,7 @@ export function GrillaReservas({
           {/* Cancha + deporte */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-lg font-bold text-gray-900">{selectedSlot.courtName}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${deporteBadge[selectedSlot.sport] ?? "bg-gray-50 text-gray-600 border-gray-200"}`}>
+            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getSport(selectedSlot.sport).badgeClass}`}>
               {deporteLabel(selectedSlot.sport)}
             </span>
           </div>

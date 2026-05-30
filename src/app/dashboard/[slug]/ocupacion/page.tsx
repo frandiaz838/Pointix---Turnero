@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { OcupacionChart } from "@/components/admin/ocupacion-chart"
 import { generarSlots } from "@/lib/slots"
 import { LayoutGrid } from "lucide-react"
+import { getSport, sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -116,8 +117,11 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
   const maxOcupacion = datosCanchas.length > 0 ? Math.max(...datosCanchas.map(c => c.ocupacion)) : 0
   const maxDominio = Math.min(100, maxOcupacion === 0 ? 10 : maxOcupacion + 15)
 
-  const canchasPadel  = datosCanchas.filter(c => c.sport === "PADEL")
-  const canchasFutbol = datosCanchas.filter(c => c.sport === "FOOTBALL")
+  const gruposDeporte = [...new Set(datosCanchas.map(c => c.sport))].map(sport => ({
+    sport,
+    label: sportLabel(sport),
+    canchas: datosCanchas.filter(c => c.sport === sport),
+  }))
 
   const periodoLabel: Record<string, string> = {
     hoy: "Hoy",
@@ -162,7 +166,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
                 <div className="flex items-center gap-2">
                   <p className="text-lg font-bold leading-tight">{cachaMasReservada.name}</p>
                   <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-gray-50 text-gray-600 border-gray-200">
-                    {cachaMasReservada.sport === "PADEL" ? "Pádel" : "Fútbol"}
+                    {sportLabel(cachaMasReservada.sport)}
                   </span>
                 </div>
                 <p className="text-xs text-gray-400">
@@ -201,10 +205,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
         </div>
 
         {/* Detalle por cancha — agrupado por deporte */}
-        {[
-          { label: "Pádel", canchas: canchasPadel },
-          { label: "Fútbol", canchas: canchasFutbol },
-        ].filter(g => g.canchas.length > 0).map(grupo => (
+        {gruposDeporte.filter(g => g.canchas.length > 0).map(grupo => (
           <div key={grupo.label} className="space-y-4">
             <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide border-b pb-2">
               {grupo.label}

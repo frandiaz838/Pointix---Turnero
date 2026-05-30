@@ -16,7 +16,16 @@ enum Role {
 }
 
 enum Sport {
+  FUTBOL_5
+  FUTBOL_7
+  FUTBOL_11
   PADEL
+  TENIS
+  SQUASH
+  BASQUET
+  VOLEY
+  HOCKEY
+  NATACION
   FOOTBALL
 }
 

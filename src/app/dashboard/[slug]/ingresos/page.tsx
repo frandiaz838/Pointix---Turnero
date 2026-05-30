@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { IngresosCharts } from "@/components/admin/ingresos-charts"
 import { Clock, Calendar, TrendingUp } from "lucide-react"
+import { sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -107,7 +108,7 @@ export default async function IngresosPage({ params }: Props) {
 
   const porDeporte = Object.values(
     reservasMes.reduce<Record<string, { name: string; total: number }>>((acc, r) => {
-      const dep = r.court.sport === "PADEL" ? "Pádel" : "Fútbol"
+      const dep = sportLabel(r.court.sport)
       if (!acc[dep]) acc[dep] = { name: dep, total: 0 }
       acc[dep].total += Number(r.totalPrice)
       return acc
