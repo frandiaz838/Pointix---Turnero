@@ -72,7 +72,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
 
       <section className="max-w-4xl mx-auto p-6 space-y-3">
         {/* Navegación de fechas */}
-        <div className="flex gap-2 text-sm">
+        <div className="flex flex-wrap gap-2 text-sm">
           {[-1, 0, 1, 2].map((offset) => {
             const d = new Date()
             d.setDate(d.getDate() + offset)
@@ -95,7 +95,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
         ) : (
           <div className="space-y-3">
             {reservas.map((r) => (
-              <div key={r.id} className="bg-white border rounded-lg p-4 flex items-center justify-between">
+              <div key={r.id} className="bg-white border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <p className="font-medium">

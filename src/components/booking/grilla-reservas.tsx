@@ -193,7 +193,7 @@ export function GrillaReservas({
   const hoyDate = new Date(hoy + "T00:00:00")
 
   return (
-    <div className="max-w-5xl mx-auto p-6 space-y-6">
+    <div className="max-w-5xl mx-auto p-3 sm:p-6 space-y-6">
 
       {/* Controles: fecha + filtro de deporte */}
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -284,7 +284,7 @@ export function GrillaReservas({
           <p className="text-sm text-gray-400 mt-1">Probá con otra fecha.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-white shadow-sm">
+        <div className="overflow-x-auto rounded-lg border bg-white shadow-sm" style={{ WebkitOverflowScrolling: "touch" }}>
           <table className="text-sm w-full">
             <thead>
               <tr className="border-b bg-gray-50">
@@ -329,14 +329,14 @@ export function GrillaReservas({
                           }}
                           className={
                             isSelected
-                              ? "w-11 h-8 rounded-md text-xs font-semibold border-2 border-blue-500 bg-blue-50 text-blue-700 scale-105 shadow transition-all"
+                              ? "w-11 h-11 rounded-md text-xs font-semibold border-2 border-blue-500 bg-blue-50 text-blue-700 scale-105 shadow transition-all"
                               : estado === "disponible"
-                              ? "w-11 h-8 rounded-md text-xs font-medium border border-green-300 bg-[#dcfce7] text-green-700 hover:bg-green-100 hover:scale-105 transition-all"
+                              ? "w-11 h-11 rounded-md text-xs font-medium border border-green-300 bg-[#dcfce7] text-green-700 hover:bg-green-100 hover:scale-105 transition-all"
                               : estado === "ocupado"
-                              ? "w-11 h-8 rounded-md text-xs font-medium border border-red-200 bg-[#fee2e2] text-red-400 cursor-not-allowed"
+                              ? "w-11 h-11 rounded-md text-xs font-medium border border-red-200 bg-[#fee2e2] text-red-400 cursor-not-allowed"
                               : estado === "pasado"
-                              ? "w-11 h-8 rounded-md text-xs font-medium bg-[#d1d5db] text-[#6b7280] cursor-not-allowed"
-                              : "w-11 h-8 rounded-sm bg-[#f3f4f6] border border-gray-200 outline-none cursor-default"
+                              ? "w-11 h-11 rounded-md text-xs font-medium bg-[#d1d5db] text-[#6b7280] cursor-not-allowed"
+                              : "w-11 h-11 rounded-sm bg-[#f3f4f6] border border-gray-200 outline-none cursor-default"
                           }
                         >
                           {estado === "cerrado" ? "" : estado === "disponible" ? "✓" : estado === "ocupado" ? "✗" : "–"}

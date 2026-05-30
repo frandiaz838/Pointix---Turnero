@@ -128,7 +128,7 @@ export default async function IngresosPage({ params }: Props) {
       <section className="max-w-4xl mx-auto p-6 space-y-8">
 
         {/* Stats principales */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="bg-white border rounded-lg p-5 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Hoy</p>
@@ -143,7 +143,7 @@ export default async function IngresosPage({ params }: Props) {
             </div>
             <p className="text-4xl font-bold tracking-tight">${ingresosSemana.toLocaleString("es-AR")}</p>
           </div>
-          <div className="bg-white border-2 border-blue-200 rounded-lg p-5 space-y-2">
+          <div className="col-span-2 sm:col-span-1 bg-white border-2 border-blue-200 rounded-lg p-5 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Este mes</p>
               <TrendingUp className="w-4 h-4 text-blue-400" />
@@ -155,14 +155,14 @@ export default async function IngresosPage({ params }: Props) {
         {/* Tabla semanal con barra */}
         <div className="space-y-2">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Semana actual</h2>
-          <div className="bg-white border rounded-lg overflow-hidden">
+          <div className="overflow-x-auto rounded-lg border bg-white">
             <table className="w-full text-sm">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500">Día</th>
-                  <th className="text-right px-4 py-2 font-medium text-gray-500">Reservas</th>
-                  <th className="text-right px-4 py-2 font-medium text-gray-500">Ingresos</th>
-                  <th className="px-4 py-2 w-36"></th>
+                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Día</th>
+                  <th className="text-right px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Reservas</th>
+                  <th className="text-right px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Ingresos</th>
+                  <th className="px-4 py-2 w-36 hidden sm:table-cell"></th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -178,7 +178,7 @@ export default async function IngresosPage({ params }: Props) {
                     <td className={`px-4 py-2.5 text-right font-semibold ${fila.esHoy ? "font-bold" : ""}`}>
                       {fila.total > 0 ? `$${fila.total.toLocaleString("es-AR")}` : <span className="text-gray-300">—</span>}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-2.5 hidden sm:table-cell">
                       {fila.total > 0 && (
                         <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                           <div
@@ -203,16 +203,16 @@ export default async function IngresosPage({ params }: Props) {
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
             Reservas del mes ({reservasMes.length})
           </h2>
-          <div className="bg-white border rounded-lg overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto rounded-lg border bg-white">
+            <table className="w-full text-sm min-w-[500px]">
               <thead className="bg-gray-50 border-b">
                 <tr>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500">Fecha</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500">Hora</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500">Cancha</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500">Cliente</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500">Estado</th>
-                  <th className="text-right px-4 py-2 font-medium text-gray-500">Monto</th>
+                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Fecha</th>
+                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Hora</th>
+                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Cancha</th>
+                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Cliente</th>
+                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Estado</th>
+                  <th className="text-right px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Monto</th>
                 </tr>
               </thead>
               <tbody className="divide-y">

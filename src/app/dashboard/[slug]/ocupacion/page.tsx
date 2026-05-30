@@ -138,7 +138,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
       <section className="max-w-4xl mx-auto p-6 space-y-8">
 
         {/* Cards resumen */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="bg-white border rounded-lg p-4 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Canchas activas</p>
@@ -155,7 +155,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
             </div>
           </div>
 
-          <div className="bg-white border rounded-lg p-4 space-y-2">
+          <div className="col-span-2 sm:col-span-1 bg-white border rounded-lg p-4 space-y-2">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Más reservada</p>
             {cachaMasReservada ? (
               <div className="space-y-0.5">
@@ -176,7 +176,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
         </div>
 
         {/* Selector de período */}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["hoy", "semana", "mes", "año"] as const).map((p) => (
             <Link
               key={p}
@@ -223,14 +223,14 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
                 Sin reservas en este período.
               </p>
             ) : (
-              <div className="bg-white border rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto rounded-lg border bg-white">
+                <table className="w-full text-sm min-w-[360px]">
                   <thead className="bg-gray-50 border-b">
                     <tr>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500">Fecha</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500">Hora</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500">Cliente</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500">Estado</th>
+                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Fecha</th>
+                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Hora</th>
+                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Cliente</th>
+                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Estado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
