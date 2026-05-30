@@ -61,7 +61,7 @@ export async function toggleCanchaActiva(courtId: string, isActive: boolean, ten
 export async function guardarHorarios(courtId: string, tenantId: string, slug: string, formData: FormData) {
   await verificarAdmin(tenantId)
 
-  const schedules = []
+  const schedules: { courtId: string; dayOfWeek: number; openTime: string; closeTime: string; slotMinutes: number }[] = []
   for (let dia = 0; dia < 7; dia++) {
     if (formData.get(`activo_${dia}`) !== "on") continue
     schedules.push({
