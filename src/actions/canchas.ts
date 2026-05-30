@@ -57,3 +57,29 @@ export async function toggleCanchaActiva(courtId: string, isActive: boolean, ten
 
   revalidatePath(`/dashboard/${slug}`)
 }
+
+export async function guardarHorarios(courtId: string, tenantId: string, slug: string, formData: FormData) {
+  await verificarAdmin(tenantId)
+
+  const schedules = []
+  for (let dia = 0; dia < 7; dia++) {
+    if (formData.get(`activo_${dia}`) !== "on") continue
+    schedules.push({
+      courtId,
+      dayOfWeek: dia,
+      openTime: formData.get(`apertura_${dia}`) as string,
+      closeTime: formData.get(`cierre_${dia}`) as string,
+      slotMinutes: parseInt(formData.get(`slots_${dia}`) as string),
+    })
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.schedule.deleteMany({ where: { courtId } })
+    if (schedules.length > 0) {
+      await tx.schedule.createMany({ data: schedules })
+    }
+  })
+
+  revalidatePath(`/dashboard/${slug}`)
+  redirect(`/dashboard/${slug}`)
+}

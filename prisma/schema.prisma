@@ -123,10 +123,24 @@ model Court {
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id])
 
-  bookings Booking[]
+  bookings  Booking[]
+  schedules Schedule[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Schedule {
+  id          String @id @default(cuid())
+  dayOfWeek   Int
+  openTime    String
+  closeTime   String
+  slotMinutes Int    @default(60)
+
+  courtId String
+  court   Court  @relation(fields: [courtId], references: [id], onDelete: Cascade)
+
+  @@unique([courtId, dayOfWeek])
 }
 
 model Booking {
@@ -139,8 +153,14 @@ model Booking {
   mpPaymentId String?
   mpStatus    String?
 
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
+  // Reserva por usuario registrado
+  userId String?
+  user   User?  @relation(fields: [userId], references: [id])
+
+  // Reserva como invitado (sin cuenta)
+  guestName  String?
+  guestPhone String?
+  guestEmail String?
 
   courtId String
   court   Court  @relation(fields: [courtId], references: [id])
