@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { signIn } from "next-auth/react"
+import { useActionState } from "react"
+import { loginAction } from "@/actions/auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,35 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link"
 
 export function LoginForm() {
-  const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
-
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get("email") as string
-    const password = formData.get("password") as string
-
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    })
-
-    setLoading(false)
-
-    if (result?.error) {
-      setError("Email o contraseña incorrectos.")
-      return
-    }
-
-    router.push("/dashboard")
-    router.refresh()
-  }
+  const [state, formAction, isPending] = useActionState(loginAction, null)
 
   return (
     <Card className="w-full max-w-md">
@@ -47,7 +18,7 @@ export function LoginForm() {
         <CardDescription>Ingresá a tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={formAction} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -68,12 +39,12 @@ export function LoginForm() {
             />
           </div>
 
-          {error && (
-            <p className="text-sm text-red-500">{error}</p>
+          {state?.error && (
+            <p className="text-sm text-red-500">{state.error}</p>
           )}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Ingresando..." : "Ingresar"}
+          <Button type="submit" className="w-full" disabled={isPending}>
+            {isPending ? "Ingresando..." : "Ingresar"}
           </Button>
         </form>
 
