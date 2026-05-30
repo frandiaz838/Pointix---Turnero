@@ -33,8 +33,12 @@ export function LoginForm() {
       router.push("/dashboard")
       router.refresh()
     } else {
-      const data = await res.json()
-      setError(data.error ?? "Error al iniciar sesión.")
+      let errorMessage = "Error al iniciar sesión."
+      try {
+        const data = await res.json()
+        errorMessage = data.error ?? errorMessage
+      } catch {}
+      setError(errorMessage)
       setIsPending(false)
     }
   }
