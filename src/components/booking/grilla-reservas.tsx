@@ -357,7 +357,7 @@ export function GrillaReservas({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-lg font-bold text-gray-900">{selectedSlot.courtName}</span>
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getSport(selectedSlot.sport).badgeClass}`}>
-              {deporteLabel(selectedSlot.sport)}
+              {sportLabel(selectedSlot.sport)}
             </span>
           </div>
 
