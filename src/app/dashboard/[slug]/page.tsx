@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
+import { auth } from "@/lib/session"
 import { buttonVariants } from "@/components/ui/button"
 import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
 import { LogoutBtn } from "@/components/admin/logout-btn"

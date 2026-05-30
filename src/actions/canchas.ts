@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
+import { auth } from "@/lib/session"
 import { Sport } from "@/generated/prisma/client"
 
 // Verifica que el usuario sea ADMIN del tenant indicado

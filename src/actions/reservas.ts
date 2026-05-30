@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
+import { auth } from "@/lib/session"
 
 export async function cancelarReserva(bookingId: string) {
   const session = await auth()

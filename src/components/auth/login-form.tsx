@@ -1,7 +1,7 @@
 "use client"
 
-import { useActionState } from "react"
-import { loginAction } from "@/actions/auth"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,7 +9,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Link from "next/link"
 
 export function LoginForm() {
-  const [state, formAction, isPending] = useActionState(loginAction, null)
+  const [error, setError] = useState("")
+  const [isPending, setIsPending] = useState(false)
+  const router = useRouter()
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setIsPending(true)
+    setError("")
+
+    const formData = new FormData(e.currentTarget)
+
+    const res = await fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: formData.get("email"),
+        password: formData.get("password"),
+      }),
+    })
+
+    if (res.ok) {
+      router.push("/dashboard")
+      router.refresh()
+    } else {
+      const data = await res.json()
+      setError(data.error ?? "Error al iniciar sesión.")
+      setIsPending(false)
+    }
+  }
 
   return (
     <Card className="w-full max-w-md">
@@ -18,7 +46,7 @@ export function LoginForm() {
         <CardDescription>Ingresá a tu cuenta</CardDescription>
       </CardHeader>
       <CardContent>
-        <form action={formAction} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -39,8 +67,8 @@ export function LoginForm() {
             />
           </div>
 
-          {state?.error && (
-            <p className="text-sm text-red-500">{state.error}</p>
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
           )}
 
           <Button type="submit" className="w-full" disabled={isPending}>

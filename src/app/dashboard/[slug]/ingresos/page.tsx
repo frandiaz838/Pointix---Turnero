@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
+import { auth } from "@/lib/session"
 import { IngresosCharts } from "@/components/admin/ingresos-charts"
 import { Clock, Calendar, TrendingUp } from "lucide-react"
 

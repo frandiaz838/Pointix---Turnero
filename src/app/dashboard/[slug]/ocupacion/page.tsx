@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { auth } from "@/auth"
+import { auth } from "@/lib/session"
 import { Badge } from "@/components/ui/badge"
 import { OcupacionChart } from "@/components/admin/ocupacion-chart"
 import { generarSlots } from "@/lib/slots"

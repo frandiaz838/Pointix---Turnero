@@ -1,5 +1,5 @@
-import { auth } from "@/auth"
-import { signOut } from "@/auth"
+import { auth } from "@/lib/session"
+import { cerrarSesion } from "@/actions/auth"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -9,10 +9,7 @@ export default async function DashboardPage() {
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-bold">Dashboard</h1>
-          <form action={async () => {
-            "use server"
-            await signOut({ redirectTo: "/login" })
-          }}>
+          <form action={cerrarSesion}>
             <button type="submit" className="text-sm text-gray-500 hover:text-gray-800">
               Cerrar sesión
             </button>
