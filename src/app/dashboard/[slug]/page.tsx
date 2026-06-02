@@ -7,7 +7,8 @@ import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
 import { LogoutBtn } from "@/components/admin/logout-btn"
 import { AdminMobileMenu } from "@/components/admin/mobile-menu"
 import { generarSlots } from "@/lib/slots"
-import { sportLabel } from "@/lib/sports"
+import { getSport, sportLabel } from "@/lib/sports"
+import { SportIcon } from "@/components/ui/sport-icon"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -151,57 +152,88 @@ export default async function AdminDashboardPage({ params }: Props) {
           </div>
         )}
 
-        {/* Lista de canchas */}
+        {/* Lista de canchas agrupadas por deporte */}
         <div className="space-y-2">
           <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Canchas</h2>
 
           {canchas.length === 0 ? (
             <p className="text-gray-500">No hay canchas todavía. ¡Agregá la primera!</p>
-          ) : (
-            <div className="space-y-3">
-              {canchas.map((cancha) => (
-                <div key={cancha.id} className="bg-white border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div className="space-y-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium truncate">{cancha.name}</p>
-                      <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${
-                        cancha.isActive
-                          ? "bg-green-50 text-green-700 border-green-200"
-                          : "bg-gray-100 text-gray-500 border-gray-200"
-                      }`}>
-                        {cancha.isActive ? "Activa" : "Inactiva"}
+          ) : (() => {
+            const sportMap = new Map<string, typeof canchas>()
+            for (const c of canchas) {
+              const arr = sportMap.get(c.sport) ?? []
+              arr.push(c)
+              sportMap.set(c.sport, arr)
+            }
+            const grupos = [...sportMap.entries()].map(([sport, lista]) => ({
+              sport,
+              canchas: [
+                ...lista.filter(c => c.isActive),
+                ...lista.filter(c => !c.isActive),
+              ],
+            }))
+
+            return (
+              <div className="space-y-6">
+                {grupos.map(({ sport, canchas: lista }) => (
+                  <div key={sport} className="space-y-2">
+                    {/* Subtítulo de deporte */}
+                    <div className="flex items-center gap-2 pb-1 border-b">
+                      <SportIcon sport={sport} size={18} />
+                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClass}`}>
+                        {sportLabel(sport)}
                       </span>
                     </div>
-                    <p className="text-sm font-medium text-gray-500">
-                      {sportLabel(cancha.sport)} ·{" "}
-                      ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
-                    </p>
+
+                    {lista.map((cancha) => (
+                      <div
+                        key={cancha.id}
+                        className={`bg-white border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-opacity ${
+                          cancha.isActive ? "" : "opacity-50"
+                        }`}
+                      >
+                        <div className="space-y-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium truncate">{cancha.name}</p>
+                            <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${
+                              cancha.isActive
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : "bg-gray-100 text-gray-500 border-gray-200"
+                            }`}>
+                              {cancha.isActive ? "Activa" : "Inactiva"}
+                            </span>
+                          </div>
+                          <p className="text-sm font-medium text-gray-500">
+                            ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link
+                            href={`/dashboard/${slug}/canchas/${cancha.id}/horarios`}
+                            className={buttonVariants({ variant: "outline", size: "sm" })}
+                          >
+                            Horarios
+                          </Link>
+                          <Link
+                            href={`/dashboard/${slug}/canchas/${cancha.id}/editar`}
+                            className={buttonVariants({ variant: "outline", size: "sm" })}
+                          >
+                            Editar
+                          </Link>
+                          <ToggleActivaBtn
+                            courtId={cancha.id}
+                            isActive={cancha.isActive}
+                            tenantId={tenant.id}
+                            slug={slug}
+                          />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Link
-                      href={`/dashboard/${slug}/canchas/${cancha.id}/horarios`}
-                      className={buttonVariants({ variant: "outline", size: "sm" })}
-                    >
-                      Horarios
-                    </Link>
-                    <Link
-                      href={`/dashboard/${slug}/canchas/${cancha.id}/editar`}
-                      className={buttonVariants({ variant: "outline", size: "sm" })}
-                    >
-                      Editar
-                    </Link>
-                    <ToggleActivaBtn
-                      courtId={cancha.id}
-                      isActive={cancha.isActive}
-                      tenantId={tenant.id}
-                      slug={slug}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )
+          })()}
 
       </section>
     </main>
