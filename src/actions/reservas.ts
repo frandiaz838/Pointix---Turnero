@@ -23,6 +23,24 @@ export async function cancelarReserva(bookingId: string) {
   revalidatePath(`/dashboard/${reserva.court.tenant.slug}/reservas`)
 }
 
+export async function confirmarReserva(bookingId: string) {
+  const session = await auth()
+  if (!session?.user || session.user.role !== "ADMIN") throw new Error("No autorizado")
+
+  const reserva = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    select: { tenantId: true, court: { select: { tenant: { select: { slug: true } } } } },
+  })
+  if (!reserva || reserva.tenantId !== session.user.tenantId) throw new Error("No autorizado")
+
+  await prisma.booking.update({
+    where: { id: bookingId },
+    data: { status: "CONFIRMED" },
+  })
+
+  revalidatePath(`/dashboard/${reserva.court.tenant.slug}/reservas`)
+}
+
 // Devuelve los slots ya ocupados para una cancha en una fecha
 export async function obtenerSlotsOcupados(courtId: string, fecha: string): Promise<string[]> {
   const inicio = new Date(`${fecha}T00:00:00.000Z`)

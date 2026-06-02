@@ -3,8 +3,13 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { CalendarCheck, Clock, ArrowRight } from "lucide-react"
 import { SportIcon } from "@/components/ui/sport-icon"
+import { SportPills } from "@/components/landing/sport-pills"
 import { generarSlots } from "@/lib/slots"
 import { getSport, sportLabel } from "@/lib/sports"
+
+function sectionId(sport: string) {
+  return `seccion-${sport.toLowerCase().replace(/_/g, "-")}`
+}
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -82,13 +87,13 @@ export default async function TenantPage({ params, searchParams }: Props) {
           {tenant.description && (
             <p className="text-base font-medium text-gray-500">{tenant.description}</p>
           )}
-          <div className="flex flex-wrap justify-center gap-2 pt-1">
-            {["🎾 Pádel", "⚽ Fútbol", "📅 Reserva online 24hs"].map((pill) => (
-              <span key={pill} className="bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200">
-                {pill}
-              </span>
-            ))}
-          </div>
+          <SportPills
+            sports={grupos.map(({ sport, titulo }) => ({
+              sport,
+              label: titulo,
+              emoji: getSport(sport).emoji,
+            }))}
+          />
         </div>
       </section>
 
@@ -107,7 +112,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
             <h2 className="text-xl font-bold text-gray-900">Nuestras canchas</h2>
 
             {grupos.map(({ titulo, sport, canchas }) => (
-              <div key={sport} className="space-y-3">
+              <div key={sport} id={sectionId(sport)} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <h3 className="text-base font-semibold text-gray-900">{titulo}</h3>
