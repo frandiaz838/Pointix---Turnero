@@ -73,6 +73,17 @@ export default async function AdminDashboardPage({ params }: Props) {
   }, 0)
   const ocupacion = totalSlotsHoy > 0 ? Math.round((reservasHoy.length / totalSlotsHoy) * 100) : null
 
+  const sportMap = new Map<string, typeof canchas>()
+  for (const c of canchas) {
+    const arr = sportMap.get(c.sport) ?? []
+    arr.push(c)
+    sportMap.set(c.sport, arr)
+  }
+  const gruposCanchas = [...sportMap.entries()].map(([sport, lista]) => ({
+    sport,
+    canchas: [...lista.filter(c => c.isActive), ...lista.filter(c => !c.isActive)],
+  }))
+
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
@@ -158,24 +169,9 @@ export default async function AdminDashboardPage({ params }: Props) {
 
           {canchas.length === 0 ? (
             <p className="text-gray-500">No hay canchas todavía. ¡Agregá la primera!</p>
-          ) : (() => {
-            const sportMap = new Map<string, typeof canchas>()
-            for (const c of canchas) {
-              const arr = sportMap.get(c.sport) ?? []
-              arr.push(c)
-              sportMap.set(c.sport, arr)
-            }
-            const grupos = [...sportMap.entries()].map(([sport, lista]) => ({
-              sport,
-              canchas: [
-                ...lista.filter(c => c.isActive),
-                ...lista.filter(c => !c.isActive),
-              ],
-            }))
-
-            return (
-              <div className="space-y-6">
-                {grupos.map(({ sport, canchas: lista }) => (
+          ) : (
+            <div className="space-y-6">
+              {gruposCanchas.map(({ sport, canchas: lista }) => (
                   <div key={sport} className="space-y-2">
                     {/* Subtítulo de deporte */}
                     <div className="flex items-center gap-2 pb-1 border-b">
@@ -231,9 +227,9 @@ export default async function AdminDashboardPage({ params }: Props) {
                     ))}
                   </div>
                 ))}
-              </div>
-            )
-          })()}
+            </div>
+          )}
+        </div>
 
       </section>
     </main>
