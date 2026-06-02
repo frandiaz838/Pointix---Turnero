@@ -7,6 +7,7 @@ import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
 import { LogoutBtn } from "@/components/admin/logout-btn"
 import { AdminMobileMenu } from "@/components/admin/mobile-menu"
 import { generarSlots } from "@/lib/slots"
+import { Clock } from "lucide-react"
 import { getSport, sportLabel } from "@/lib/sports"
 import { SportIcon } from "@/components/ui/sport-icon"
 
@@ -31,8 +32,15 @@ export default async function AdminDashboardPage({ params }: Props) {
   const fin = new Date(`${hoy}T23:59:59.999Z`)
   const inicioMes = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1))
   const finMes = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth() + 1, 0, 23, 59, 59, 999))
+  const diaSemana = ahora.getUTCDay()
 
-  const [reservasHoy, reservasMes, canchas, schedulesHoy] = await Promise.all([
+  const ayer = new Date(ahora)
+  ayer.setUTCDate(ahora.getUTCDate() - 1)
+  const ayerStr = ayer.toISOString().split("T")[0]
+  const inicioAyer = new Date(`${ayerStr}T00:00:00.000Z`)
+  const finAyer = new Date(`${ayerStr}T23:59:59.999Z`)
+
+  const [reservasHoy, reservasMes, canchas, countAyer] = await Promise.all([
     prisma.booking.findMany({
       where: {
         tenantId: tenant.id,
@@ -55,12 +63,14 @@ export default async function AdminDashboardPage({ params }: Props) {
     }),
     prisma.court.findMany({
       where: { tenantId: tenant.id },
+      include: { schedules: true },
       orderBy: { createdAt: "asc" },
     }),
-    prisma.schedule.findMany({
+    prisma.booking.count({
       where: {
-        court: { tenantId: tenant.id, isActive: true },
-        dayOfWeek: new Date().getUTCDay(),
+        tenantId: tenant.id,
+        startTime: { gte: inicioAyer, lte: finAyer },
+        status: { in: ["PENDING", "CONFIRMED"] },
       },
     }),
   ])
@@ -68,10 +78,21 @@ export default async function AdminDashboardPage({ params }: Props) {
   const ingresosHoy = reservasHoy.reduce((sum, r) => sum + Number(r.totalPrice), 0)
   const ingresosMes = Number(reservasMes._sum.totalPrice ?? 0)
 
-  const totalSlotsHoy = schedulesHoy.reduce((sum, s) => {
-    return sum + generarSlots(s.openTime, s.closeTime, s.slotMinutes).length
-  }, 0)
+  const totalSlotsHoy = canchas
+    .filter(c => c.isActive)
+    .reduce((sum, c) => {
+      const sch = c.schedules.find(s => s.dayOfWeek === diaSemana)
+      return sch ? sum + generarSlots(sch.openTime, sch.closeTime, sch.slotMinutes).length : sum
+    }, 0)
   const ocupacion = totalSlotsHoy > 0 ? Math.round((reservasHoy.length / totalSlotsHoy) * 100) : null
+
+  const diffAyer = reservasHoy.length - countAyer
+  const comparacionAyer =
+    diffAyer > 0
+      ? { text: `↑ ${diffAyer} más que ayer`, color: "text-green-600" }
+      : diffAyer < 0
+      ? { text: `↓ ${Math.abs(diffAyer)} menos que ayer`, color: "text-red-500" }
+      : { text: "Igual que ayer", color: "text-gray-400" }
 
   const sportMap = new Map<string, typeof canchas>()
   for (const c of canchas) {
@@ -114,6 +135,7 @@ export default async function AdminDashboardPage({ params }: Props) {
           <div className="bg-white border rounded-lg p-4 space-y-1">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reservas hoy</p>
             <p className="text-3xl font-bold">{reservasHoy.length}</p>
+            <p className={`text-xs font-medium ${comparacionAyer.color}`}>{comparacionAyer.text}</p>
           </div>
           <Link href={`/dashboard/${slug}/ingresos`} className="bg-white border rounded-lg p-4 space-y-1 hover:bg-gray-50 transition-colors block">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ingresos</p>
@@ -129,23 +151,25 @@ export default async function AdminDashboardPage({ params }: Props) {
           </Link>
         </div>
 
-        {/* Próximas reservas del día */}
-        {reservasHoy.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Reservas de hoy</h2>
+        {/* Reservas del día */}
+        <div className="space-y-2">
+          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Reservas de hoy</h2>
+          {reservasHoy.length === 0 ? (
+            <p className="text-sm text-gray-400 bg-white border rounded-lg px-4 py-3">No hay reservas para hoy.</p>
+          ) : (
             <div className="bg-white border rounded-lg divide-y">
               {reservasHoy.map((r) => (
-                <div key={r.id} className="px-4 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-semibold w-14">
+                <div key={r.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-sm font-semibold w-14 shrink-0">
                       {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
                     </span>
-                    <span className="text-sm font-medium text-gray-600">{r.court.name}</span>
-                    <span className="text-sm font-medium text-gray-400">
+                    <span className="text-sm font-medium text-gray-600 truncate">{r.court.name}</span>
+                    <span className="text-sm font-medium text-gray-400 truncate hidden sm:block">
                       {r.user?.name ?? r.guestName ?? "Invitado"}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 shrink-0">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
                       r.status === "CONFIRMED" ? "bg-green-50 text-green-700 border-green-200"
                       : r.status === "CANCELLED" ? "bg-red-50 text-red-500 border-red-200"
@@ -160,8 +184,8 @@ export default async function AdminDashboardPage({ params }: Props) {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Lista de canchas agrupadas por deporte */}
         <div className="space-y-2">
@@ -202,6 +226,15 @@ export default async function AdminDashboardPage({ params }: Props) {
                           <p className="text-sm font-medium text-gray-500">
                             ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
                           </p>
+                          {(() => {
+                            const sch = cancha.schedules.find(s => s.dayOfWeek === diaSemana) ?? cancha.schedules[0]
+                            return sch ? (
+                              <p className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {sch.openTime} - {sch.closeTime}
+                              </p>
+                            ) : null
+                          })()}
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <Link
