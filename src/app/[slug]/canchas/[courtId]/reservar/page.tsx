@@ -39,13 +39,13 @@ export default async function ReservarPage({ params, searchParams }: Props) {
   const slotsDisponibles = todosLosSlots.filter((s) => !slotsOcupados.includes(s))
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
-        <Link href={`/${slug}`} className="text-sm text-gray-500 hover:text-gray-800">
+    <main className="min-h-screen bg-[#0C0E14]">
+      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+        <Link href={`/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver a {cancha.tenant.name}
         </Link>
-        <h1 className="text-xl font-bold mt-1">Reservar — {cancha.name}</h1>
-        <p className="text-sm text-gray-500">
+        <h1 className="text-lg font-bold text-white mt-1">Reservar — {cancha.name}</h1>
+        <p className="text-sm text-white/40">
           {sportLabel(cancha.sport)} ·{" "}
           ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
         </p>

@@ -15,21 +15,21 @@ export default async function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
+    <main className="min-h-screen bg-[#0C0E14] p-8">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <h1 className="text-xl font-bold text-white">Dashboard</h1>
           <form action={cerrarSesion}>
-            <button type="submit" className="text-sm text-gray-500 hover:text-gray-800">
+            <button type="submit" className="text-sm text-white/40 hover:text-white transition-colors">
               Cerrar sesión
             </button>
           </form>
         </div>
 
-        <div className="bg-white rounded-lg border p-6 space-y-2">
-          <p><span className="font-medium">Nombre:</span> {session?.user?.name ?? "—"}</p>
-          <p><span className="font-medium">Email:</span> {session?.user?.email}</p>
-          <p><span className="font-medium">Rol:</span> {session?.user?.role}</p>
+        <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-6 space-y-2">
+          <p className="text-white/70"><span className="font-medium text-white">Nombre:</span> {session?.user?.name ?? "—"}</p>
+          <p className="text-white/70"><span className="font-medium text-white">Email:</span> {session?.user?.email}</p>
+          <p className="text-white/70"><span className="font-medium text-white">Rol:</span> {session?.user?.role}</p>
         </div>
       </div>
     </main>

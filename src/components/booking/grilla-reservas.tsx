@@ -4,7 +4,7 @@ import { useState, useTransition, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { generarSlots } from "@/lib/slots"
 import { crearReserva } from "@/actions/reservas"
-import { ChevronLeft, ChevronRight, CalendarDays, Clock } from "lucide-react"
+import { ChevronLeft, ChevronRight, CalendarDays, Clock, AlertCircle } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { es } from "date-fns/locale"
@@ -71,6 +71,23 @@ function calcHoraFin(hora: string, slotMinutes: number): string {
   return `${String(Math.floor(totalMin / 60) % 24).padStart(2, "0")}:${String(totalMin % 60).padStart(2, "0")}`
 }
 
+type Estado = "disponible" | "ocupado" | "pasado" | "cerrado"
+
+function slotClass(estado: Estado, isSelected: boolean): string {
+  if (isSelected) {
+    return "border-2 border-[#CAFF00] bg-[#CAFF00]/15 text-[#CAFF00] scale-105 shadow-[0_0_12px_rgba(202,255,0,0.2)]"
+  }
+  if (estado === "disponible") {
+    return "border border-[#CAFF00]/25 bg-[#CAFF00]/[0.07] text-[#CAFF00]/70 hover:bg-[#CAFF00]/[0.15] hover:text-[#CAFF00] hover:scale-105"
+  }
+  if (estado === "ocupado") {
+    return "border border-red-500/15 bg-red-500/[0.07] text-red-400/40 cursor-not-allowed"
+  }
+  if (estado === "pasado") {
+    return "bg-white/[0.04] text-white/15 cursor-not-allowed"
+  }
+  return "bg-white/[0.02] cursor-default"
+}
 
 export function GrillaReservas({
   slug,
@@ -154,6 +171,19 @@ export function GrillaReservas({
     }
   })
 
+  function handleSelectSlot(cancha: typeof canchasConSlots[0], hora: string, estado: Estado) {
+    if (estado !== "disponible") return
+    setSelectedSlot({
+      courtId: cancha.id,
+      courtName: cancha.name,
+      sport: cancha.sport,
+      hora,
+      slotMinutes: cancha.slotMinutes,
+      precio: cancha.pricePerHour,
+    })
+    setError(null)
+  }
+
   function handleConfirmar() {
     if (!selectedSlot) return
     if (!isLoggedIn && (!guestName.trim() || !guestPhone.trim())) {
@@ -187,24 +217,26 @@ export function GrillaReservas({
   const fechaDate = new Date(fecha + "T12:00:00Z")
   const hoyDate = new Date(hoy + "T00:00:00")
 
+  const inputClass = "w-full rounded-lg border border-white/[0.1] bg-white/[0.05] px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#CAFF00]/50 focus:ring-2 focus:ring-[#CAFF00]/20 transition-colors"
+
   return (
-    <div className="max-w-5xl mx-auto p-3 sm:p-6 space-y-6">
+    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
 
       {/* Controles: fecha + filtro de deporte */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {/* Navegación de fecha */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate(offsetFecha(fecha, -1), deporte)}
             disabled={fecha <= hoy}
-            className="p-2 rounded-lg border bg-white hover:bg-gray-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.09] transition-colors disabled:opacity-25 disabled:cursor-not-allowed"
           >
-            <ChevronLeft className="w-4 h-4 text-gray-600" />
+            <ChevronLeft className="w-4 h-4 text-white/60" />
           </button>
 
           <Popover open={calendarOpen} onOpenChange={(open) => setCalendarOpen(open)}>
-            <PopoverTrigger className="border rounded-lg px-3 py-2 flex items-center gap-2 bg-white hover:bg-gray-50 transition-colors text-sm font-medium text-gray-800 cursor-pointer">
-              <CalendarDays className="w-4 h-4 text-gray-400" />
+            <PopoverTrigger className="border border-white/[0.1] rounded-lg px-3 py-2 flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.09] transition-colors text-sm font-medium text-white cursor-pointer">
+              <CalendarDays className="w-4 h-4 text-white/40" />
               {capitalizarPrimera(formatFecha(fecha))}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" side="bottom" align="start">
@@ -228,23 +260,23 @@ export function GrillaReservas({
 
           <button
             onClick={() => navigate(offsetFecha(fecha, 1), deporte)}
-            className="p-2 rounded-lg border bg-white hover:bg-gray-50 transition-colors"
+            className="p-2 rounded-lg border border-white/[0.1] bg-white/[0.05] hover:bg-white/[0.09] transition-colors"
           >
-            <ChevronRight className="w-4 h-4 text-gray-600" />
+            <ChevronRight className="w-4 h-4 text-white/60" />
           </button>
         </div>
 
         {/* Filtro de deporte */}
         {deportesDisponibles.length > 1 && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {(["todos", ...deportesDisponibles] as string[]).map((dep) => (
               <button
                 key={dep}
                 onClick={() => navigate(fecha, dep)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                   deporte === dep
-                    ? "bg-black text-white border-black"
-                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    ? "bg-[#CAFF00] text-black border-[#CAFF00]"
+                    : "bg-white/[0.05] hover:bg-white/[0.09] border-white/[0.1] text-white/60 hover:text-white"
                 }`}
               >
                 {dep === "todos" ? "Todos" : sportLabel(dep)}
@@ -254,133 +286,169 @@ export function GrillaReservas({
         )}
       </div>
 
-      {/* Leyenda encima de la grilla, alineada a la derecha */}
-      {slotsUnion.length > 0 && (
-        <div className="flex justify-end gap-5 text-xs font-medium text-gray-400">
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm border border-green-300 bg-[#dcfce7] inline-block" /> Disponible
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm border border-red-200 bg-[#fee2e2] inline-block" /> Ocupado
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm bg-[#d1d5db] inline-block" /> Pasado
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-sm bg-[#f3f4f6] border border-gray-200 inline-block" /> Sin horario
-          </span>
-        </div>
-      )}
-
-      {/* Grilla */}
+      {/* Sin horarios */}
       {slotsUnion.length === 0 ? (
-        <div className="bg-white border rounded-lg p-10 text-center">
-          <p className="text-gray-500 font-medium">No hay canchas con horarios para este día.</p>
-          <p className="text-sm text-gray-400 mt-1">Probá con otra fecha.</p>
+        <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-10 text-center">
+          <p className="text-white/40 font-medium">No hay canchas con horarios para este día.</p>
+          <p className="text-sm text-white/25 mt-1">Probá con otra fecha.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border bg-white shadow-sm" style={{ WebkitOverflowScrolling: "touch" }}>
-          <table className="text-sm w-full">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="text-left px-4 py-3 font-semibold text-gray-600 whitespace-nowrap min-w-[150px]">
-                  Cancha
-                </th>
-                {slotsUnion.map((hora) => (
-                  <th key={hora} className="px-1 py-3 font-medium text-gray-400 text-center min-w-[52px]">
-                    {hora}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {canchasConSlots.map((cancha, idx) => (
-                <tr
+        <>
+          {/* ── MOBILE — cards por cancha ─────────────────────── */}
+          <div className="block sm:hidden space-y-4">
+            {canchasConSlots.map((cancha) => {
+              const slotsVisibles = cancha.slots.filter((s) => s.estado !== "cerrado")
+              return (
+                <div
                   key={cancha.id}
-                  className={idx < canchasConSlots.length - 1 ? "border-b" : ""}
+                  className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4 space-y-3"
                 >
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <p className="font-semibold text-gray-800">{cancha.name}</p>
-                    <p className="text-xs font-medium text-gray-400">{sportLabel(cancha.sport)}</p>
-                  </td>
-                  {cancha.slots.map(({ hora, estado }) => {
-                    const isSelected =
-                      selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
-                    return (
-                      <td key={hora} className="px-1 py-2 text-center">
+                  {/* Header cancha */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-bold text-white">{cancha.name}</span>
+                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${getSport(cancha.sport).badgeClassSolid}`}>
+                      {sportLabel(cancha.sport)}
+                    </span>
+                    <span className="text-xs text-white/30 ml-auto">
+                      ${cancha.pricePerHour.toLocaleString("es-AR")}/h
+                    </span>
+                  </div>
+
+                  {/* Grid 3 columnas */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {slotsVisibles.map(({ hora, estado }) => {
+                      const isSelected =
+                        selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
+                      return (
                         <button
+                          key={hora}
                           disabled={estado !== "disponible"}
-                          onClick={() => {
-                            if (estado !== "disponible") return
-                            setSelectedSlot({
-                              courtId: cancha.id,
-                              courtName: cancha.name,
-                              sport: cancha.sport,
-                              hora,
-                              slotMinutes: cancha.slotMinutes,
-                              precio: cancha.pricePerHour,
-                            })
-                            setError(null)
-                          }}
-                          className={
-                            isSelected
-                              ? "w-11 h-11 rounded-md text-xs font-semibold border-2 border-blue-500 bg-blue-50 text-blue-700 scale-105 shadow transition-all"
-                              : estado === "disponible"
-                              ? "w-11 h-11 rounded-md text-xs font-medium border border-green-300 bg-[#dcfce7] text-green-700 hover:bg-green-100 hover:scale-105 transition-all"
-                              : estado === "ocupado"
-                              ? "w-11 h-11 rounded-md text-xs font-medium border border-red-200 bg-[#fee2e2] text-red-400 cursor-not-allowed"
-                              : estado === "pasado"
-                              ? "w-11 h-11 rounded-md text-xs font-medium bg-[#d1d5db] text-[#6b7280] cursor-not-allowed"
-                              : "w-11 h-11 rounded-sm bg-[#f3f4f6] border border-gray-200 outline-none cursor-default"
-                          }
+                          onClick={() => handleSelectSlot(cancha, hora, estado)}
+                          className={`py-2.5 rounded-lg text-xs font-semibold transition-all ${slotClass(estado, isSelected)}`}
                         >
-                          {estado === "cerrado" ? "" : estado === "disponible" ? "✓" : estado === "ocupado" ? "✗" : "–"}
+                          {hora}
                         </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* ── DESKTOP — tabla dark ──────────────────────────── */}
+          <div className="hidden sm:block">
+            {/* Leyenda */}
+            <div className="flex justify-end gap-5 text-xs font-medium text-white/30 mb-3">
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm border border-[#CAFF00]/30 bg-[#CAFF00]/[0.08] inline-block" />
+                Disponible
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm border border-red-500/20 bg-red-500/[0.07] inline-block" />
+                Ocupado
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm bg-white/[0.04] inline-block" />
+                Pasado
+              </span>
+            </div>
+
+            <div
+              className="overflow-x-auto rounded-xl border border-white/[0.07] bg-[#14171F]"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
+              <table className="text-sm w-full">
+                <thead>
+                  <tr className="border-b border-white/[0.07]">
+                    <th className="text-left px-4 py-3 font-semibold text-white/50 whitespace-nowrap min-w-[160px]">
+                      Cancha
+                    </th>
+                    {slotsUnion.map((hora) => (
+                      <th key={hora} className="px-1 py-3 font-medium text-white/30 text-center min-w-[52px] whitespace-nowrap">
+                        {hora}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {canchasConSlots.map((cancha, idx) => (
+                    <tr
+                      key={cancha.id}
+                      className={idx < canchasConSlots.length - 1 ? "border-b border-white/[0.05]" : ""}
+                    >
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <p className="font-semibold text-white">{cancha.name}</p>
+                        <p className="text-xs text-white/30">{sportLabel(cancha.sport)}</p>
                       </td>
-                    )
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                      {cancha.slots.map(({ hora, estado }) => {
+                        const isSelected =
+                          selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
+                        return (
+                          <td key={hora} className="px-1 py-2 text-center">
+                            <button
+                              disabled={estado !== "disponible"}
+                              onClick={() => handleSelectSlot(cancha, hora, estado)}
+                              className={`w-11 h-11 rounded-lg text-xs font-semibold transition-all ${slotClass(estado, isSelected)}`}
+                            >
+                              {estado === "cerrado"
+                                ? ""
+                                : estado === "disponible"
+                                ? "✓"
+                                : estado === "ocupado"
+                                ? "✗"
+                                : "–"}
+                            </button>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Panel de confirmación */}
       {selectedSlot && (
-        <div ref={panelRef} className="bg-white border-2 border-gray-900 rounded-xl p-6 space-y-5 shadow-md">
-
-          {/* Encabezado */}
-          <h3 className="text-base font-bold text-gray-900">Resumen de tu reserva</h3>
+        <div
+          ref={panelRef}
+          className="bg-[#14171F] border border-[#CAFF00]/20 rounded-2xl p-6 space-y-5"
+        >
+          <h3 className="font-display text-xl font-black uppercase text-white tracking-tight leading-none">
+            Tu reserva
+          </h3>
 
           {/* Cancha + deporte */}
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-lg font-bold text-gray-900">{selectedSlot.courtName}</span>
-            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getSport(selectedSlot.sport).badgeClass}`}>
+            <span className="text-lg font-bold text-white">{selectedSlot.courtName}</span>
+            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${getSport(selectedSlot.sport).badgeClassSolid}`}>
               {sportLabel(selectedSlot.sport)}
             </span>
           </div>
 
           {/* Detalles */}
-          <div className="space-y-2.5">
-            <div className="flex items-center gap-2.5 text-sm text-gray-600">
-              <CalendarDays className="w-4 h-4 shrink-0 text-gray-400" />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5 text-sm text-white/60">
+              <CalendarDays className="w-4 h-4 shrink-0 text-white/30" />
               <span className="font-medium">{capitalizarPrimera(formatFecha(fecha))}</span>
             </div>
-            <div className="flex items-center gap-2.5 text-sm text-gray-600">
-              <Clock className="w-4 h-4 shrink-0 text-gray-400" />
+            <div className="flex items-center gap-2.5 text-sm text-white/60">
+              <Clock className="w-4 h-4 shrink-0 text-white/30" />
               <span className="font-medium">
                 {selectedSlot.hora} — {calcHoraFin(selectedSlot.hora, selectedSlot.slotMinutes)} hs
               </span>
-              <span className="text-xs text-gray-400">({selectedSlot.slotMinutes} min)</span>
+              <span className="text-xs text-white/25">({selectedSlot.slotMinutes} min)</span>
             </div>
           </div>
 
           {/* Precio */}
-          <div className="border-t pt-4">
+          <div className="border-t border-white/[0.07] pt-4">
             <div className="flex items-baseline justify-between">
-              <span className="text-sm font-medium text-gray-500">Total</span>
-              <span className="text-2xl font-bold text-gray-900">
+              <span className="text-sm font-medium text-white/40">Total</span>
+              <span className="font-display text-3xl font-black text-[#CAFF00]">
                 ${selectedSlot.precio.toLocaleString("es-AR")}
               </span>
             </div>
@@ -393,42 +461,48 @@ export function GrillaReservas({
                 value={guestName}
                 onChange={(e) => setGuestName(e.target.value)}
                 placeholder="Tu nombre completo"
-                className="border rounded-lg px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-black/20 placeholder:text-gray-400"
+                autoComplete="name"
+                className={inputClass}
               />
               <input
                 value={guestPhone}
                 onChange={(e) => setGuestPhone(e.target.value)}
                 placeholder="Tu teléfono"
                 type="tel"
-                className="border rounded-lg px-3 py-2 text-sm font-medium outline-none focus:ring-2 focus:ring-black/20 placeholder:text-gray-400"
+                autoComplete="tel"
+                className={inputClass}
               />
             </div>
           )}
 
           {error && (
-            <p className="text-sm font-medium text-red-500">{error}</p>
+            <div
+              role="alert"
+              className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-lg px-4 py-3"
+            >
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {error}
+            </div>
           )}
 
           <div className="flex flex-col sm:flex-row gap-2">
             <button
               onClick={() => { setSelectedSlot(null); setError(null) }}
               disabled={isPending}
-              className="flex-1 border border-gray-300 text-gray-700 rounded-lg py-3 text-sm font-semibold hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 border border-white/[0.12] text-white/60 hover:text-white hover:border-white/25 rounded-xl py-3 text-sm font-semibold transition-colors disabled:opacity-40"
             >
               Cancelar
             </button>
             <button
               onClick={handleConfirmar}
               disabled={isPending}
-              className="flex-1 bg-black text-white rounded-lg py-3 text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black rounded-xl py-3 text-sm font-bold transition-all disabled:opacity-50"
             >
               {isPending ? "Confirmando…" : "Confirmar reserva"}
             </button>
           </div>
-
         </div>
       )}
-
     </div>
   )
 }

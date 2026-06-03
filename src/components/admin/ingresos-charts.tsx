@@ -11,7 +11,7 @@ interface Props {
   porDeporte: { name: string; total: number }[]
 }
 
-const COLORES = ["#2563eb", "#16a34a", "#f59e0b", "#8b5cf6"]
+const COLORES = ["#CAFF00", "#22d3ee", "#a78bfa", "#fb923c"]
 
 export function IngresosCharts({ porCancha, porDeporte }: Props) {
   const [isMobile, setIsMobile] = useState(false)
@@ -26,16 +26,18 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
   const yAxisWidth = isMobile ? 90 : 120
   const barRightMargin = isMobile ? 48 : 60
 
+  const tickStyle = { fontSize: isMobile ? 10 : 11, fill: "rgba(255,255,255,0.35)" }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
       {/* Barras horizontales por cancha */}
-      <div className="bg-white border rounded-lg p-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4">
+        <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
           Por cancha
         </p>
         {porCancha.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">Sin datos</p>
+          <p className="text-sm text-white/25 text-center py-8">Sin datos</p>
         ) : (
           <ResponsiveContainer width="100%" height={Math.max(porCancha.length * 48, 80)}>
             <BarChart
@@ -47,21 +49,22 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
               <YAxis
                 type="category"
                 dataKey="name"
-                tick={{ fontSize: isMobile ? 10 : 11 }}
+                tick={tickStyle}
                 width={yAxisWidth}
               />
               <Tooltip
+                contentStyle={{ background: "#14171F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
                 formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, "Ingresos"]}
               />
               <Bar
                 dataKey="total"
-                fill="#2563eb"
+                fill="#CAFF00"
                 radius={[0, 4, 4, 0]}
                 label={{
                   position: "right",
                   formatter: (v: unknown) => `$${Number(v).toLocaleString("es-AR")}`,
                   fontSize: isMobile ? 10 : 11,
-                  fill: "#6b7280",
+                  fill: "rgba(255,255,255,0.35)",
                 }}
               />
             </BarChart>
@@ -70,12 +73,12 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
       </div>
 
       {/* Donut por deporte */}
-      <div className="bg-white border rounded-lg p-4">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4">
+      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4">
+        <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
           Por deporte
         </p>
         {porDeporte.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">Sin datos</p>
+          <p className="text-sm text-white/25 text-center py-8">Sin datos</p>
         ) : (
           <ResponsiveContainer width="100%" height={isMobile ? 180 : 220}>
             <PieChart>
@@ -91,8 +94,15 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
                   <Cell key={i} fill={COLORES[i % COLORES.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, ""]} />
-              <Legend iconType="circle" iconSize={8} />
+              <Tooltip
+                contentStyle={{ background: "#14171F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
+                formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, ""]}
+              />
+              <Legend
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ fontSize: "11px", color: "rgba(255,255,255,0.4)" }}
+              />
             </PieChart>
           </ResponsiveContainer>
         )}

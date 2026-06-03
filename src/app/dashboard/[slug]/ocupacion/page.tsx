@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
-import { Badge } from "@/components/ui/badge"
 import { OcupacionChart } from "@/components/admin/ocupacion-chart"
 import { generarSlots } from "@/lib/slots"
 import { LayoutGrid } from "lucide-react"
@@ -44,7 +43,6 @@ function getRango(periodo: string, ahora: Date) {
       fin: new Date(Date.UTC(ahora.getUTCFullYear(), 11, 31, 23, 59, 59, 999)),
     }
   }
-  // mes (default)
   return {
     inicio: new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1)),
     fin: new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth() + 1, 0, 23, 59, 59, 999)),
@@ -131,50 +129,50 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-sm text-gray-500 hover:text-gray-800">
+    <main className="min-h-screen bg-[#0C0E14]">
+      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-xl font-bold mt-1">Ocupación</h1>
+        <h1 className="text-lg font-bold text-white mt-1">Ocupación</h1>
       </header>
 
       <section className="max-w-4xl mx-auto p-6 space-y-8">
 
         {/* Cards resumen */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="bg-white border rounded-lg p-4 space-y-2">
+          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Canchas activas</p>
-              <LayoutGrid className="w-4 h-4 text-gray-400" />
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Canchas activas</p>
+              <LayoutGrid className="w-3.5 h-3.5 text-white/20" />
             </div>
-            <p className="text-2xl font-bold">{datosCanchas.length}</p>
+            <p className="font-display text-3xl font-black text-white">{datosCanchas.length}</p>
           </div>
 
-          <div className="bg-white border rounded-lg p-4 space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ocupación promedio</p>
+          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
+            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Ocup. promedio</p>
             <div className="flex items-baseline gap-2">
-              <p className="text-3xl font-bold">{ocupacionPromedio}%</p>
-              <p className="text-xs text-gray-400">{periodoLabel[periodo].toLowerCase()}</p>
+              <p className="font-display text-3xl font-black text-[#CAFF00]">{ocupacionPromedio}%</p>
+              <p className="text-xs text-white/25">{periodoLabel[periodo].toLowerCase()}</p>
             </div>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 bg-white border rounded-lg p-4 space-y-2">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Más reservada</p>
+          <div className="col-span-2 sm:col-span-1 bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
+            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Más reservada</p>
             {cachaMasReservada ? (
               <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <p className="text-lg font-bold leading-tight">{cachaMasReservada.name}</p>
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-full border bg-gray-50 text-gray-600 border-gray-200">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-base font-bold text-white leading-tight">{cachaMasReservada.name}</p>
+                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${getSport(cachaMasReservada.sport).badgeClassSolid}`}>
                     {sportLabel(cachaMasReservada.sport)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-400">
+                <p className="text-xs text-white/30">
                   {cachaMasReservada.reservas === 1 ? "1 reserva" : `${cachaMasReservada.reservas} reservas`}
                 </p>
               </div>
             ) : (
-              <p className="text-2xl font-bold text-gray-300">—</p>
+              <p className="font-display text-2xl font-black text-white/20">—</p>
             )}
           </div>
         </div>
@@ -187,8 +185,8 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
               href={`/dashboard/${slug}/ocupacion?periodo=${p}`}
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
                 periodo === p
-                  ? "bg-black text-white border-black"
-                  : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                  ? "bg-[#CAFF00] text-black border-[#CAFF00]"
+                  : "bg-white/[0.05] hover:bg-white/[0.09] border-white/[0.1] text-white/60 hover:text-white"
               }`}
             >
               {periodoLabel[p]}
@@ -197,8 +195,8 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
         </div>
 
         {/* Gráfico */}
-        <div className="bg-white border rounded-lg p-4">
-          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">
+        <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5">
+          <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
             % Ocupación por cancha — {periodoLabel[periodo].toLowerCase()}
           </p>
           <OcupacionChart data={chartData} maxDominio={maxDominio} />
@@ -207,63 +205,64 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
         {/* Detalle por cancha — agrupado por deporte */}
         {gruposDeporte.filter(g => g.canchas.length > 0).map(grupo => (
           <div key={grupo.label} className="space-y-4">
-            <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide border-b pb-2">
+            <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] border-b border-white/[0.06] pb-2">
               {grupo.label}
             </h2>
             {grupo.canchas.map((cancha) => (
-          <div key={cancha.id} className="space-y-3">
-            <div className="flex items-center gap-3">
-              <h2 className="text-base font-semibold">{cancha.name}</h2>
-              <span className="text-sm text-gray-500">
-                {cancha.reservas === 1 ? "1 reserva" : `${cancha.reservas} reservas`} · {cancha.ocupacion}% ocupación
-              </span>
-            </div>
+              <div key={cancha.id} className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <h2 className="text-base font-semibold text-white">{cancha.name}</h2>
+                  <span className="text-sm text-white/35">
+                    {cancha.reservas === 1 ? "1 reserva" : `${cancha.reservas} reservas`}
+                    {" · "}{cancha.ocupacion}% ocupación
+                  </span>
+                </div>
 
-            {cancha.bookings.length === 0 ? (
-              <p className="text-sm text-gray-400 bg-white border rounded-lg px-4 py-3">
-                Sin reservas en este período.
-              </p>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border bg-white">
-                <table className="w-full text-sm min-w-[360px]">
-                  <thead className="bg-gray-50 border-b">
-                    <tr>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Fecha</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Hora</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Cliente</th>
-                      <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Estado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {cancha.bookings.map((r) => (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-gray-600">
-                          {r.startTime.getUTCDate().toString().padStart(2, "0")}/
-                          {(r.startTime.getUTCMonth() + 1).toString().padStart(2, "0")}
-                        </td>
-                        <td className="px-4 py-2 text-gray-600">
-                          {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
-                        </td>
-                        <td className="px-4 py-2">
-                          {r.user?.name ?? r.guestName ?? "Invitado"}
-                        </td>
-                        <td className="px-4 py-2">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
-                            r.status === "CONFIRMED" ? "bg-green-50 text-green-700 border-green-200"
-                            : r.status === "CANCELLED" ? "bg-red-50 text-red-500 border-red-200"
-                            : r.status === "PENDING"   ? "bg-yellow-50 text-yellow-700 border-yellow-200"
-                            : "bg-gray-50 text-gray-600 border-gray-200"
-                          }`}>
-                            {estadoLabel[r.status]}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                {cancha.bookings.length === 0 ? (
+                  <p className="text-sm text-white/25 bg-[#14171F] border border-white/[0.07] rounded-xl px-4 py-3">
+                    Sin reservas en este período.
+                  </p>
+                ) : (
+                  <div className="overflow-x-auto rounded-xl border border-white/[0.07] bg-[#14171F]">
+                    <table className="w-full text-sm min-w-[360px]">
+                      <thead className="border-b border-white/[0.07]">
+                        <tr>
+                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Fecha</th>
+                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Hora</th>
+                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cliente</th>
+                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Estado</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/[0.05]">
+                        {cancha.bookings.map((r) => (
+                          <tr key={r.id} className="hover:bg-white/[0.02]">
+                            <td className="px-4 py-3 text-white/50 tabular-nums">
+                              {r.startTime.getUTCDate().toString().padStart(2, "0")}/
+                              {(r.startTime.getUTCMonth() + 1).toString().padStart(2, "0")}
+                            </td>
+                            <td className="px-4 py-3 text-white/50 tabular-nums">
+                              {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
+                            </td>
+                            <td className="px-4 py-3 text-white/70">
+                              {r.user?.name ?? r.guestName ?? "Invitado"}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
+                                r.status === "CONFIRMED" ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
+                                : r.status === "CANCELLED" ? "bg-red-500/10 text-red-400 border-red-500/20"
+                                : r.status === "PENDING"   ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
+                                : "bg-white/[0.05] text-white/40 border-white/[0.1]"
+                              }`}>
+                                {estadoLabel[r.status]}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
             ))}
           </div>
         ))}

@@ -25,12 +25,12 @@ export default async function EditarCanchaPage({ params }: Props) {
   if (!cancha) notFound()
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-sm text-gray-500 hover:text-gray-800">
+    <main className="min-h-screen bg-[#0C0E14]">
+      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-xl font-bold mt-1">Editar cancha</h1>
+        <h1 className="text-lg font-bold text-white mt-1">Editar cancha</h1>
       </header>
 
       <section className="max-w-lg mx-auto p-6">

@@ -27,10 +27,10 @@ function formatHora(date: Date) {
 }
 
 const estadoBadge: Record<string, string> = {
-  PENDING:   "bg-yellow-50 text-yellow-700 border-yellow-200",
-  CONFIRMED: "bg-green-50 text-green-700 border-green-200",
-  CANCELLED: "bg-red-50 text-red-500 border-red-200",
-  COMPLETED: "bg-gray-100 text-gray-600 border-gray-200",
+  PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
+  CONFIRMED: "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25",
+  CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
+  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
 }
 
 const estadoLabel: Record<string, string> = {
@@ -107,7 +107,6 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
     orderBy: { startTime: "asc" },
   })
 
-  // Agrupar por día cuando el período abarca varios días
   const gruposFecha: Array<{ label: string; reservas: typeof reservas }> = []
   if (esMultiple) {
     const mapaFecha = new Map<string, typeof reservas>()
@@ -132,12 +131,12 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
       : ""
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-sm text-gray-500 hover:text-gray-800">
+    <main className="min-h-screen bg-[#0C0E14]">
+      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-xl font-bold mt-1">Reservas</h1>
+        <h1 className="text-lg font-bold text-white mt-1">Reservas</h1>
       </header>
 
       <section className="max-w-4xl mx-auto p-6 space-y-5">
@@ -147,11 +146,10 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
           fechaSeleccionada={fechaSeleccionada}
         />
 
-        {/* Vista de un solo día */}
         {!esMultiple && (
           <div className="space-y-3">
             {tituloFecha && (
-              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+              <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
                 {tituloFecha}
               </h2>
             )}
@@ -163,7 +161,6 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
           </div>
         )}
 
-        {/* Vista agrupada por día */}
         {esMultiple && (
           <div className="space-y-6">
             {gruposFecha.length === 0 ? (
@@ -171,7 +168,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
             ) : (
               gruposFecha.map(({ label, reservas: lista }) => (
                 <div key={label} className="space-y-3">
-                  <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide border-b pb-1">
+                  <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] border-b border-white/[0.06] pb-2">
                     {label}
                   </h2>
                   {lista.map((r) => <ReservaCard key={r.id} reserva={r} />)}
@@ -187,9 +184,9 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
 
 function EstadoVacio() {
   return (
-    <div className="bg-white border rounded-lg px-6 py-10 flex flex-col items-center gap-3 text-center">
-      <CalendarDays className="w-8 h-8 text-gray-300" />
-      <p className="text-sm font-medium text-gray-400">No hay reservas para este período</p>
+    <div className="bg-[#14171F] border border-white/[0.07] rounded-xl px-6 py-10 flex flex-col items-center gap-3 text-center">
+      <CalendarDays className="w-7 h-7 text-white/15" />
+      <p className="text-sm font-medium text-white/30">No hay reservas para este período</p>
     </div>
   )
 }
@@ -223,13 +220,13 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
   const telefono = !r.user && r.guestPhone ? formatTelefono(r.guestPhone) : null
 
   return (
-    <div className="bg-white border rounded-lg p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+    <div className="bg-[#14171F] border border-white/[0.07] hover:border-white/[0.14] rounded-xl p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 transition-colors">
       <div className="space-y-1.5 min-w-0">
         {/* Hora y estado */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-semibold text-sm">
+          <span className="font-bold text-sm text-white tabular-nums">
             {horaInicio} — {horaFin}
-            <span className="text-gray-400 font-normal ml-1">({duracionMin} min)</span>
+            <span className="text-white/30 font-normal ml-1.5">({duracionMin} min)</span>
           </span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
             {estadoLabel[r.status] ?? r.status}
@@ -239,21 +236,21 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
         {/* Cancha + deporte */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <SportIcon sport={r.court.sport} size={14} />
-          <span className="text-sm font-medium">{r.court.name}</span>
-          <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full border ${sport.badgeClassSolid}`}>
+          <span className="text-sm font-medium text-white/80">{r.court.name}</span>
+          <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${sport.badgeClassSolid}`}>
             {sportLabel(r.court.sport)}
           </span>
         </div>
 
         {/* Cliente y teléfono */}
-        <div className="flex items-center gap-3 flex-wrap text-sm text-gray-500">
+        <div className="flex items-center gap-3 flex-wrap text-sm text-white/40">
           <span className="flex items-center gap-1">
-            <User className="w-3 h-3 text-gray-300" />
+            <User className="w-3 h-3 text-white/20" />
             {nombreCliente}
           </span>
           {telefono && (
             <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3 text-gray-300" />
+              <Phone className="w-3 h-3 text-white/20" />
               {telefono}
             </span>
           )}
@@ -262,7 +259,7 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
 
       {/* Precio y acciones */}
       <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
-        <p className="font-semibold text-sm">${Number(r.totalPrice).toLocaleString("es-AR")}</p>
+        <p className="font-bold text-sm text-white">${Number(r.totalPrice).toLocaleString("es-AR")}</p>
         {(r.status === "PENDING" || r.status === "CONFIRMED") && (
           <div className="flex items-center gap-2">
             {r.status === "PENDING" && <ConfirmarReservaBtn bookingId={r.id} />}

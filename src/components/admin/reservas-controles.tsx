@@ -46,10 +46,10 @@ export function ReservasControles({ slug, periodoActivo, fechaSeleccionada }: Pr
         <Link
           key={key}
           href={href(slug)}
-          className={`px-3 py-1.5 rounded-md border text-sm font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
             periodoActivo === key
-              ? "bg-black text-white border-black"
-              : "bg-white hover:bg-gray-50 border-gray-200"
+              ? "bg-[#CAFF00] text-black border-[#CAFF00]"
+              : "bg-white/[0.05] hover:bg-white/[0.09] border-white/[0.1] text-white/60 hover:text-white"
           }`}
         >
           {label}
@@ -58,7 +58,11 @@ export function ReservasControles({ slug, periodoActivo, fechaSeleccionada }: Pr
 
       <Popover>
         <PopoverTrigger
-          className={`${buttonVariants({ variant: "outline", size: "sm" })} gap-1.5 ${periodoActivo === "custom" ? "border-black bg-gray-50" : ""}`}
+          className={`${buttonVariants({ variant: "outline", size: "sm" })} gap-1.5 ${
+            periodoActivo === "custom"
+              ? "border-[#CAFF00]/50 bg-[#CAFF00]/[0.08] text-[#CAFF00]"
+              : ""
+          }`}
         >
           <CalendarDays className="w-4 h-4" />
           {periodoActivo === "custom" && fechaSeleccionada

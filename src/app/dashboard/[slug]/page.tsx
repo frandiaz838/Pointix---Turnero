@@ -15,6 +15,20 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+const estadoBadge: Record<string, string> = {
+  PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
+  CONFIRMED: "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25",
+  CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
+  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+}
+
+const estadoLabel: Record<string, string> = {
+  PENDING:   "Pendiente",
+  CONFIRMED: "Confirmada",
+  CANCELLED: "Cancelada",
+  COMPLETED: "Completada",
+}
+
 export default async function AdminDashboardPage({ params }: Props) {
   const { slug } = await params
   const session = await auth()
@@ -89,10 +103,10 @@ export default async function AdminDashboardPage({ params }: Props) {
   const diffAyer = reservasHoy.length - countAyer
   const comparacionAyer =
     diffAyer > 0
-      ? { text: `↑ ${diffAyer} más que ayer`, color: "text-green-600" }
+      ? { text: `↑ ${diffAyer} más que ayer`, color: "text-[#CAFF00]" }
       : diffAyer < 0
-      ? { text: `↓ ${Math.abs(diffAyer)} menos que ayer`, color: "text-red-500" }
-      : { text: "Igual que ayer", color: "text-gray-400" }
+      ? { text: `↓ ${Math.abs(diffAyer)} menos que ayer`, color: "text-red-400" }
+      : { text: "Igual que ayer", color: "text-white/30" }
 
   const sportMap = new Map<string, typeof canchas>()
   for (const c of canchas) {
@@ -106,78 +120,88 @@ export default async function AdminDashboardPage({ params }: Props) {
   }))
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4 flex items-center justify-between">
+    <main className="min-h-screen bg-[#0C0E14]">
+      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">{tenant.name}</h1>
-          <p className="text-sm font-medium text-gray-500">Panel de administración</p>
+          <h1 className="text-lg font-bold text-white">{tenant.name}</h1>
+          <p className="text-xs font-medium text-white/35 uppercase tracking-wide">Panel de administración</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Desktop */}
           <div className="hidden sm:flex items-center gap-2">
-            <Link href={`/dashboard/${slug}/reservas`} className={buttonVariants({ variant: "outline" })}>
+            <Link href={`/dashboard/${slug}/reservas`} className={buttonVariants({ variant: "outline", size: "sm" })}>
               Ver reservas
             </Link>
-            <Link href={`/dashboard/${slug}/canchas/nueva`} className={buttonVariants()}>
+            <Link href={`/dashboard/${slug}/canchas/nueva`} className={buttonVariants({ size: "sm" })}>
               + Nueva cancha
             </Link>
             <LogoutBtn />
           </div>
-          {/* Mobile */}
           <AdminMobileMenu slug={slug} />
         </div>
       </header>
 
-      <section className="max-w-4xl mx-auto p-6 space-y-6">
+      <section className="max-w-4xl mx-auto p-6 space-y-8">
 
         {/* Stats del día */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="bg-white border rounded-lg p-4 space-y-1">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Reservas hoy</p>
-            <p className="text-3xl font-bold">{reservasHoy.length}</p>
+          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
+            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Reservas hoy</p>
+            <p className="font-display text-4xl font-black text-white">{reservasHoy.length}</p>
             <p className={`text-xs font-medium ${comparacionAyer.color}`}>{comparacionAyer.text}</p>
           </div>
-          <Link href={`/dashboard/${slug}/ingresos`} className="bg-white border rounded-lg p-4 space-y-1 hover:bg-gray-50 transition-colors block">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ingresos</p>
-            <p className="text-3xl font-bold">${ingresosHoy.toLocaleString("es-AR")}</p>
-            <p className="text-xs font-medium text-gray-400">Este mes: ${ingresosMes.toLocaleString("es-AR")}</p>
+
+          <Link
+            href={`/dashboard/${slug}/ingresos`}
+            className="bg-[#14171F] border border-white/[0.07] hover:border-white/[0.15] rounded-xl p-5 space-y-2 transition-colors block"
+          >
+            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Ingresos hoy</p>
+            <p className="font-display text-4xl font-black text-[#CAFF00]">
+              ${ingresosHoy.toLocaleString("es-AR")}
+            </p>
+            <p className="text-xs font-medium text-white/25">
+              Mes: ${ingresosMes.toLocaleString("es-AR")}
+            </p>
           </Link>
-          <Link href={`/dashboard/${slug}/ocupacion`} className="col-span-2 sm:col-span-1 bg-white border rounded-lg p-4 space-y-1 hover:bg-gray-50 transition-colors block">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ocupación</p>
-            <p className="text-3xl font-bold">
+
+          <Link
+            href={`/dashboard/${slug}/ocupacion`}
+            className="col-span-2 sm:col-span-1 bg-[#14171F] border border-white/[0.07] hover:border-white/[0.15] rounded-xl p-5 space-y-2 transition-colors block"
+          >
+            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Ocupación</p>
+            <p className="font-display text-4xl font-black text-white">
               {ocupacion !== null ? `${ocupacion}%` : "—"}
             </p>
-            <p className="text-xs font-medium text-gray-400">Ver detalle por cancha</p>
+            <p className="text-xs font-medium text-white/25">Ver detalle por cancha</p>
           </Link>
         </div>
 
         {/* Reservas del día */}
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Reservas de hoy</h2>
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Reservas de hoy</h2>
           {reservasHoy.length === 0 ? (
-            <p className="text-sm text-gray-400 bg-white border rounded-lg px-4 py-3">No hay reservas para hoy.</p>
+            <p className="text-sm text-white/25 bg-[#14171F] border border-white/[0.07] rounded-xl px-5 py-4">
+              No hay reservas para hoy.
+            </p>
           ) : (
-            <div className="bg-white border rounded-lg divide-y">
+            <div className="bg-[#14171F] border border-white/[0.07] rounded-xl divide-y divide-white/[0.06]">
               {reservasHoy.map((r) => (
-                <div key={r.id} className="px-4 py-3 flex items-center justify-between gap-3">
+                <div key={r.id} className="px-5 py-3.5 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm font-semibold w-14 shrink-0">
+                    <span className="text-sm font-bold text-white w-14 shrink-0 tabular-nums">
                       {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
                     </span>
-                    <span className="text-sm font-medium text-gray-600 truncate">{r.court.name}</span>
-                    <span className="text-sm font-medium text-gray-400 truncate hidden sm:block">
+                    <span className="text-sm font-medium text-white/70 truncate">{r.court.name}</span>
+                    <span className="text-sm text-white/30 truncate hidden sm:block">
                       {r.user?.name ?? r.guestName ?? "Invitado"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
-                      r.status === "CONFIRMED" ? "bg-green-50 text-green-700 border-green-200"
-                      : r.status === "CANCELLED" ? "bg-red-50 text-red-500 border-red-200"
-                      : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                      estadoBadge[r.status] ?? estadoBadge.PENDING
                     }`}>
-                      {r.status === "CONFIRMED" ? "Confirmada" : r.status === "CANCELLED" ? "Cancelada" : "Pendiente"}
+                      {estadoLabel[r.status] ?? r.status}
                     </span>
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-bold text-white">
                       ${Number(r.totalPrice).toLocaleString("es-AR")}
                     </span>
                   </div>
@@ -188,53 +212,51 @@ export default async function AdminDashboardPage({ params }: Props) {
         </div>
 
         {/* Lista de canchas agrupadas por deporte */}
-        <div className="space-y-2">
-          <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Canchas</h2>
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Canchas</h2>
 
           {canchas.length === 0 ? (
-            <p className="text-gray-500">No hay canchas todavía. ¡Agregá la primera!</p>
+            <p className="text-sm text-white/30">No hay canchas todavía. ¡Agregá la primera!</p>
           ) : (
             <div className="space-y-6">
               {gruposCanchas.map(({ sport, canchas: lista }) => (
-                  <div key={sport} className="space-y-2">
-                    {/* Subtítulo de deporte */}
-                    <div className="flex items-center gap-2 pb-1 border-b">
-                      <SportIcon sport={sport} size={18} />
-                      <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClass}`}>
-                        {sportLabel(sport)}
-                      </span>
-                    </div>
+                <div key={sport} className="space-y-2">
+                  <div className="flex items-center gap-2 pb-2 border-b border-white/[0.06]">
+                    <SportIcon sport={sport} size={16} />
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClassSolid}`}>
+                      {sportLabel(sport)}
+                    </span>
+                  </div>
 
-                    {lista.map((cancha) => (
+                  {lista.map((cancha) => {
+                    const sch = cancha.schedules.find(s => s.dayOfWeek === diaSemana) ?? cancha.schedules[0]
+                    return (
                       <div
                         key={cancha.id}
-                        className={`bg-white border rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-opacity ${
-                          cancha.isActive ? "" : "opacity-50"
+                        className={`bg-[#14171F] border border-white/[0.07] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-opacity ${
+                          cancha.isActive ? "" : "opacity-40"
                         }`}
                       >
                         <div className="space-y-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium truncate">{cancha.name}</p>
+                            <p className="font-semibold text-white truncate">{cancha.name}</p>
                             <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${
                               cancha.isActive
-                                ? "bg-green-50 text-green-700 border-green-200"
-                                : "bg-gray-100 text-gray-500 border-gray-200"
+                                ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
+                                : "bg-white/[0.04] text-white/25 border-white/[0.07]"
                             }`}>
                               {cancha.isActive ? "Activa" : "Inactiva"}
                             </span>
                           </div>
-                          <p className="text-sm font-medium text-gray-500">
+                          <p className="text-sm text-white/40">
                             ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
                           </p>
-                          {(() => {
-                            const sch = cancha.schedules.find(s => s.dayOfWeek === diaSemana) ?? cancha.schedules[0]
-                            return sch ? (
-                              <p className="text-xs font-medium text-gray-400 flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {sch.openTime} - {sch.closeTime}
-                              </p>
-                            ) : null
-                          })()}
+                          {sch && (
+                            <p className="text-xs text-white/25 flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {sch.openTime} — {sch.closeTime}
+                            </p>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <Link
@@ -257,9 +279,10 @@ export default async function AdminDashboardPage({ params }: Props) {
                           />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ))}
+                    )
+                  })}
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -38,7 +38,7 @@ export function CanchaForm({ tenantId, slug, cancha }: Props) {
   }
 
   return (
-    <form action={handleSubmit} className="bg-white border rounded-lg p-6 space-y-5">
+    <form action={handleSubmit} className="bg-[#14171F] border border-white/[0.07] rounded-xl p-6 space-y-5">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre de la cancha</Label>
         <Input

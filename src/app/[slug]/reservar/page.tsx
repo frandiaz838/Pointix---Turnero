@@ -63,12 +63,12 @@ export default async function ReservarPage({ params, searchParams }: Props) {
   const deportesDisponibles = [...new Set(canchas.map((c) => c.sport as string))]
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
-        <Link href={`/${slug}`} className="text-sm font-medium text-gray-500 hover:text-gray-800">
+    <main className="min-h-screen bg-[#0C0E14]">
+      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+        <Link href={`/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← {tenant.name}
         </Link>
-        <h1 className="text-xl font-bold mt-1">¿Cuándo querés jugar?</h1>
+        <h1 className="text-lg font-bold text-white mt-1">¿Cuándo querés jugar?</h1>
       </header>
 
       <GrillaReservas

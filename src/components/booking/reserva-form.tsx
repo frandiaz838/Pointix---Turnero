@@ -4,6 +4,7 @@ import { useTransition, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { crearReserva } from "@/actions/reservas"
+import { AlertCircle } from "lucide-react"
 
 const DIAS_CORTOS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 
@@ -18,6 +19,9 @@ interface Props {
   canchaAbierta: boolean
   diasAbiertos: number[]
 }
+
+const inputClass =
+  "w-full border border-white/[0.1] bg-white/[0.04] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#CAFF00]/40 transition-colors [color-scheme:dark]"
 
 export function ReservaForm({
   courtId,
@@ -57,30 +61,30 @@ export function ReservaForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input type="hidden" name="courtId" value={courtId} />
       <input type="hidden" name="slug" value={slug} />
       <input type="hidden" name="hora" value={horaSeleccionada ?? ""} />
 
       {/* Selector de fecha */}
-      <div className="bg-white border rounded-lg p-4 space-y-3">
-        <label className="text-sm font-medium">Fecha</label>
+      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4 space-y-3">
+        <label className="text-sm font-medium text-white/60">Fecha</label>
         <input
           name="fecha"
           type="date"
           defaultValue={fechaSeleccionada}
           min={new Date().toISOString().split("T")[0]}
           onChange={handleFechaChange}
-          className="w-full border rounded-md px-3 py-2 text-sm"
+          className={inputClass}
         />
         <div className="flex gap-1">
           {DIAS_CORTOS.map((nombre, i) => (
             <span
               key={i}
-              className={`flex-1 text-center text-xs py-1.5 rounded font-medium border ${
+              className={`flex-1 text-center text-xs py-1.5 rounded-lg font-semibold border ${
                 diasAbiertos.includes(i)
-                  ? "bg-green-50 text-green-700 border-green-200"
-                  : "bg-red-50 text-red-500 border-red-200"
+                  ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
+                  : "bg-white/[0.03] text-white/20 border-white/[0.06]"
               }`}
             >
               {nombre}
@@ -90,13 +94,13 @@ export function ReservaForm({
       </div>
 
       {/* Grilla de horarios */}
-      <div className="bg-white border rounded-lg p-4 space-y-3">
-        <p className="text-sm font-medium">Elegí un horario</p>
+      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4 space-y-3">
+        <p className="text-sm font-medium text-white/60">Elegí un horario</p>
 
         {!canchaAbierta ? (
-          <p className="text-sm text-gray-500">La cancha no tiene horarios configurados para este día.</p>
+          <p className="text-sm text-white/30">La cancha no tiene horarios configurados para este día.</p>
         ) : todosLosSlots.length === 0 ? (
-          <p className="text-sm text-gray-500">No hay turnos disponibles para esta fecha.</p>
+          <p className="text-sm text-white/30">No hay turnos disponibles para esta fecha.</p>
         ) : (
           <>
             <div className="grid grid-cols-4 gap-2">
@@ -109,61 +113,74 @@ export function ReservaForm({
                     type="button"
                     disabled={ocupado}
                     onClick={() => setHoraSeleccionada(slot)}
-                    className={`
-                      rounded-md py-2 text-sm font-medium border transition-colors
-                      ${ocupado ? "bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200" : ""}
-                      ${seleccionado ? "bg-black text-white border-black" : ""}
-                      ${!ocupado && !seleccionado ? "hover:bg-gray-50 border-gray-300" : ""}
-                    `}
+                    className={`rounded-lg py-2.5 text-sm font-semibold border transition-all ${
+                      seleccionado
+                        ? "bg-[#CAFF00] text-black border-[#CAFF00] scale-105 shadow-[0_0_12px_rgba(202,255,0,0.2)]"
+                        : ocupado
+                        ? "bg-white/[0.03] text-white/20 cursor-not-allowed border-white/[0.05]"
+                        : "bg-white/[0.05] hover:bg-[#CAFF00]/[0.12] border-white/[0.1] text-white/70 hover:text-[#CAFF00] hover:border-[#CAFF00]/30"
+                    }`}
                   >
                     {slot}
                   </button>
                 )
               })}
             </div>
-            <div className="flex gap-4 text-xs text-gray-500 mt-2">
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded bg-gray-100 border inline-block" /> Ocupado
+            <div className="flex gap-4 text-xs text-white/25 mt-1">
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm bg-white/[0.04] border border-white/[0.08] inline-block" />
+                Ocupado
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-3 h-3 rounded bg-black inline-block" /> Seleccionado
+              <span className="flex items-center gap-1.5">
+                <span className="w-3 h-3 rounded-sm bg-[#CAFF00] inline-block" />
+                Seleccionado
               </span>
             </div>
           </>
         )}
       </div>
 
-      {/* Datos del invitado — solo si no está logueado */}
+      {/* Datos del invitado */}
       {!isLoggedIn && (
-        <div className="bg-white border rounded-lg p-4 space-y-3">
-          <p className="text-sm font-medium">Tus datos</p>
+        <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4 space-y-3">
+          <p className="text-sm font-medium text-white/60">Tus datos</p>
           <div className="space-y-2">
             <input
               name="guestName"
               type="text"
               placeholder="Nombre completo"
+              autoComplete="name"
               required
-              className="w-full border rounded-md px-3 py-2 text-sm"
+              className={inputClass}
             />
             <input
               name="guestPhone"
               type="tel"
               placeholder="Teléfono (ej: 11 1234-5678)"
+              autoComplete="tel"
               required
-              className="w-full border rounded-md px-3 py-2 text-sm"
+              className={inputClass}
             />
           </div>
         </div>
       )}
 
       {error && (
-        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+        <div
+          role="alert"
+          className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3"
+        >
+          <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
-        </p>
+        </div>
       )}
 
       {canchaAbierta && (
-        <Button type="submit" className="w-full" disabled={!horaSeleccionada || pending}>
+        <Button
+          type="submit"
+          className="w-full h-11 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold"
+          disabled={!horaSeleccionada || pending}
+        >
           {pending
             ? "Confirmando..."
             : horaSeleccionada

@@ -14,10 +14,10 @@ const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto"
 const DIAS_SEMANA = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 
 const estadoBadge: Record<string, string> = {
-  CONFIRMED: "bg-green-50 text-green-700 border-green-200",
-  PENDING:   "bg-yellow-50 text-yellow-700 border-yellow-200",
-  CANCELLED: "bg-red-50 text-red-500 border-red-200",
-  COMPLETED: "bg-gray-50 text-gray-600 border-gray-200",
+  CONFIRMED: "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25",
+  PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
+  CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
+  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
 }
 
 const estadoLabel: Record<string, string> = {
@@ -65,12 +65,10 @@ export default async function IngresosPage({ params }: Props) {
     orderBy: { startTime: "desc" },
   })
 
-  // Stats principales
   const ingresosHoy     = reservasMes.filter(r => r.startTime.toISOString().split("T")[0] === hoy).reduce((s, r) => s + Number(r.totalPrice), 0)
   const ingresosSemana  = reservasMes.filter(r => r.startTime >= lunes && r.startTime <= domingo).reduce((s, r) => s + Number(r.totalPrice), 0)
   const ingresosMes     = reservasMes.reduce((s, r) => s + Number(r.totalPrice), 0)
 
-  // Tabla semanal
   const maxDiaSemana = Math.max(
     1,
     ...Array.from({ length: 7 }, (_, i) => {
@@ -97,7 +95,6 @@ export default async function IngresosPage({ params }: Props) {
     }
   })
 
-  // Por cancha y deporte
   const porCancha = Object.values(
     reservasMes.reduce<Record<string, { name: string; total: number }>>((acc, r) => {
       if (!acc[r.court.name]) acc[r.court.name] = { name: r.court.name, total: 0 }
@@ -116,12 +113,12 @@ export default async function IngresosPage({ params }: Props) {
   ).sort((a, b) => b.total - a.total)
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-sm text-gray-500 hover:text-gray-800">
+    <main className="min-h-screen bg-[#0C0E14]">
+      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-xl font-bold mt-1">
+        <h1 className="text-lg font-bold text-white mt-1">
           Ingresos — {MESES[ahora.getUTCMonth()]} {ahora.getUTCFullYear()}
         </h1>
       </header>
@@ -130,60 +127,70 @@ export default async function IngresosPage({ params }: Props) {
 
         {/* Stats principales */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="bg-white border rounded-lg p-5 space-y-2">
+          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Hoy</p>
-              <Clock className="w-4 h-4 text-gray-400" />
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Hoy</p>
+              <Clock className="w-3.5 h-3.5 text-white/20" />
             </div>
-            <p className="text-4xl font-bold tracking-tight">${ingresosHoy.toLocaleString("es-AR")}</p>
+            <p className="font-display text-4xl font-black text-white tracking-tight">
+              ${ingresosHoy.toLocaleString("es-AR")}
+            </p>
           </div>
-          <div className="bg-white border rounded-lg p-5 space-y-2">
+
+          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Esta semana</p>
-              <Calendar className="w-4 h-4 text-gray-400" />
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Esta semana</p>
+              <Calendar className="w-3.5 h-3.5 text-white/20" />
             </div>
-            <p className="text-4xl font-bold tracking-tight">${ingresosSemana.toLocaleString("es-AR")}</p>
+            <p className="font-display text-4xl font-black text-white tracking-tight">
+              ${ingresosSemana.toLocaleString("es-AR")}
+            </p>
           </div>
-          <div className="col-span-2 sm:col-span-1 bg-white border-2 border-blue-200 rounded-lg p-5 space-y-2">
+
+          <div className="col-span-2 sm:col-span-1 bg-[#14171F] border border-[#CAFF00]/20 rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Este mes</p>
-              <TrendingUp className="w-4 h-4 text-blue-400" />
+              <p className="text-[10px] font-bold text-[#CAFF00]/60 uppercase tracking-[0.15em]">Este mes</p>
+              <TrendingUp className="w-3.5 h-3.5 text-[#CAFF00]/50" />
             </div>
-            <p className="text-4xl font-bold tracking-tight text-blue-600">${ingresosMes.toLocaleString("es-AR")}</p>
+            <p className="font-display text-4xl font-black text-[#CAFF00] tracking-tight">
+              ${ingresosMes.toLocaleString("es-AR")}
+            </p>
           </div>
         </div>
 
-        {/* Tabla semanal con barra */}
-        <div className="space-y-2">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Semana actual</h2>
-          <div className="overflow-x-auto rounded-lg border bg-white">
+        {/* Tabla semanal */}
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Semana actual</h2>
+          <div className="overflow-x-auto rounded-xl border border-white/[0.07] bg-[#14171F]">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b">
+              <thead className="border-b border-white/[0.07]">
                 <tr>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Día</th>
-                  <th className="text-right px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Reservas</th>
-                  <th className="text-right px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Ingresos</th>
-                  <th className="px-4 py-2 w-36 hidden sm:table-cell"></th>
+                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Día</th>
+                  <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Reservas</th>
+                  <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Ingresos</th>
+                  <th className="px-4 py-3 w-36 hidden sm:table-cell"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-white/[0.05]">
                 {tablaSemana.map((fila) => (
-                  <tr key={fila.fecha} className={fila.esHoy ? "bg-blue-50" : ""}>
-                    <td className={`px-4 py-2.5 ${fila.esHoy ? "font-bold" : ""}`}>
+                  <tr key={fila.fecha} className={fila.esHoy ? "bg-[#CAFF00]/[0.04]" : ""}>
+                    <td className={`px-4 py-3 ${fila.esHoy ? "font-bold text-white" : "text-white/70"}`}>
                       {fila.label}
-                      {fila.esHoy && <span className="ml-2 text-xs text-blue-500 font-medium">hoy</span>}
+                      {fila.esHoy && (
+                        <span className="ml-2 text-[10px] text-[#CAFF00] font-bold uppercase tracking-wide">hoy</span>
+                      )}
                     </td>
-                    <td className={`px-4 py-2.5 text-right text-gray-500 ${fila.esHoy ? "font-bold" : ""}`}>
+                    <td className={`px-4 py-3 text-right ${fila.esHoy ? "font-bold text-white" : "text-white/40"}`}>
                       {fila.cantidad}
                     </td>
-                    <td className={`px-4 py-2.5 text-right font-semibold ${fila.esHoy ? "font-bold" : ""}`}>
-                      {fila.total > 0 ? `$${fila.total.toLocaleString("es-AR")}` : <span className="text-gray-300">—</span>}
+                    <td className={`px-4 py-3 text-right font-semibold ${fila.esHoy ? "text-[#CAFF00]" : fila.total > 0 ? "text-white" : "text-white/20"}`}>
+                      {fila.total > 0 ? `$${fila.total.toLocaleString("es-AR")}` : "—"}
                     </td>
-                    <td className="px-4 py-2.5 hidden sm:table-cell">
+                    <td className="px-4 py-3 hidden sm:table-cell">
                       {fila.total > 0 && (
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-blue-400 rounded-full"
+                            className="h-full bg-[#CAFF00] rounded-full"
                             style={{ width: `${fila.barra}%` }}
                           />
                         </div>
@@ -196,48 +203,52 @@ export default async function IngresosPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Gráficos por cancha y deporte */}
+        {/* Gráficos */}
         <IngresosCharts porCancha={porCancha} porDeporte={porDeporte} />
 
         {/* Listado completo del mes */}
-        <div className="space-y-2">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
             Reservas del mes ({reservasMes.length})
           </h2>
-          <div className="overflow-x-auto rounded-lg border bg-white">
+          <div className="overflow-x-auto rounded-xl border border-white/[0.07] bg-[#14171F]">
             <table className="w-full text-sm min-w-[500px]">
-              <thead className="bg-gray-50 border-b">
+              <thead className="border-b border-white/[0.07]">
                 <tr>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Fecha</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Hora</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Cancha</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Cliente</th>
-                  <th className="text-left px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Estado</th>
-                  <th className="text-right px-4 py-2 font-medium text-gray-500 whitespace-nowrap">Monto</th>
+                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Fecha</th>
+                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Hora</th>
+                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cancha</th>
+                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cliente</th>
+                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Estado</th>
+                  <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Monto</th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-white/[0.05]">
                 {reservasMes.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-4 text-gray-400 text-center">Sin reservas este mes</td></tr>
+                  <tr>
+                    <td colSpan={6} className="px-4 py-6 text-white/25 text-center">
+                      Sin reservas este mes
+                    </td>
+                  </tr>
                 ) : reservasMes.map((r) => (
-                  <tr key={r.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-2.5 text-gray-600">
+                  <tr key={r.id} className="hover:bg-white/[0.02]">
+                    <td className="px-4 py-3 text-white/50 tabular-nums">
                       {r.startTime.getUTCDate().toString().padStart(2, "0")}/
                       {(r.startTime.getUTCMonth() + 1).toString().padStart(2, "0")}
                     </td>
-                    <td className="px-4 py-2.5 text-gray-600">
+                    <td className="px-4 py-3 text-white/50 tabular-nums">
                       {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
                     </td>
-                    <td className="px-4 py-2.5">{r.court.name}</td>
-                    <td className="px-4 py-2.5 text-gray-600">
+                    <td className="px-4 py-3 text-white/80">{r.court.name}</td>
+                    <td className="px-4 py-3 text-white/50">
                       {r.user ? (r.user.name ?? r.user.email) : (r.guestName ?? "Invitado")}
                     </td>
-                    <td className="px-4 py-2.5">
+                    <td className="px-4 py-3">
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status]}`}>
                         {estadoLabel[r.status]}
                       </span>
                     </td>
-                    <td className="px-4 py-2.5 text-right font-semibold">
+                    <td className="px-4 py-3 text-right font-semibold text-white">
                       ${Number(r.totalPrice).toLocaleString("es-AR")}
                     </td>
                   </tr>
