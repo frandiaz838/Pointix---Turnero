@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
-import { CalendarDays } from "lucide-react"
+import { CalendarDays, User, Phone } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { getSport, sportLabel } from "@/lib/sports"
@@ -206,12 +206,21 @@ type Reserva = {
   court: { name: string; sport: string }
 }
 
+function formatTelefono(tel: string) {
+  const digits = tel.replace(/\D/g, "")
+  if (digits.length === 10) {
+    return `${digits.slice(0, 3)} ${digits.slice(3, 6)}-${digits.slice(6)}`
+  }
+  return tel
+}
+
 function ReservaCard({ reserva: r }: { reserva: Reserva }) {
   const duracionMin = Math.round((r.endTime.getTime() - r.startTime.getTime()) / 60000)
   const horaInicio = formatHora(r.startTime)
   const horaFin = formatHora(r.endTime)
   const sport = getSport(r.court.sport)
-  const cliente = r.user ? (r.user.name ?? "(sin nombre)") : `${r.guestName}${r.guestPhone ? ` · ${r.guestPhone}` : ""}`
+  const nombreCliente = r.user ? (r.user.name ?? "(sin nombre)") : (r.guestName ?? "(sin nombre)")
+  const telefono = !r.user && r.guestPhone ? formatTelefono(r.guestPhone) : null
 
   return (
     <div className="bg-white border rounded-lg p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
@@ -231,13 +240,24 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <SportIcon sport={r.court.sport} size={14} />
           <span className="text-sm font-medium">{r.court.name}</span>
-          <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full border ${sport.badgeClass}`}>
+          <span className={`text-xs font-medium px-1.5 py-0.5 rounded-full border ${sport.badgeClassSolid}`}>
             {sportLabel(r.court.sport)}
           </span>
         </div>
 
-        {/* Cliente */}
-        <p className="text-sm text-gray-500">{cliente}</p>
+        {/* Cliente y teléfono */}
+        <div className="flex items-center gap-3 flex-wrap text-sm text-gray-500">
+          <span className="flex items-center gap-1">
+            <User className="w-3 h-3 text-gray-300" />
+            {nombreCliente}
+          </span>
+          {telefono && (
+            <span className="flex items-center gap-1">
+              <Phone className="w-3 h-3 text-gray-300" />
+              {telefono}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Precio y acciones */}
