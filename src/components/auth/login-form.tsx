@@ -55,7 +55,7 @@ export function LoginForm() {
       </div>
 
       {/* Card */}
-      <div className="bg-[#14171F] border border-white/[0.07] rounded-2xl p-8 space-y-5">
+      <div className="glass-card rounded-2xl p-8 space-y-5">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-white/60 text-sm font-medium">
@@ -112,7 +112,7 @@ export function LoginForm() {
 
           <Button
             type="submit"
-            className="w-full h-11 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold text-sm"
+            className="btn-lime-glow w-full h-11 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold text-sm"
             disabled={isPending}
           >
             {isPending ? "Ingresando..." : "Ingresar"}

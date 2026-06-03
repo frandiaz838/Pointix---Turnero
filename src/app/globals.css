@@ -100,7 +100,7 @@
   }
 }
 
-/* Textura de líneas de cancha para fondos de hero */
+/* ─── Textura de líneas de cancha ─── */
 .bg-court-lines {
   background-image: repeating-linear-gradient(
     -45deg,
@@ -109,4 +109,168 @@
     rgba(255, 255, 255, 0.025) 20px,
     rgba(255, 255, 255, 0.025) 21px
   );
+}
+
+/* ─── Glassmorphism ─── */
+.glass-card {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.glass-header {
+  background: rgba(12, 14, 20, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ─── Glow effects ─── */
+.glow-lime {
+  box-shadow: 0 0 20px rgba(202, 255, 0, 0.35), 0 0 60px rgba(202, 255, 0, 0.1);
+}
+
+.glow-lime-intense {
+  box-shadow: 0 0 30px rgba(202, 255, 0, 0.55), 0 0 80px rgba(202, 255, 0, 0.2),
+              inset 0 0 15px rgba(202, 255, 0, 0.08);
+}
+
+.text-glow-lime {
+  text-shadow: 0 0 20px rgba(202, 255, 0, 0.55), 0 0 50px rgba(202, 255, 0, 0.2);
+}
+
+/* ─── Btn lime glow ─── */
+.btn-lime-glow {
+  box-shadow: 0 0 20px rgba(202, 255, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+.btn-lime-glow:hover {
+  box-shadow: 0 0 32px rgba(202, 255, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
+  transform: translateY(-1px);
+}
+.btn-lime-glow:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: 0 0 14px rgba(202, 255, 0, 0.3);
+}
+
+/* ─── Gradient border lime ─── */
+.border-lime-gradient {
+  background:
+    linear-gradient(rgba(12, 14, 20, 0.95), rgba(12, 14, 20, 0.95)) padding-box,
+    linear-gradient(135deg, rgba(202, 255, 0, 0.4) 0%, rgba(202, 255, 0, 0.05) 50%, transparent 100%) border-box;
+  border: 1px solid transparent;
+}
+
+/* ─── Card hover float ─── */
+.card-float {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+.card-float:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 0 40px rgba(202, 255, 0, 0.07);
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* ─── Slot states ─── */
+.slot-available {
+  background: rgba(202, 255, 0, 0.07);
+  border: 1px solid rgba(202, 255, 0, 0.22);
+  color: rgba(202, 255, 0, 0.72);
+  transition: all 0.15s ease;
+}
+.slot-available:hover {
+  background: rgba(202, 255, 0, 0.14);
+  border-color: rgba(202, 255, 0, 0.45);
+  box-shadow: 0 0 14px rgba(202, 255, 0, 0.25), 0 0 30px rgba(202, 255, 0, 0.08);
+  color: #CAFF00;
+  transform: scale(1.06);
+}
+.slot-selected {
+  background: rgba(202, 255, 0, 0.18) !important;
+  border: 2px solid #CAFF00 !important;
+  box-shadow: 0 0 24px rgba(202, 255, 0, 0.5), 0 0 60px rgba(202, 255, 0, 0.15),
+              inset 0 0 14px rgba(202, 255, 0, 0.1) !important;
+  color: #CAFF00 !important;
+  transform: scale(1.06);
+}
+.slot-occupied {
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.15);
+  color: rgba(239, 68, 68, 0.3);
+  cursor: not-allowed;
+}
+.slot-past {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.1);
+  cursor: not-allowed;
+}
+.slot-closed {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+/* ─── Gradient separator ─── */
+.separator-lime {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(202, 255, 0, 0.4), transparent);
+}
+.separator-subtle {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+/* ─── Keyframe animations ─── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slotAppear {
+  from { opacity: 0; transform: scale(0.82) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0);      }
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(202, 255, 0, 0.25); }
+  50%       { box-shadow: 0 0 32px rgba(202, 255, 0, 0.55), 0 0 64px rgba(202, 255, 0, 0.15); }
+}
+
+@keyframes orbFloat {
+  0%, 100% { transform: translateY(0)   scale(1);    }
+  50%       { transform: translateY(-30px) scale(1.04); }
+}
+
+@keyframes orbFloatAlt {
+  0%, 100% { transform: translateY(0)   scale(1);    }
+  50%       { transform: translateY(25px) scale(0.97); }
+}
+
+@keyframes shimmerSweep {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.animate-orb        { animation: orbFloat    16s ease-in-out infinite; }
+.animate-orb-alt    { animation: orbFloatAlt 22s ease-in-out infinite; }
+.animate-glow-pulse { animation: glowPulse   2.5s ease-in-out infinite; }
+
+/* ─── Available badge pulse (no keyframe conflict) ─── */
+.badge-available-pulse {
+  animation: glowPulse 2.5s ease-in-out infinite;
 }

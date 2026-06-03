@@ -38,7 +38,7 @@ export function CanchaForm({ tenantId, slug, cancha }: Props) {
   }
 
   return (
-    <form action={handleSubmit} className="bg-[#14171F] border border-white/[0.07] rounded-xl p-6 space-y-5">
+    <form action={handleSubmit} className="glass-card rounded-xl p-6 space-y-5">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre de la cancha</Label>
         <Input
@@ -89,7 +89,7 @@ export function CanchaForm({ tenantId, slug, cancha }: Props) {
         />
       </div>
 
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="btn-lime-glow w-full bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
         {pending ? "Guardando..." : esEdicion ? "Guardar cambios" : "Crear cancha"}
       </Button>
     </form>

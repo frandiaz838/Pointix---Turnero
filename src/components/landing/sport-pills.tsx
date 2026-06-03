@@ -18,17 +18,27 @@ export function SportPills({ sports }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap justify-center gap-2">
+    <div className="flex flex-wrap justify-center gap-2.5">
       {sports.map(({ sport, label, emoji }) => (
         <button
           key={sport}
           onClick={() => scrollTo(sport)}
-          className="flex items-center gap-1.5 bg-white/[0.07] hover:bg-white/[0.14] border border-white/10 hover:border-white/20 text-white/60 hover:text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-all cursor-pointer tracking-wide uppercase"
+          className="flex items-center gap-2 glass-nav text-white/60 hover:text-white text-xs font-bold px-4 py-2 rounded-full transition-all duration-200 cursor-pointer tracking-wide uppercase hover:bg-white/[0.1] hover:border-white/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.4)] active:scale-95"
+          style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.3)" }}
         >
           {emoji ?? "🎾"} {label}
         </button>
       ))}
-      <span className="flex items-center gap-1.5 bg-[#CAFF00]/[0.08] border border-[#CAFF00]/20 text-[#CAFF00]/60 text-xs font-semibold px-4 py-1.5 rounded-full select-none tracking-wide uppercase">
+      <span
+        className="flex items-center gap-2 text-[#CAFF00]/70 text-xs font-bold px-4 py-2 rounded-full select-none tracking-wide uppercase"
+        style={{
+          background: "rgba(202,255,0,0.07)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          border: "1px solid rgba(202,255,0,0.2)",
+          boxShadow: "0 0 20px rgba(202,255,0,0.08), 0 2px 12px rgba(0,0,0,0.3)",
+        }}
+      >
         📅 Reserva 24hs
       </span>
     </div>

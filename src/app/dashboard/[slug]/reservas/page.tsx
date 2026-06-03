@@ -131,15 +131,24 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
       : ""
 
   return (
-    <main className="min-h-screen bg-[#0C0E14]">
-      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+    <main className="min-h-screen bg-[#0C0E14] relative">
+      {/* Orbs */}
+      <div
+        className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }}
+      />
+      <div
+        className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
+        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }}
+      />
+      <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-lg font-bold text-white mt-1">Reservas</h1>
+        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Reservas</h1>
       </header>
 
-      <section className="max-w-4xl mx-auto p-6 space-y-5">
+      <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-5">
         <ReservasControles
           slug={slug}
           periodoActivo={periodoActivo}
@@ -184,7 +193,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
 
 function EstadoVacio() {
   return (
-    <div className="bg-[#14171F] border border-white/[0.07] rounded-xl px-6 py-10 flex flex-col items-center gap-3 text-center">
+    <div className="glass-card rounded-xl px-6 py-10 flex flex-col items-center gap-3 text-center">
       <CalendarDays className="w-7 h-7 text-white/15" />
       <p className="text-sm font-medium text-white/30">No hay reservas para este período</p>
     </div>
@@ -220,7 +229,7 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
   const telefono = !r.user && r.guestPhone ? formatTelefono(r.guestPhone) : null
 
   return (
-    <div className="bg-[#14171F] border border-white/[0.07] hover:border-white/[0.14] rounded-xl p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 transition-colors">
+    <div className="card-float glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
       <div className="space-y-1.5 min-w-0">
         {/* Hora y estado */}
         <div className="flex items-center gap-2 flex-wrap">

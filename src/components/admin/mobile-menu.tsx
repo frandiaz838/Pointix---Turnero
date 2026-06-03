@@ -26,9 +26,16 @@ export function AdminMobileMenu({ slug }: { slug: string }) {
       )}
 
       <div
-        className={`fixed top-0 right-0 h-full w-72 bg-[#14171F] border-l border-white/[0.07] z-50 shadow-2xl transition-transform duration-200 sm:hidden ${
+        className={`fixed top-0 right-0 h-full w-72 z-50 transition-transform duration-300 sm:hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
+        style={{
+          background: "rgba(12,14,20,0.92)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          borderLeft: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "-8px 0 48px rgba(0,0,0,0.6)",
+        }}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
           <span className="font-display font-black uppercase text-[#CAFF00] text-xl tracking-tight">

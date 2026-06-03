@@ -6,8 +6,9 @@ import { buttonVariants } from "@/components/ui/button"
 import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
 import { LogoutBtn } from "@/components/admin/logout-btn"
 import { AdminMobileMenu } from "@/components/admin/mobile-menu"
+import { CountUp } from "@/components/admin/count-up"
 import { generarSlots } from "@/lib/slots"
-import { Clock } from "lucide-react"
+import { Clock, TrendingUp, CalendarDays, LayoutGrid } from "lucide-react"
 import { getSport, sportLabel } from "@/lib/sports"
 import { SportIcon } from "@/components/ui/sport-icon"
 
@@ -120,18 +121,37 @@ export default async function AdminDashboardPage({ params }: Props) {
   }))
 
   return (
-    <main className="min-h-screen bg-[#0C0E14]">
-      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-white">{tenant.name}</h1>
-          <p className="text-xs font-medium text-white/35 uppercase tracking-wide">Panel de administración</p>
+    <div className="min-h-screen bg-[#0C0E14] relative">
+
+      {/* Orbs de fondo */}
+      <div
+        className="pointer-events-none fixed top-[-30%] right-[-15%] w-[60%] h-[60%] rounded-full opacity-60"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%)" }}
+      />
+      <div
+        className="pointer-events-none fixed bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
+        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)" }}
+      />
+
+      {/* Header sticky glass */}
+      <header className="glass-header sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
+        <div className="min-w-0">
+          <h1 className="font-display font-black uppercase text-white text-lg leading-none tracking-tight">
+            {tenant.name}
+          </h1>
+          <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mt-0.5">
+            Panel admin
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2">
             <Link href={`/dashboard/${slug}/reservas`} className={buttonVariants({ variant: "outline", size: "sm" })}>
               Ver reservas
             </Link>
-            <Link href={`/dashboard/${slug}/canchas/nueva`} className={buttonVariants({ size: "sm" })}>
+            <Link
+              href={`/dashboard/${slug}/canchas/nueva`}
+              className="btn-lime-glow flex items-center gap-1.5 bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3 py-2 rounded-lg"
+            >
               + Nueva cancha
             </Link>
             <LogoutBtn />
@@ -140,36 +160,59 @@ export default async function AdminDashboardPage({ params }: Props) {
         </div>
       </header>
 
-      <section className="max-w-4xl mx-auto p-6 space-y-8">
+      <main className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
 
-        {/* Stats del día */}
+        {/* Stats — glassmorphism */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
-            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Reservas hoy</p>
-            <p className="font-display text-4xl font-black text-white">{reservasHoy.length}</p>
+
+          {/* Reservas hoy */}
+          <div className="glass-card rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">Reservas hoy</p>
+              <CalendarDays className="w-3.5 h-3.5 text-white/20" />
+            </div>
+            <p className="font-display font-black text-white leading-none"
+               style={{ fontSize: "clamp(2.5rem,6vw,3.5rem)" }}>
+              <CountUp value={reservasHoy.length} formatAR={false} />
+            </p>
             <p className={`text-xs font-medium ${comparacionAyer.color}`}>{comparacionAyer.text}</p>
           </div>
 
+          {/* Ingresos — con borde lime gradient */}
           <Link
             href={`/dashboard/${slug}/ingresos`}
-            className="bg-[#14171F] border border-white/[0.07] hover:border-white/[0.15] rounded-xl p-5 space-y-2 transition-colors block"
+            className="glass-card border-lime-gradient rounded-2xl p-5 space-y-3 block transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_40px_rgba(202,255,0,0.08)]"
           >
-            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Ingresos hoy</p>
-            <p className="font-display text-4xl font-black text-[#CAFF00]">
-              ${ingresosHoy.toLocaleString("es-AR")}
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold text-[#CAFF00]/50 uppercase tracking-[0.18em]">Ingresos hoy</p>
+              <TrendingUp className="w-3.5 h-3.5 text-[#CAFF00]/40" />
+            </div>
+            <p
+              className="font-display font-black text-[#CAFF00] leading-none text-glow-lime"
+              style={{ fontSize: "clamp(1.8rem,5vw,2.8rem)" }}
+            >
+              $<CountUp value={ingresosHoy} />
             </p>
             <p className="text-xs font-medium text-white/25">
-              Mes: ${ingresosMes.toLocaleString("es-AR")}
+              Mes: $<CountUp value={ingresosMes} duration={1200} />
             </p>
           </Link>
 
+          {/* Ocupación */}
           <Link
             href={`/dashboard/${slug}/ocupacion`}
-            className="col-span-2 sm:col-span-1 bg-[#14171F] border border-white/[0.07] hover:border-white/[0.15] rounded-xl p-5 space-y-2 transition-colors block"
+            className="col-span-2 sm:col-span-1 glass-card rounded-2xl p-5 space-y-3 block transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.5)]"
           >
-            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Ocupación</p>
-            <p className="font-display text-4xl font-black text-white">
-              {ocupacion !== null ? `${ocupacion}%` : "—"}
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">Ocupación</p>
+              <LayoutGrid className="w-3.5 h-3.5 text-white/20" />
+            </div>
+            <p className="font-display font-black text-white leading-none"
+               style={{ fontSize: "clamp(2.5rem,6vw,3.5rem)" }}>
+              {ocupacion !== null
+                ? <CountUp value={ocupacion} suffix="%" formatAR={false} />
+                : <span className="text-white/20">—</span>
+              }
             </p>
             <p className="text-xs font-medium text-white/25">Ver detalle por cancha</p>
           </Link>
@@ -177,13 +220,13 @@ export default async function AdminDashboardPage({ params }: Props) {
 
         {/* Reservas del día */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Reservas de hoy</h2>
+          <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Reservas de hoy</h2>
           {reservasHoy.length === 0 ? (
-            <p className="text-sm text-white/25 bg-[#14171F] border border-white/[0.07] rounded-xl px-5 py-4">
+            <p className="text-sm text-white/25 glass-card rounded-xl px-5 py-4">
               No hay reservas para hoy.
             </p>
           ) : (
-            <div className="bg-[#14171F] border border-white/[0.07] rounded-xl divide-y divide-white/[0.06]">
+            <div className="glass-card rounded-2xl divide-y divide-white/[0.05]">
               {reservasHoy.map((r) => (
                 <div key={r.id} className="px-5 py-3.5 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -191,17 +234,15 @@ export default async function AdminDashboardPage({ params }: Props) {
                       {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
                     </span>
                     <span className="text-sm font-medium text-white/70 truncate">{r.court.name}</span>
-                    <span className="text-sm text-white/30 truncate hidden sm:block">
+                    <span className="text-sm text-white/25 truncate hidden sm:block">
                       {r.user?.name ?? r.guestName ?? "Invitado"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${
-                      estadoBadge[r.status] ?? estadoBadge.PENDING
-                    }`}>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
                       {estadoLabel[r.status] ?? r.status}
                     </span>
-                    <span className="text-sm font-bold text-white">
+                    <span className="text-sm font-bold text-white tabular-nums">
                       ${Number(r.totalPrice).toLocaleString("es-AR")}
                     </span>
                   </div>
@@ -211,9 +252,9 @@ export default async function AdminDashboardPage({ params }: Props) {
           )}
         </div>
 
-        {/* Lista de canchas agrupadas por deporte */}
+        {/* Canchas */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Canchas</h2>
+          <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Canchas</h2>
 
           {canchas.length === 0 ? (
             <p className="text-sm text-white/30">No hay canchas todavía. ¡Agregá la primera!</p>
@@ -221,11 +262,13 @@ export default async function AdminDashboardPage({ params }: Props) {
             <div className="space-y-6">
               {gruposCanchas.map(({ sport, canchas: lista }) => (
                 <div key={sport} className="space-y-2">
-                  <div className="flex items-center gap-2 pb-2 border-b border-white/[0.06]">
-                    <SportIcon sport={sport} size={16} />
+                  <div className="flex items-center gap-2 pb-2">
+                    <div className="separator-subtle flex-1" />
+                    <SportIcon sport={sport} size={14} />
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClassSolid}`}>
                       {sportLabel(sport)}
                     </span>
+                    <div className="separator-subtle flex-1" />
                   </div>
 
                   {lista.map((cancha) => {
@@ -233,50 +276,40 @@ export default async function AdminDashboardPage({ params }: Props) {
                     return (
                       <div
                         key={cancha.id}
-                        className={`bg-[#14171F] border border-white/[0.07] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-opacity ${
+                        className={`card-float glass-card rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
                           cancha.isActive ? "" : "opacity-40"
                         }`}
                       >
                         <div className="space-y-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-semibold text-white truncate">{cancha.name}</p>
-                            <span className={`shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border ${
+                            <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full border ${
                               cancha.isActive
                                 ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
-                                : "bg-white/[0.04] text-white/25 border-white/[0.07]"
+                                : "bg-white/[0.04] text-white/20 border-white/[0.06]"
                             }`}>
                               {cancha.isActive ? "Activa" : "Inactiva"}
                             </span>
                           </div>
-                          <p className="text-sm text-white/40">
-                            ${Number(cancha.pricePerHour).toLocaleString("es-AR")} / hora
+                          <p className="text-sm text-white/35 font-display font-black text-glow-lime" style={{ textShadow: "none" }}>
+                            ${Number(cancha.pricePerHour).toLocaleString("es-AR")}
+                            <span className="text-white/25 font-sans font-normal text-xs ml-1">/ hora</span>
                           </p>
                           {sch && (
-                            <p className="text-xs text-white/25 flex items-center gap-1">
+                            <p className="text-xs text-white/20 flex items-center gap-1">
                               <Clock className="w-3 h-3" />
                               {sch.openTime} — {sch.closeTime}
                             </p>
                           )}
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Link
-                            href={`/dashboard/${slug}/canchas/${cancha.id}/horarios`}
-                            className={buttonVariants({ variant: "outline", size: "sm" })}
-                          >
+                          <Link href={`/dashboard/${slug}/canchas/${cancha.id}/horarios`} className={buttonVariants({ variant: "outline", size: "sm" })}>
                             Horarios
                           </Link>
-                          <Link
-                            href={`/dashboard/${slug}/canchas/${cancha.id}/editar`}
-                            className={buttonVariants({ variant: "outline", size: "sm" })}
-                          >
+                          <Link href={`/dashboard/${slug}/canchas/${cancha.id}/editar`} className={buttonVariants({ variant: "outline", size: "sm" })}>
                             Editar
                           </Link>
-                          <ToggleActivaBtn
-                            courtId={cancha.id}
-                            isActive={cancha.isActive}
-                            tenantId={tenant.id}
-                            slug={slug}
-                          />
+                          <ToggleActivaBtn courtId={cancha.id} isActive={cancha.isActive} tenantId={tenant.id} slug={slug} />
                         </div>
                       </div>
                     )
@@ -287,7 +320,7 @@ export default async function AdminDashboardPage({ params }: Props) {
           )}
         </div>
 
-      </section>
-    </main>
+      </main>
+    </div>
   )
 }

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { ArrowRight, Clock, CheckCircle } from "lucide-react"
 import { SportIcon } from "@/components/ui/sport-icon"
 import { SportPills } from "@/components/landing/sport-pills"
+import { HeroTitle } from "@/components/landing/hero-title"
 import { generarSlots } from "@/lib/slots"
 import { getSport, sportLabel } from "@/lib/sports"
 
@@ -53,7 +54,10 @@ export default async function TenantPage({ params, searchParams }: Props) {
     ocupadosPorCancha.set(b.courtId, (ocupadosPorCancha.get(b.courtId) ?? 0) + 1)
   })
 
-  function disponibleHoy(courtId: string, schedules: { dayOfWeek: number; openTime: string; closeTime: string; slotMinutes: number }[]) {
+  function disponibleHoy(
+    courtId: string,
+    schedules: { dayOfWeek: number; openTime: string; closeTime: string; slotMinutes: number }[]
+  ) {
     const sch = schedules.find((s) => s.dayOfWeek === diaSemana)
     if (!sch) return false
     const totalSlots = generarSlots(sch.openTime, sch.closeTime, sch.slotMinutes).length
@@ -74,51 +78,75 @@ export default async function TenantPage({ params, searchParams }: Props) {
   }))
 
   return (
-    <main className="min-h-screen bg-[#0C0E14] text-white">
+    <main className="min-h-screen bg-[#0C0E14] text-white relative overflow-x-hidden">
+
+      {/* ── ORBS DE FONDO (mesh gradient) ─────────────────── */}
+      <div
+        className="animate-orb pointer-events-none fixed -left-[25%] -top-[25%] w-[70%] h-[70%] rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.22) 0%, transparent 70%)" }}
+      />
+      <div
+        className="animate-orb-alt pointer-events-none fixed -right-[20%] bottom-[-10%] w-[60%] h-[60%] rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 70%)" }}
+      />
+      <div
+        className="pointer-events-none fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] rounded-full"
+        style={{ background: "radial-gradient(circle, rgba(202,255,0,0.04) 0%, transparent 65%)" }}
+      />
 
       {/* ── HERO ──────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-b border-white/[0.06]">
-        {/* Textura de líneas de cancha */}
-        <div className="bg-court-lines absolute inset-0 pointer-events-none" />
-        {/* Fade inferior */}
-        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#0C0E14] to-transparent pointer-events-none" />
+      <section className="relative z-10">
+        <div className="bg-court-lines absolute inset-0 pointer-events-none opacity-50" />
+        <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#0C0E14] to-transparent pointer-events-none" />
 
-        <div className="relative max-w-2xl mx-auto px-6 py-20 text-center">
+        <div className="relative max-w-3xl mx-auto px-6 pt-20 pb-24 text-center">
 
           {/* Eyebrow */}
-          <div className="inline-flex items-center gap-2.5 mb-7">
-            <span className="w-6 h-px bg-[#CAFF00]/70" />
-            <span className="text-[#CAFF00] text-[10px] font-bold tracking-[0.3em] uppercase">
+          <div
+            className="inline-flex items-center gap-3 mb-10"
+            style={{ animation: "fadeIn 0.6s ease 0.1s both" }}
+          >
+            <span className="w-8 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(202,255,0,0.7))" }} />
+            <span className="text-[#CAFF00] text-[9px] font-bold tracking-[0.45em] uppercase">
               Turnero online
             </span>
-            <span className="w-6 h-px bg-[#CAFF00]/70" />
+            <span className="w-8 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(202,255,0,0.7))" }} />
           </div>
 
-          {/* Nombre del complejo */}
-          <h1 className="font-display font-black uppercase text-white leading-[0.87] tracking-tight mb-6 text-[clamp(2.8rem,11vw,7rem)]">
-            {tenant.name}
-          </h1>
+          {/* Nombre del complejo — animación letra a letra */}
+          <div className="text-[clamp(4rem,13vw,9rem)] mb-10">
+            <HeroTitle text={tenant.name} />
+          </div>
 
           {tenant.description && (
-            <p className="text-white/40 text-sm leading-relaxed max-w-xs mx-auto mb-8">
+            <p
+              className="text-white/35 text-sm leading-relaxed max-w-xs mx-auto mb-10"
+              style={{ animation: "fadeInUp 0.5s ease 0.8s both" }}
+            >
               {tenant.description}
             </p>
           )}
 
-          <SportPills
-            sports={grupos.map(({ sport, titulo }) => ({
-              sport,
-              label: titulo,
-              emoji: getSport(sport).emoji,
-            }))}
-          />
+          {/* Separador lime */}
+          <div className="separator-lime max-w-48 mx-auto mb-10" style={{ animation: "fadeIn 0.6s ease 0.6s both" }} />
+
+          {/* Sport pills glassmorphism */}
+          <div style={{ animation: "fadeInUp 0.5s ease 0.9s both" }}>
+            <SportPills
+              sports={grupos.map(({ sport, titulo }) => ({
+                sport,
+                label: titulo,
+                emoji: getSport(sport).emoji,
+              }))}
+            />
+          </div>
         </div>
       </section>
 
       {/* ── BANNER DE CONFIRMACIÓN ──────────────────────── */}
       {reservado && (
-        <div className="max-w-4xl mx-auto px-6 pt-6">
-          <div className="flex items-center gap-3 bg-[#CAFF00]/[0.08] border border-[#CAFF00]/25 text-[#CAFF00] rounded-xl px-5 py-4 text-sm font-semibold">
+        <div className="relative z-10 max-w-4xl mx-auto px-6 pt-6">
+          <div className="glass-card flex items-center gap-3 text-[#CAFF00] rounded-2xl px-5 py-4 text-sm font-semibold glow-lime">
             <CheckCircle className="w-4 h-4 shrink-0" />
             ¡Reserva confirmada! Nos vemos en la cancha.
           </div>
@@ -126,23 +154,29 @@ export default async function TenantPage({ params, searchParams }: Props) {
       )}
 
       {/* ── CANCHAS ─────────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-6 py-12 space-y-14">
+      <section className="relative z-10 max-w-4xl mx-auto px-6 py-20 space-y-20">
 
         {tenant.courts.length === 0 ? (
           <p className="text-white/30 font-medium">No hay canchas disponibles por el momento.</p>
         ) : (
           <>
-            <h2 className="font-display text-[clamp(2rem,6vw,3.5rem)] font-black uppercase text-white leading-none tracking-tight">
-              Nuestras<br />canchas
-            </h2>
+            {/* Título sección */}
+            <div style={{ animation: "fadeInUp 0.5s ease 0.2s both" }}>
+              <h2 className="font-display text-[clamp(3rem,8vw,5rem)] font-black uppercase text-white leading-none tracking-tight">
+                Nuestras<br />canchas
+              </h2>
+              <div className="separator-lime mt-5 max-w-36" />
+            </div>
 
             {grupos.map(({ titulo, sport, canchas }) => (
-              <div key={sport} id={sectionId(sport)} className="space-y-5">
+              <div key={sport} id={sectionId(sport)} className="space-y-6">
 
                 {/* Cabecera de sección */}
-                <div className="flex items-center justify-between border-t border-white/[0.07] pt-6">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
-                    <SportIcon sport={sport} size={20} />
+                    <div className="p-2 rounded-lg glass-nav">
+                      <SportIcon sport={sport} size={18} />
+                    </div>
                     <h3 className="font-display text-2xl font-black uppercase text-white leading-none">
                       {titulo}
                     </h3>
@@ -152,14 +186,14 @@ export default async function TenantPage({ params, searchParams }: Props) {
                   </div>
                   <Link
                     href={`/${slug}/reservar?deporte=${sport}`}
-                    className="shrink-0 flex items-center gap-1.5 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-95 text-black font-bold text-sm px-4 py-2 rounded-lg transition-all ml-4"
+                    className="btn-lime-glow shrink-0 flex items-center gap-1.5 bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold text-sm px-4 py-2 rounded-xl ml-4"
                   >
                     Reservar <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
 
                 {/* Grid de cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   {canchas.map((court) => {
                     const schHoy = court.schedules.find((s) => s.dayOfWeek === diaSemana)
                     const horario = schHoy ?? court.schedules[0]
@@ -169,21 +203,23 @@ export default async function TenantPage({ params, searchParams }: Props) {
                     return (
                       <div
                         key={court.id}
-                        className="relative overflow-hidden bg-[#14171F] border border-white/[0.07] hover:border-white/[0.15] rounded-xl p-5 space-y-4 transition-colors"
+                        className="card-float glass-card rounded-2xl p-5 space-y-4 relative overflow-hidden"
                       >
-                        {/* Emoji de fondo decorativo */}
+                        {/* Emoji watermark */}
                         {sportInfo.emoji && (
-                          <span className="absolute -right-1 -top-3 text-[5.5rem] opacity-[0.055] select-none pointer-events-none leading-none">
+                          <span className="absolute -right-2 -top-4 text-[6.5rem] opacity-[0.07] select-none pointer-events-none leading-none">
                             {sportInfo.emoji}
                           </span>
                         )}
 
                         {/* Badge disponibilidad */}
-                        <span className={`inline-flex text-xs font-semibold px-2.5 py-1 rounded-full border ${
-                          libre
-                            ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
-                            : "bg-white/[0.04] text-white/25 border-white/[0.07]"
-                        }`}>
+                        <span
+                          className={`inline-flex text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                            libre
+                              ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25 badge-available-pulse"
+                              : "bg-white/[0.04] text-white/25 border-white/[0.06]"
+                          }`}
+                        >
                           {libre ? "● Disponible hoy" : "Sin turnos hoy"}
                         </span>
 
@@ -192,9 +228,9 @@ export default async function TenantPage({ params, searchParams }: Props) {
                           {court.name}
                         </p>
 
-                        {/* Precio */}
-                        <div className="flex items-baseline gap-1">
-                          <span className="font-display text-3xl font-black text-[#CAFF00] leading-none">
+                        {/* Precio con glow */}
+                        <div className="flex items-baseline gap-1.5">
+                          <span className={`font-display text-[2.2rem] font-black leading-none ${libre ? "text-[#CAFF00] text-glow-lime" : "text-[#CAFF00]"}`}>
                             ${Number(court.pricePerHour).toLocaleString("es-AR")}
                           </span>
                           <span className="text-white/25 text-sm">/ hora</span>
@@ -202,7 +238,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
 
                         {/* Horario */}
                         {horario && (
-                          <p className="text-white/35 text-xs flex items-center gap-1.5">
+                          <p className="text-white/30 text-xs flex items-center gap-1.5">
                             <Clock className="w-3 h-3" />
                             {horario.openTime} — {horario.closeTime}
                           </p>
@@ -218,8 +254,9 @@ export default async function TenantPage({ params, searchParams }: Props) {
       </section>
 
       {/* ── FOOTER ───────────────────────────────────────── */}
-      <footer className="border-t border-white/[0.06] py-8 text-center">
-        <p className="text-white/20 text-xs tracking-widest uppercase">
+      <footer className="relative z-10 py-10 text-center">
+        <div className="separator-subtle max-w-xs mx-auto mb-8" />
+        <p className="text-white/15 text-xs tracking-widest uppercase">
           Pointix · Reservas deportivas
         </p>
       </footer>

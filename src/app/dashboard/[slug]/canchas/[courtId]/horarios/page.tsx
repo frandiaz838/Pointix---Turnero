@@ -26,16 +26,20 @@ export default async function HorariosPage({ params }: Props) {
   if (!cancha) notFound()
 
   return (
-    <main className="min-h-screen bg-[#0C0E14]">
-      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+    <main className="min-h-screen bg-[#0C0E14] relative">
+      <div
+        className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }}
+      />
+      <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-lg font-bold text-white mt-1">Horarios — {cancha.name}</h1>
+        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Horarios — {cancha.name}</h1>
         <p className="text-sm text-white/35 mt-0.5">Configurá los días y horarios en que esta cancha acepta reservas.</p>
       </header>
 
-      <section className="max-w-2xl mx-auto p-6">
+      <section className="relative z-10 max-w-2xl mx-auto p-6">
         <HorariosForm
           courtId={cancha.id}
           tenantId={tenant.id}

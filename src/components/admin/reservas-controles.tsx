@@ -46,10 +46,10 @@ export function ReservasControles({ slug, periodoActivo, fechaSeleccionada }: Pr
         <Link
           key={key}
           href={href(slug)}
-          className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-colors ${
+          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
             periodoActivo === key
-              ? "bg-[#CAFF00] text-black border-[#CAFF00]"
-              : "bg-white/[0.05] hover:bg-white/[0.09] border-white/[0.1] text-white/60 hover:text-white"
+              ? "btn-lime-glow bg-[#CAFF00] text-black border border-[#CAFF00]"
+              : "glass-nav text-white/60 hover:text-white"
           }`}
         >
           {label}

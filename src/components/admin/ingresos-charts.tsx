@@ -32,7 +32,7 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
       {/* Barras horizontales por cancha */}
-      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4">
+      <div className="glass-card rounded-xl p-4">
         <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
           Por cancha
         </p>
@@ -53,7 +53,7 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
                 width={yAxisWidth}
               />
               <Tooltip
-                contentStyle={{ background: "#14171F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
+                contentStyle={{ background: "rgba(12,14,20,0.9)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
                 formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, "Ingresos"]}
               />
               <Bar
@@ -73,7 +73,7 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
       </div>
 
       {/* Donut por deporte */}
-      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4">
+      <div className="glass-card rounded-xl p-4">
         <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
           Por deporte
         </p>
@@ -95,7 +95,7 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: "#14171F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
+                contentStyle={{ background: "rgba(12,14,20,0.9)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
                 formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, ""]}
               />
               <Legend

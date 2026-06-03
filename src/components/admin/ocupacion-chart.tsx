@@ -33,7 +33,7 @@ export function OcupacionChart({ data, maxDominio = 100 }: { data: DataItem[]; m
           />
           <YAxis unit="%" domain={[0, maxDominio]} tick={tickStyle} width={40} />
           <Tooltip
-            contentStyle={{ background: "#14171F", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
+            contentStyle={{ background: "rgba(12,14,20,0.9)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
             formatter={(v) => [`${v}%`, "Ocupación"]}
           />
           <Bar dataKey="ocupacion" radius={[4, 4, 0, 0]}>

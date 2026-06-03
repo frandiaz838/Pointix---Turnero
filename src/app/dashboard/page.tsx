@@ -26,7 +26,7 @@ export default async function DashboardPage() {
           </form>
         </div>
 
-        <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-6 space-y-2">
+        <div className="glass-card rounded-xl p-6 space-y-2">
           <p className="text-white/70"><span className="font-medium text-white">Nombre:</span> {session?.user?.name ?? "—"}</p>
           <p className="text-white/70"><span className="font-medium text-white">Email:</span> {session?.user?.email}</p>
           <p className="text-white/70"><span className="font-medium text-white">Rol:</span> {session?.user?.role}</p>

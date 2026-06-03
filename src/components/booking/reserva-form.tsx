@@ -67,7 +67,7 @@ export function ReservaForm({
       <input type="hidden" name="hora" value={horaSeleccionada ?? ""} />
 
       {/* Selector de fecha */}
-      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4 space-y-3">
+      <div className="glass-card rounded-xl p-4 space-y-3">
         <label className="text-sm font-medium text-white/60">Fecha</label>
         <input
           name="fecha"
@@ -94,7 +94,7 @@ export function ReservaForm({
       </div>
 
       {/* Grilla de horarios */}
-      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4 space-y-3">
+      <div className="glass-card rounded-xl p-4 space-y-3">
         <p className="text-sm font-medium text-white/60">Elegí un horario</p>
 
         {!canchaAbierta ? (
@@ -113,12 +113,12 @@ export function ReservaForm({
                     type="button"
                     disabled={ocupado}
                     onClick={() => setHoraSeleccionada(slot)}
-                    className={`rounded-lg py-2.5 text-sm font-semibold border transition-all ${
+                    className={`rounded-lg py-2.5 text-sm font-semibold transition-all ${
                       seleccionado
-                        ? "bg-[#CAFF00] text-black border-[#CAFF00] scale-105 shadow-[0_0_12px_rgba(202,255,0,0.2)]"
+                        ? "slot-selected"
                         : ocupado
-                        ? "bg-white/[0.03] text-white/20 cursor-not-allowed border-white/[0.05]"
-                        : "bg-white/[0.05] hover:bg-[#CAFF00]/[0.12] border-white/[0.1] text-white/70 hover:text-[#CAFF00] hover:border-[#CAFF00]/30"
+                        ? "slot-occupied"
+                        : "slot-available"
                     }`}
                   >
                     {slot}
@@ -142,7 +142,7 @@ export function ReservaForm({
 
       {/* Datos del invitado */}
       {!isLoggedIn && (
-        <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-4 space-y-3">
+        <div className="glass-card rounded-xl p-4 space-y-3">
           <p className="text-sm font-medium text-white/60">Tus datos</p>
           <div className="space-y-2">
             <input
@@ -178,7 +178,7 @@ export function ReservaForm({
       {canchaAbierta && (
         <Button
           type="submit"
-          className="w-full h-11 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold"
+          className="btn-lime-glow w-full h-11 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold"
           disabled={!horaSeleccionada || pending}
         >
           {pending

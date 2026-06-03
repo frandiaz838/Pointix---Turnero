@@ -113,21 +113,30 @@ export default async function IngresosPage({ params }: Props) {
   ).sort((a, b) => b.total - a.total)
 
   return (
-    <main className="min-h-screen bg-[#0C0E14]">
-      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+    <main className="min-h-screen bg-[#0C0E14] relative">
+      {/* Orbs */}
+      <div
+        className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }}
+      />
+      <div
+        className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
+        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }}
+      />
+      <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-lg font-bold text-white mt-1">
+        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">
           Ingresos — {MESES[ahora.getUTCMonth()]} {ahora.getUTCFullYear()}
         </h1>
       </header>
 
-      <section className="max-w-4xl mx-auto p-6 space-y-8">
+      <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
 
         {/* Stats principales */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
+          <div className="glass-card rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Hoy</p>
               <Clock className="w-3.5 h-3.5 text-white/20" />
@@ -137,7 +146,7 @@ export default async function IngresosPage({ params }: Props) {
             </p>
           </div>
 
-          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
+          <div className="glass-card rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Esta semana</p>
               <Calendar className="w-3.5 h-3.5 text-white/20" />
@@ -147,12 +156,12 @@ export default async function IngresosPage({ params }: Props) {
             </p>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 bg-[#14171F] border border-[#CAFF00]/20 rounded-xl p-5 space-y-2">
+          <div className="col-span-2 sm:col-span-1 glass-card border-lime-gradient rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold text-[#CAFF00]/60 uppercase tracking-[0.15em]">Este mes</p>
               <TrendingUp className="w-3.5 h-3.5 text-[#CAFF00]/50" />
             </div>
-            <p className="font-display text-4xl font-black text-[#CAFF00] tracking-tight">
+            <p className="font-display text-4xl font-black text-[#CAFF00] tracking-tight text-glow-lime">
               ${ingresosMes.toLocaleString("es-AR")}
             </p>
           </div>
@@ -161,7 +170,7 @@ export default async function IngresosPage({ params }: Props) {
         {/* Tabla semanal */}
         <div className="space-y-3">
           <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Semana actual</h2>
-          <div className="overflow-x-auto rounded-xl border border-white/[0.07] bg-[#14171F]">
+          <div className="overflow-x-auto glass-card rounded-xl">
             <table className="w-full text-sm">
               <thead className="border-b border-white/[0.07]">
                 <tr>
@@ -211,7 +220,7 @@ export default async function IngresosPage({ params }: Props) {
           <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
             Reservas del mes ({reservasMes.length})
           </h2>
-          <div className="overflow-x-auto rounded-xl border border-white/[0.07] bg-[#14171F]">
+          <div className="overflow-x-auto glass-card rounded-xl">
             <table className="w-full text-sm min-w-[500px]">
               <thead className="border-b border-white/[0.07]">
                 <tr>

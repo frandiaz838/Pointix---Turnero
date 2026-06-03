@@ -129,19 +129,28 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-[#0C0E14]">
-      <header className="bg-[#0C0E14] border-b border-white/[0.07] px-6 py-4">
+    <main className="min-h-screen bg-[#0C0E14] relative">
+      {/* Orbs */}
+      <div
+        className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
+        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }}
+      />
+      <div
+        className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
+        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }}
+      />
+      <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
         </Link>
-        <h1 className="text-lg font-bold text-white mt-1">Ocupación</h1>
+        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Ocupación</h1>
       </header>
 
-      <section className="max-w-4xl mx-auto p-6 space-y-8">
+      <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
 
         {/* Cards resumen */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
+          <div className="glass-card rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
               <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Canchas activas</p>
               <LayoutGrid className="w-3.5 h-3.5 text-white/20" />
@@ -149,15 +158,15 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
             <p className="font-display text-3xl font-black text-white">{datosCanchas.length}</p>
           </div>
 
-          <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
-            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Ocup. promedio</p>
+          <div className="glass-card border-lime-gradient rounded-xl p-5 space-y-2">
+            <p className="text-[10px] font-bold text-[#CAFF00]/50 uppercase tracking-[0.15em]">Ocup. promedio</p>
             <div className="flex items-baseline gap-2">
-              <p className="font-display text-3xl font-black text-[#CAFF00]">{ocupacionPromedio}%</p>
+              <p className="font-display text-3xl font-black text-[#CAFF00] text-glow-lime">{ocupacionPromedio}%</p>
               <p className="text-xs text-white/25">{periodoLabel[periodo].toLowerCase()}</p>
             </div>
           </div>
 
-          <div className="col-span-2 sm:col-span-1 bg-[#14171F] border border-white/[0.07] rounded-xl p-5 space-y-2">
+          <div className="col-span-2 sm:col-span-1 glass-card rounded-xl p-5 space-y-2">
             <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Más reservada</p>
             {cachaMasReservada ? (
               <div className="space-y-0.5">
@@ -183,10 +192,10 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
             <Link
               key={p}
               href={`/dashboard/${slug}/ocupacion?periodo=${p}`}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
                 periodo === p
-                  ? "bg-[#CAFF00] text-black border-[#CAFF00]"
-                  : "bg-white/[0.05] hover:bg-white/[0.09] border-white/[0.1] text-white/60 hover:text-white"
+                  ? "btn-lime-glow bg-[#CAFF00] text-black border-[#CAFF00]"
+                  : "glass-nav text-white/60 hover:text-white"
               }`}
             >
               {periodoLabel[p]}
@@ -195,7 +204,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
         </div>
 
         {/* Gráfico */}
-        <div className="bg-[#14171F] border border-white/[0.07] rounded-xl p-5">
+        <div className="glass-card rounded-xl p-5">
           <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
             % Ocupación por cancha — {periodoLabel[periodo].toLowerCase()}
           </p>
@@ -219,11 +228,11 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
                 </div>
 
                 {cancha.bookings.length === 0 ? (
-                  <p className="text-sm text-white/25 bg-[#14171F] border border-white/[0.07] rounded-xl px-4 py-3">
+                  <p className="text-sm text-white/25 glass-card rounded-xl px-4 py-3">
                     Sin reservas en este período.
                   </p>
                 ) : (
-                  <div className="overflow-x-auto rounded-xl border border-white/[0.07] bg-[#14171F]">
+                  <div className="overflow-x-auto glass-card rounded-xl">
                     <table className="w-full text-sm min-w-[360px]">
                       <thead className="border-b border-white/[0.07]">
                         <tr>

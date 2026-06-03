@@ -47,7 +47,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="bg-[#14171F] border border-white/[0.07] rounded-xl divide-y divide-white/[0.06]">
+      <div className="glass-card rounded-xl divide-y divide-white/[0.06]">
         {DIAS.map((nombre, dia) => {
           const h = getHorario(dia)
           return (
@@ -106,7 +106,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
         })}
       </div>
 
-      <Button type="submit" className="w-full" disabled={pending}>
+      <Button type="submit" className="btn-lime-glow w-full bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
         {pending ? "Guardando..." : "Guardar horarios"}
       </Button>
     </form>
