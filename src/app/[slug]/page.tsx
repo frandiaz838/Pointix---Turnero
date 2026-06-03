@@ -1,19 +1,19 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { CalendarCheck, Clock, ArrowRight } from "lucide-react"
+import { ArrowRight, Clock, CheckCircle } from "lucide-react"
 import { SportIcon } from "@/components/ui/sport-icon"
 import { SportPills } from "@/components/landing/sport-pills"
 import { generarSlots } from "@/lib/slots"
 import { getSport, sportLabel } from "@/lib/sports"
 
-function sectionId(sport: string) {
-  return `seccion-${sport.toLowerCase().replace(/_/g, "-")}`
-}
-
 interface Props {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ reservado?: string }>
+}
+
+function sectionId(sport: string) {
+  return `seccion-${sport.toLowerCase().replace(/_/g, "-")}`
 }
 
 export default async function TenantPage({ params, searchParams }: Props) {
@@ -61,7 +61,6 @@ export default async function TenantPage({ params, searchParams }: Props) {
     return totalSlots > 0 && ocupados < totalSlots
   }
 
-  // Agrupar canchas por deporte, manteniendo el orden de aparición
   const sportMap = new Map<string, typeof tenant.courts>()
   for (const court of tenant.courts) {
     const arr = sportMap.get(court.sport) ?? []
@@ -75,18 +74,37 @@ export default async function TenantPage({ params, searchParams }: Props) {
   }))
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-[#0C0E14] text-white">
 
-      {/* Hero */}
-      <section className="bg-gradient-to-br from-[#f8fafc] to-[#f1f5f9] border-b">
-        <div className="max-w-2xl mx-auto px-6 py-12 text-center space-y-4">
-          <div className="flex justify-center mb-2">
-            <CalendarCheck className="w-10 h-10 text-gray-800" />
+      {/* ── HERO ──────────────────────────────────────────── */}
+      <section className="relative overflow-hidden border-b border-white/[0.06]">
+        {/* Textura de líneas de cancha */}
+        <div className="bg-court-lines absolute inset-0 pointer-events-none" />
+        {/* Fade inferior */}
+        <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-[#0C0E14] to-transparent pointer-events-none" />
+
+        <div className="relative max-w-2xl mx-auto px-6 py-20 text-center">
+
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-2.5 mb-7">
+            <span className="w-6 h-px bg-[#CAFF00]/70" />
+            <span className="text-[#CAFF00] text-[10px] font-bold tracking-[0.3em] uppercase">
+              Turnero online
+            </span>
+            <span className="w-6 h-px bg-[#CAFF00]/70" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900">{tenant.name}</h1>
+
+          {/* Nombre del complejo */}
+          <h1 className="font-display font-black uppercase text-white leading-[0.87] tracking-tight mb-6 text-[clamp(2.8rem,11vw,7rem)]">
+            {tenant.name}
+          </h1>
+
           {tenant.description && (
-            <p className="text-base font-medium text-gray-500">{tenant.description}</p>
+            <p className="text-white/40 text-sm leading-relaxed max-w-xs mx-auto mb-8">
+              {tenant.description}
+            </p>
           )}
+
           <SportPills
             sports={grupos.map(({ sport, titulo }) => ({
               sport,
@@ -97,67 +115,96 @@ export default async function TenantPage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      <section className="max-w-4xl mx-auto p-6 mt-8 space-y-8">
-
-        {reservado && (
-          <div className="bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm font-medium">
+      {/* ── BANNER DE CONFIRMACIÓN ──────────────────────── */}
+      {reservado && (
+        <div className="max-w-4xl mx-auto px-6 pt-6">
+          <div className="flex items-center gap-3 bg-[#CAFF00]/[0.08] border border-[#CAFF00]/25 text-[#CAFF00] rounded-xl px-5 py-4 text-sm font-semibold">
+            <CheckCircle className="w-4 h-4 shrink-0" />
             ¡Reserva confirmada! Nos vemos en la cancha.
           </div>
-        )}
+        </div>
+      )}
+
+      {/* ── CANCHAS ─────────────────────────────────────── */}
+      <section className="max-w-4xl mx-auto px-6 py-12 space-y-14">
 
         {tenant.courts.length === 0 ? (
-          <p className="text-gray-500 font-medium">No hay canchas disponibles por el momento.</p>
+          <p className="text-white/30 font-medium">No hay canchas disponibles por el momento.</p>
         ) : (
           <>
-            <h2 className="text-xl font-bold text-gray-900">Nuestras canchas</h2>
+            <h2 className="font-display text-[clamp(2rem,6vw,3.5rem)] font-black uppercase text-white leading-none tracking-tight">
+              Nuestras<br />canchas
+            </h2>
 
             {grupos.map(({ titulo, sport, canchas }) => (
-              <div key={sport} id={sectionId(sport)} className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <h3 className="text-base font-semibold text-gray-900">{titulo}</h3>
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClass}`}>
+              <div key={sport} id={sectionId(sport)} className="space-y-5">
+
+                {/* Cabecera de sección */}
+                <div className="flex items-center justify-between border-t border-white/[0.07] pt-6">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <SportIcon sport={sport} size={20} />
+                    <h3 className="font-display text-2xl font-black uppercase text-white leading-none">
+                      {titulo}
+                    </h3>
+                    <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClassSolid}`}>
                       {canchas.length} {canchas.length === 1 ? "cancha" : "canchas"}
                     </span>
                   </div>
                   <Link
                     href={`/${slug}/reservar?deporte=${sport}`}
-                    className="inline-flex items-center gap-1.5 border border-gray-900 text-gray-900 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-gray-900 hover:text-white transition-colors"
+                    className="shrink-0 flex items-center gap-1.5 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-95 text-black font-bold text-sm px-4 py-2 rounded-lg transition-all ml-4"
                   >
-                    Reservar
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    Reservar <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
+
+                {/* Grid de cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {canchas.map((court) => {
                     const schHoy = court.schedules.find((s) => s.dayOfWeek === diaSemana)
                     const horario = schHoy ?? court.schedules[0]
                     const libre = disponibleHoy(court.id, court.schedules)
+                    const sportInfo = getSport(court.sport)
 
                     return (
-                      <div key={court.id} className="bg-white rounded-lg border p-5 space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <SportIcon sport={court.sport} />
-                          <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                            libre
-                              ? "bg-green-50 text-green-700 border-green-200"
-                              : "bg-gray-100 text-gray-500 border-gray-200"
-                          }`}>
-                            {libre ? "Disponible hoy" : "Sin turnos hoy"}
+                      <div
+                        key={court.id}
+                        className="relative overflow-hidden bg-[#14171F] border border-white/[0.07] hover:border-white/[0.15] rounded-xl p-5 space-y-4 transition-colors"
+                      >
+                        {/* Emoji de fondo decorativo */}
+                        {sportInfo.emoji && (
+                          <span className="absolute -right-1 -top-3 text-[5.5rem] opacity-[0.055] select-none pointer-events-none leading-none">
+                            {sportInfo.emoji}
                           </span>
-                        </div>
+                        )}
 
-                        <p className="font-semibold text-gray-900 text-lg">{court.name}</p>
+                        {/* Badge disponibilidad */}
+                        <span className={`inline-flex text-xs font-semibold px-2.5 py-1 rounded-full border ${
+                          libre
+                            ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
+                            : "bg-white/[0.04] text-white/25 border-white/[0.07]"
+                        }`}>
+                          {libre ? "● Disponible hoy" : "Sin turnos hoy"}
+                        </span>
 
-                        <p className="text-2xl font-bold text-gray-900">
-                          ${Number(court.pricePerHour).toLocaleString("es-AR")}
-                          <span className="text-sm font-medium text-gray-400 ml-1">/ hora</span>
+                        {/* Nombre */}
+                        <p className="font-display text-xl font-black uppercase text-white leading-tight">
+                          {court.name}
                         </p>
 
+                        {/* Precio */}
+                        <div className="flex items-baseline gap-1">
+                          <span className="font-display text-3xl font-black text-[#CAFF00] leading-none">
+                            ${Number(court.pricePerHour).toLocaleString("es-AR")}
+                          </span>
+                          <span className="text-white/25 text-sm">/ hora</span>
+                        </div>
+
+                        {/* Horario */}
                         {horario && (
-                          <p className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                          <p className="text-white/35 text-xs flex items-center gap-1.5">
                             <Clock className="w-3 h-3" />
-                            {horario.openTime} - {horario.closeTime}
+                            {horario.openTime} — {horario.closeTime}
                           </p>
                         )}
                       </div>
@@ -168,8 +215,15 @@ export default async function TenantPage({ params, searchParams }: Props) {
             ))}
           </>
         )}
-
       </section>
+
+      {/* ── FOOTER ───────────────────────────────────────── */}
+      <footer className="border-t border-white/[0.06] py-8 text-center">
+        <p className="text-white/20 text-xs tracking-widest uppercase">
+          Pointix · Reservas deportivas
+        </p>
+      </footer>
+
     </main>
   )
 }

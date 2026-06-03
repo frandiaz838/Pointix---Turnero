@@ -18,18 +18,18 @@ export function SportPills({ sports }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap justify-center gap-2 pt-1">
+    <div className="flex flex-wrap justify-center gap-2">
       {sports.map(({ sport, label, emoji }) => (
         <button
           key={sport}
           onClick={() => scrollTo(sport)}
-          className="bg-gray-100 text-gray-600 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 hover:bg-gray-200 hover:text-gray-800 transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 bg-white/[0.07] hover:bg-white/[0.14] border border-white/10 hover:border-white/20 text-white/60 hover:text-white text-xs font-semibold px-4 py-1.5 rounded-full transition-all cursor-pointer tracking-wide uppercase"
         >
-          {(emoji ?? "🎾")} {label}
+          {emoji ?? "🎾"} {label}
         </button>
       ))}
-      <span className="bg-gray-100 text-gray-500 text-xs font-medium px-3 py-1.5 rounded-full border border-gray-200 select-none">
-        📅 Reserva online 24hs
+      <span className="flex items-center gap-1.5 bg-[#CAFF00]/[0.08] border border-[#CAFF00]/20 text-[#CAFF00]/60 text-xs font-semibold px-4 py-1.5 rounded-full select-none tracking-wide uppercase">
+        📅 Reserva 24hs
       </span>
     </div>
   )
