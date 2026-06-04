@@ -127,6 +127,19 @@ export default async function TenantPage({ params, searchParams }: Props) {
             </p>
           )}
 
+          {/* CTA principal */}
+          <div
+            className="flex justify-center mb-10"
+            style={{ animation: "fadeInUp 0.5s ease 0.85s both" }}
+          >
+            <Link
+              href={`/${slug}/reservar`}
+              className="btn-lime-glow inline-flex items-center gap-2 bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold text-base px-7 py-3.5 rounded-xl"
+            >
+              Reservar ahora <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+
           {/* Separador lime */}
           <div className="separator-lime max-w-48 mx-auto mb-10" style={{ animation: "fadeIn 0.6s ease 0.6s both" }} />
 
