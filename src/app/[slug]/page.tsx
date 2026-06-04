@@ -82,16 +82,25 @@ export default async function TenantPage({ params, searchParams }: Props) {
 
       {/* ── ORBS DE FONDO (mesh gradient) ─────────────────── */}
       <div
-        className="animate-orb pointer-events-none fixed -left-[25%] -top-[25%] w-[70%] h-[70%] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.22) 0%, transparent 70%)" }}
+        className="animate-orb pointer-events-none fixed -left-[120px] -top-[120px] w-[420px] h-[420px] sm:-left-[200px] sm:-top-[200px] sm:w-[800px] sm:h-[800px] rounded-full opacity-50 sm:opacity-100"
+        style={{
+          background: "radial-gradient(circle, rgba(124,58,237,0.22) 0%, transparent 60%)",
+          filter: "blur(90px)",
+        }}
       />
       <div
-        className="animate-orb-alt pointer-events-none fixed -right-[20%] bottom-[-10%] w-[60%] h-[60%] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 70%)" }}
+        className="animate-orb-alt pointer-events-none fixed -right-[120px] -bottom-[120px] w-[420px] h-[420px] sm:-right-[200px] sm:-bottom-[200px] sm:w-[700px] sm:h-[700px] rounded-full opacity-50 sm:opacity-100"
+        style={{
+          background: "radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 60%)",
+          filter: "blur(90px)",
+        }}
       />
       <div
-        className="pointer-events-none fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] rounded-full"
-        style={{ background: "radial-gradient(circle, rgba(202,255,0,0.04) 0%, transparent 65%)" }}
+        className="pointer-events-none fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] sm:w-[600px] sm:h-[600px] rounded-full opacity-60 sm:opacity-100"
+        style={{
+          background: "radial-gradient(circle, rgba(202,255,0,0.04) 0%, transparent 55%)",
+          filter: "blur(90px)",
+        }}
       />
 
       {/* ── HERO ──────────────────────────────────────────── */}
