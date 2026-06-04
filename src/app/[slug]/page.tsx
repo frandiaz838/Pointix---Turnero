@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
-import { ArrowRight, Clock, CheckCircle } from "lucide-react"
+import { ArrowRight, Clock, CheckCircle, ChevronDown } from "lucide-react"
 import { SportIcon } from "@/components/ui/sport-icon"
 import { SportPills } from "@/components/landing/sport-pills"
 import { HeroTitle } from "@/components/landing/hero-title"
@@ -104,11 +104,11 @@ export default async function TenantPage({ params, searchParams }: Props) {
       />
 
       {/* ── HERO ──────────────────────────────────────────── */}
-      <section className="relative z-10">
+      <section className="relative z-10 min-h-dvh flex flex-col items-center justify-center">
         <div className="bg-court-lines absolute inset-0 pointer-events-none opacity-50" />
         <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#0C0E14] to-transparent pointer-events-none" />
 
-        <div className="relative max-w-3xl mx-auto px-6 pt-20 pb-24 text-center">
+        <div className="relative max-w-3xl mx-auto px-6 py-12 text-center">
 
           {/* Eyebrow */}
           <div
@@ -163,6 +163,15 @@ export default async function TenantPage({ params, searchParams }: Props) {
             />
           </div>
         </div>
+
+        {/* Flecha indicadora — bajar a canchas */}
+        <a
+          href="#canchas"
+          aria-label="Ir a las canchas"
+          className="animate-float-hint absolute bottom-6 left-1/2 -translate-x-1/2 text-white/40 hover:text-[#CAFF00] transition-colors"
+        >
+          <ChevronDown className="w-6 h-6" />
+        </a>
       </section>
 
       {/* ── BANNER DE CONFIRMACIÓN ──────────────────────── */}
@@ -176,7 +185,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
       )}
 
       {/* ── CANCHAS ─────────────────────────────────────── */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-20 space-y-20">
+      <section id="canchas" className="relative z-10 max-w-4xl mx-auto px-6 py-20 space-y-20">
 
         {tenant.courts.length === 0 ? (
           <p className="text-white/30 font-medium">No hay canchas disponibles por el momento.</p>
