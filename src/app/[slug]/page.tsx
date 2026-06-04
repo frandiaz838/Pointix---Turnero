@@ -114,7 +114,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
           </div>
 
           {/* Nombre del complejo — animación letra a letra */}
-          <div className="text-[clamp(4rem,13vw,9rem)] mb-10">
+          <div className="text-[clamp(2.5rem,8vw,9rem)] mb-10 overflow-hidden">
             <HeroTitle text={tenant.name} />
           </div>
 
@@ -180,7 +180,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
                     <h3 className="font-display text-2xl font-black uppercase text-white leading-none">
                       {titulo}
                     </h3>
-                    <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClassSolid}`}>
+                    <span className="shrink-0 text-xs font-bold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/50 border-white/[0.1]">
                       {canchas.length} {canchas.length === 1 ? "cancha" : "canchas"}
                     </span>
                   </div>

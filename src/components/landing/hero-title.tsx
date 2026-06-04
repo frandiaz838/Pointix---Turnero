@@ -19,7 +19,7 @@ export function HeroTitle({ text, className = "" }: Props) {
 
   return (
     <h1
-      className={`font-display font-black uppercase leading-[0.87] tracking-[-0.02em] text-white ${className}`}
+      className={`font-display font-black uppercase leading-[0.87] tracking-[-0.02em] text-white whitespace-nowrap ${className}`}
       aria-label={text}
     >
       {chars.map((char, i) => (
