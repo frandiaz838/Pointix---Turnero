@@ -77,6 +77,27 @@ export default async function TenantPage({ params, searchParams }: Props) {
     canchas,
   }))
 
+  // Datos para el hero — horario de hoy + turnos libres
+  const schedulesHoy = tenant.courts.flatMap((c) => {
+    const s = c.schedules.find((s) => s.dayOfWeek === diaSemana)
+    return s ? [s] : []
+  })
+
+  const horarioHoy = schedulesHoy.length > 0
+    ? {
+        apertura: schedulesHoy.reduce((min, s) => (s.openTime < min ? s.openTime : min), schedulesHoy[0].openTime),
+        cierre:   schedulesHoy.reduce((max, s) => (s.closeTime > max ? s.closeTime : max), schedulesHoy[0].closeTime),
+      }
+    : null
+
+  const turnosLibresHoy = tenant.courts.reduce((sum, c) => {
+    const sch = c.schedules.find((s) => s.dayOfWeek === diaSemana)
+    if (!sch) return sum
+    const total = generarSlots(sch.openTime, sch.closeTime, sch.slotMinutes).length
+    const ocupados = ocupadosPorCancha.get(c.id) ?? 0
+    return sum + Math.max(0, total - ocupados)
+  }, 0)
+
   return (
     <main className="min-h-screen bg-[#0C0E14] text-white relative overflow-x-hidden">
 
@@ -110,16 +131,14 @@ export default async function TenantPage({ params, searchParams }: Props) {
 
         <div className="relative max-w-3xl mx-auto px-6 py-12 text-center">
 
-          {/* Eyebrow */}
+          {/* Brand — Pointix (a futuro: logo) */}
           <div
-            className="inline-flex items-center gap-3 mb-10"
+            className="mb-10"
             style={{ animation: "fadeIn 0.6s ease 0.1s both" }}
           >
-            <span className="w-8 h-px" style={{ background: "linear-gradient(to right, transparent, rgba(202,255,0,0.7))" }} />
-            <span className="text-[#CAFF00] text-[9px] font-bold tracking-[0.45em] uppercase">
-              Turnero online
+            <span className="text-[#CAFF00] text-xs font-bold tracking-[0.45em] uppercase">
+              Pointix
             </span>
-            <span className="w-8 h-px" style={{ background: "linear-gradient(to left, transparent, rgba(202,255,0,0.7))" }} />
           </div>
 
           {/* Nombre del complejo — animación letra a letra */}
@@ -162,15 +181,36 @@ export default async function TenantPage({ params, searchParams }: Props) {
               }))}
             />
           </div>
+
+          {/* Info row — horario y turnos libres */}
+          <div
+            className="mt-8 flex items-center justify-center gap-2 text-xs text-white/40"
+            style={{ animation: "fadeInUp 0.5s ease 1s both" }}
+          >
+            <Clock className="w-3 h-3 shrink-0" />
+            <span>
+              {horarioHoy
+                ? `Abierto hoy ${horarioHoy.apertura} – ${horarioHoy.cierre}`
+                : "Cerrado hoy"}
+            </span>
+            <span className="text-white/20" aria-hidden>·</span>
+            <span>
+              {turnosLibresHoy > 0
+                ? `${turnosLibresHoy} turnos disponibles`
+                : "Sin turnos hoy"}
+            </span>
+          </div>
         </div>
 
         {/* Flecha indicadora — bajar a canchas */}
         <a
           href="#canchas"
           aria-label="Ir a las canchas"
-          className="animate-float-hint absolute bottom-6 left-1/2 -translate-x-1/2 text-white/40 hover:text-[#CAFF00] transition-colors"
+          className="animate-float-hint absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center text-[#CAFF00]/80 hover:text-[#CAFF00] transition-colors"
         >
-          <ChevronDown className="w-6 h-6" />
+          <ChevronDown className="w-5 h-5 opacity-30 -mb-2" />
+          <ChevronDown className="w-5 h-5 opacity-60 -mb-2" />
+          <ChevronDown className="w-5 h-5 opacity-100" />
         </a>
       </section>
 
