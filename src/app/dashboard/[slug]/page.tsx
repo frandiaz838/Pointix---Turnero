@@ -9,7 +9,7 @@ import { AdminMobileMenu } from "@/components/admin/mobile-menu"
 import { CountUp } from "@/components/admin/count-up"
 import { generarSlots } from "@/lib/slots"
 import { Clock, TrendingUp, CalendarDays, LayoutGrid } from "lucide-react"
-import { getSport, sportLabel } from "@/lib/sports"
+import { sportLabel } from "@/lib/sports"
 import { SportIcon } from "@/components/ui/sport-icon"
 
 interface Props {
@@ -265,7 +265,7 @@ export default async function AdminDashboardPage({ params }: Props) {
                   <div className="flex items-center gap-2 pb-2">
                     <div className="separator-subtle flex-1" />
                     <SportIcon sport={sport} size={14} />
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${getSport(sport).badgeClassSolid}`}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
                       {sportLabel(sport)}
                     </span>
                     <div className="separator-subtle flex-1" />
@@ -305,6 +305,9 @@ export default async function AdminDashboardPage({ params }: Props) {
                         <div className="flex items-center gap-2 flex-wrap">
                           <Link href={`/dashboard/${slug}/canchas/${cancha.id}/horarios`} className={buttonVariants({ variant: "outline", size: "sm" })}>
                             Horarios
+                          </Link>
+                          <Link href={`/dashboard/${slug}/canchas/${cancha.id}/bloqueos`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                            Bloqueos
                           </Link>
                           <Link href={`/dashboard/${slug}/canchas/${cancha.id}/editar`} className={buttonVariants({ variant: "outline", size: "sm" })}>
                             Editar

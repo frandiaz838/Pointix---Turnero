@@ -3,15 +3,18 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { IngresosCharts } from "@/components/admin/ingresos-charts"
-import { Clock, Calendar, TrendingUp } from "lucide-react"
+import { PeriodoSelector, type PeriodoIngresos } from "@/components/admin/periodo-selector"
+import { TrendingUp, Receipt, Calculator } from "lucide-react"
 import { sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ periodo?: string }>
 }
 
 const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
-const DIAS_SEMANA = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+const MESES_CORTOS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
+const DIAS_SEMANA_CORTOS = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"]
 
 const estadoBadge: Record<string, string> = {
   CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
@@ -27,8 +30,37 @@ const estadoLabel: Record<string, string> = {
   COMPLETED: "Completada",
 }
 
-export default async function IngresosPage({ params }: Props) {
+function parsePeriodo(s: string | undefined): PeriodoIngresos {
+  if (s === "mes-pasado" || s === "este-año" || s === "año-pasado") return s
+  return "este-mes"
+}
+
+function calcRango(periodo: PeriodoIngresos, ahora: Date) {
+  const y = ahora.getUTCFullYear()
+  const m = ahora.getUTCMonth()
+  if (periodo === "mes-pasado") {
+    const inicio = new Date(Date.UTC(y, m - 1, 1))
+    const fin    = new Date(Date.UTC(y, m, 0, 23, 59, 59, 999))
+    return { inicio, fin, tipo: "mes" as const, label: `${MESES[inicio.getUTCMonth()]} ${inicio.getUTCFullYear()}` }
+  }
+  if (periodo === "este-año") {
+    const inicio = new Date(Date.UTC(y, 0, 1))
+    const fin    = new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999))
+    return { inicio, fin, tipo: "año" as const, label: `${y}` }
+  }
+  if (periodo === "año-pasado") {
+    const inicio = new Date(Date.UTC(y - 1, 0, 1))
+    const fin    = new Date(Date.UTC(y - 1, 11, 31, 23, 59, 59, 999))
+    return { inicio, fin, tipo: "año" as const, label: `${y - 1}` }
+  }
+  const inicio = new Date(Date.UTC(y, m, 1))
+  const fin    = new Date(Date.UTC(y, m + 1, 0, 23, 59, 59, 999))
+  return { inicio, fin, tipo: "mes" as const, label: `${MESES[m]} ${y}` }
+}
+
+export default async function IngresosPage({ params, searchParams }: Props) {
   const { slug } = await params
+  const { periodo: periodoParam } = await searchParams
   const session = await auth()
 
   const tenant = await prisma.tenant.findUnique({ where: { slug } })
@@ -38,25 +70,15 @@ export default async function IngresosPage({ params }: Props) {
     redirect("/dashboard")
   }
 
+  const periodo = parsePeriodo(periodoParam)
   const ahora = new Date()
-  const hoy = ahora.toISOString().split("T")[0]
+  const { inicio, fin, tipo, label } = calcRango(periodo, ahora)
 
-  const inicioMes = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1))
-  const finMes    = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth() + 1, 0, 23, 59, 59, 999))
-
-  const diaSemana = ahora.getUTCDay()
-  const lunes = new Date(ahora)
-  lunes.setUTCDate(ahora.getUTCDate() - ((diaSemana + 6) % 7))
-  lunes.setUTCHours(0, 0, 0, 0)
-  const domingo = new Date(lunes)
-  domingo.setUTCDate(lunes.getUTCDate() + 6)
-  domingo.setUTCHours(23, 59, 59, 999)
-
-  const reservasMes = await prisma.booking.findMany({
+  const reservas = await prisma.booking.findMany({
     where: {
       tenantId: tenant.id,
-      startTime: { gte: inicioMes, lte: finMes },
-      status: { in: ["PENDING", "CONFIRMED"] },
+      startTime: { gte: inicio, lte: fin },
+      status: { in: ["PENDING", "CONFIRMED", "COMPLETED"] },
     },
     include: {
       court: { select: { name: true, sport: true } },
@@ -65,38 +87,64 @@ export default async function IngresosPage({ params }: Props) {
     orderBy: { startTime: "desc" },
   })
 
-  const ingresosHoy     = reservasMes.filter(r => r.startTime.toISOString().split("T")[0] === hoy).reduce((s, r) => s + Number(r.totalPrice), 0)
-  const ingresosSemana  = reservasMes.filter(r => r.startTime >= lunes && r.startTime <= domingo).reduce((s, r) => s + Number(r.totalPrice), 0)
-  const ingresosMes     = reservasMes.reduce((s, r) => s + Number(r.totalPrice), 0)
+  // Stats
+  const confirmadas = reservas.filter(r => r.status === "CONFIRMED" || r.status === "COMPLETED")
+  const pendientes  = reservas.filter(r => r.status === "PENDING")
+  const totalConfirmado = confirmadas.reduce((s, r) => s + Number(r.totalPrice), 0)
+  const totalPendiente  = pendientes.reduce((s, r) => s + Number(r.totalPrice), 0)
+  const totalGeneral    = totalConfirmado + totalPendiente
+  const promedio = reservas.length > 0 ? Math.round(totalGeneral / reservas.length) : 0
 
-  const maxDiaSemana = Math.max(
-    1,
-    ...Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(lunes)
-      d.setUTCDate(lunes.getUTCDate() + i)
-      const f = d.toISOString().split("T")[0]
-      return reservasMes.filter(r => r.startTime.toISOString().split("T")[0] === f).reduce((s, r) => s + Number(r.totalPrice), 0)
+  // Breakdown table — días si es mes, meses si es año
+  type FilaBreakdown = { id: string; label: string; cantidad: number; total: number; barra: number; destacado: boolean }
+  const hoyStr = ahora.toISOString().split("T")[0]
+  let breakdown: FilaBreakdown[] = []
+
+  if (tipo === "mes") {
+    const ultDia = fin.getUTCDate()
+    const totales = Array.from({ length: ultDia }, () => 0)
+    const counts  = Array.from({ length: ultDia }, () => 0)
+    reservas.forEach(r => {
+      const d = r.startTime.getUTCDate() - 1
+      totales[d] += Number(r.totalPrice)
+      counts[d] += 1
     })
-  )
-
-  const tablaSemana = Array.from({ length: 7 }, (_, i) => {
-    const dia = new Date(lunes)
-    dia.setUTCDate(lunes.getUTCDate() + i)
-    const fechaDia = dia.toISOString().split("T")[0]
-    const reservasDia = reservasMes.filter(r => r.startTime.toISOString().split("T")[0] === fechaDia)
-    const total = reservasDia.reduce((s, r) => s + Number(r.totalPrice), 0)
-    return {
-      label: `${DIAS_SEMANA[dia.getUTCDay()]} ${dia.getUTCDate()}`,
-      fecha: fechaDia,
-      cantidad: reservasDia.length,
+    const max = Math.max(1, ...totales)
+    breakdown = totales.map((total, i) => {
+      const dia = new Date(Date.UTC(inicio.getUTCFullYear(), inicio.getUTCMonth(), i + 1))
+      const fechaIso = dia.toISOString().split("T")[0]
+      return {
+        id: fechaIso,
+        label: `${DIAS_SEMANA_CORTOS[dia.getUTCDay()]} ${dia.getUTCDate()}`,
+        cantidad: counts[i],
+        total,
+        barra: Math.round((total / max) * 100),
+        destacado: fechaIso === hoyStr,
+      }
+    })
+  } else {
+    const totales = Array.from({ length: 12 }, () => 0)
+    const counts  = Array.from({ length: 12 }, () => 0)
+    reservas.forEach(r => {
+      const m = r.startTime.getUTCMonth()
+      totales[m] += Number(r.totalPrice)
+      counts[m] += 1
+    })
+    const max = Math.max(1, ...totales)
+    const mesActual = ahora.getUTCMonth()
+    const añoActual = ahora.getUTCFullYear()
+    breakdown = totales.map((total, i) => ({
+      id: `mes-${i}`,
+      label: MESES_CORTOS[i],
+      cantidad: counts[i],
       total,
-      barra: Math.round((total / maxDiaSemana) * 100),
-      esHoy: fechaDia === hoy,
-    }
-  })
+      barra: Math.round((total / max) * 100),
+      destacado: i === mesActual && inicio.getUTCFullYear() === añoActual,
+    }))
+  }
 
   const porCancha = Object.values(
-    reservasMes.reduce<Record<string, { name: string; total: number }>>((acc, r) => {
+    reservas.reduce<Record<string, { name: string; total: number }>>((acc, r) => {
       if (!acc[r.court.name]) acc[r.court.name] = { name: r.court.name, total: 0 }
       acc[r.court.name].total += Number(r.totalPrice)
       return acc
@@ -104,7 +152,7 @@ export default async function IngresosPage({ params }: Props) {
   ).sort((a, b) => b.total - a.total)
 
   const porDeporte = Object.values(
-    reservasMes.reduce<Record<string, { name: string; total: number }>>((acc, r) => {
+    reservas.reduce<Record<string, { name: string; total: number }>>((acc, r) => {
       const dep = sportLabel(r.court.sport)
       if (!acc[dep]) acc[dep] = { name: dep, total: 0 }
       acc[dep].total += Number(r.totalPrice)
@@ -128,71 +176,87 @@ export default async function IngresosPage({ params }: Props) {
           ← Volver al panel
         </Link>
         <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">
-          Ingresos — {MESES[ahora.getUTCMonth()]} {ahora.getUTCFullYear()}
+          Ingresos — {label}
         </h1>
       </header>
 
       <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
 
+        {/* Period selector */}
+        <PeriodoSelector slug={slug} activo={periodo} />
+
         {/* Stats principales */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <div className="glass-card rounded-xl p-5 space-y-2">
+          <div className="glass-card border-lime-gradient rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Hoy</p>
-              <Clock className="w-3.5 h-3.5 text-white/20" />
-            </div>
-            <p className="font-display text-4xl font-black text-white tracking-tight">
-              ${ingresosHoy.toLocaleString("es-AR")}
-            </p>
-          </div>
-
-          <div className="glass-card rounded-xl p-5 space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Esta semana</p>
-              <Calendar className="w-3.5 h-3.5 text-white/20" />
-            </div>
-            <p className="font-display text-4xl font-black text-white tracking-tight">
-              ${ingresosSemana.toLocaleString("es-AR")}
-            </p>
-          </div>
-
-          <div className="col-span-2 sm:col-span-1 glass-card border-lime-gradient rounded-xl p-5 space-y-2">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-[#A3FF12]/60 uppercase tracking-[0.15em]">Este mes</p>
+              <p className="text-[10px] font-bold text-[#A3FF12]/60 uppercase tracking-[0.15em]">Confirmado</p>
               <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/50" />
             </div>
             <p className="font-display text-4xl font-black text-[#A3FF12] tracking-tight text-glow-lime">
-              ${ingresosMes.toLocaleString("es-AR")}
+              ${totalConfirmado.toLocaleString("es-AR")}
+            </p>
+            <p className="text-xs text-white/30">
+              {confirmadas.length} {confirmadas.length === 1 ? "reserva" : "reservas"}
+            </p>
+          </div>
+
+          <div className="glass-card rounded-xl p-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Pendiente</p>
+              <Receipt className="w-3.5 h-3.5 text-white/20" />
+            </div>
+            <p className="font-display text-4xl font-black text-white/85 tracking-tight">
+              ${totalPendiente.toLocaleString("es-AR")}
+            </p>
+            <p className="text-xs text-white/30">
+              {pendientes.length} {pendientes.length === 1 ? "reserva" : "reservas"} sin confirmar
+            </p>
+          </div>
+
+          <div className="col-span-2 sm:col-span-1 glass-card rounded-xl p-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Promedio por reserva</p>
+              <Calculator className="w-3.5 h-3.5 text-white/20" />
+            </div>
+            <p className="font-display text-3xl font-black text-white/85 tracking-tight">
+              ${promedio.toLocaleString("es-AR")}
+            </p>
+            <p className="text-xs text-white/30">
+              Total: ${totalGeneral.toLocaleString("es-AR")}
             </p>
           </div>
         </div>
 
-        {/* Tabla semanal */}
+        {/* Breakdown table — por día o por mes */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Semana actual</h2>
+          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
+            {tipo === "mes" ? `Desglose diario — ${label}` : `Desglose mensual — ${label}`}
+          </h2>
           <div className="overflow-x-auto glass-card rounded-xl">
             <table className="w-full text-sm">
               <thead className="border-b border-white/[0.07]">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Día</th>
+                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">{tipo === "mes" ? "Día" : "Mes"}</th>
                   <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Reservas</th>
                   <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Ingresos</th>
                   <th className="px-4 py-3 w-36 hidden sm:table-cell"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.05]">
-                {tablaSemana.map((fila) => (
-                  <tr key={fila.fecha} className={fila.esHoy ? "bg-[#A3FF12]/[0.04]" : ""}>
-                    <td className={`px-4 py-3 ${fila.esHoy ? "font-bold text-white" : "text-white/70"}`}>
+                {breakdown.map((fila) => (
+                  <tr key={fila.id} className={fila.destacado ? "bg-[#A3FF12]/[0.04]" : ""}>
+                    <td className={`px-4 py-3 ${fila.destacado ? "font-bold text-white" : "text-white/70"}`}>
                       {fila.label}
-                      {fila.esHoy && (
-                        <span className="ml-2 text-[10px] text-[#A3FF12] font-bold uppercase tracking-wide">hoy</span>
+                      {fila.destacado && (
+                        <span className="ml-2 text-[10px] text-[#A3FF12] font-bold uppercase tracking-wide">
+                          {tipo === "mes" ? "hoy" : "ahora"}
+                        </span>
                       )}
                     </td>
-                    <td className={`px-4 py-3 text-right ${fila.esHoy ? "font-bold text-white" : "text-white/40"}`}>
-                      {fila.cantidad}
+                    <td className={`px-4 py-3 text-right ${fila.destacado ? "font-bold text-white" : "text-white/40"}`}>
+                      {fila.cantidad || "—"}
                     </td>
-                    <td className={`px-4 py-3 text-right font-semibold ${fila.esHoy ? "text-[#A3FF12]" : fila.total > 0 ? "text-white" : "text-white/20"}`}>
+                    <td className={`px-4 py-3 text-right font-semibold ${fila.destacado ? "text-[#A3FF12]" : fila.total > 0 ? "text-white" : "text-white/20"}`}>
                       {fila.total > 0 ? `$${fila.total.toLocaleString("es-AR")}` : "—"}
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
@@ -215,10 +279,10 @@ export default async function IngresosPage({ params }: Props) {
         {/* Gráficos */}
         <IngresosCharts porCancha={porCancha} porDeporte={porDeporte} />
 
-        {/* Listado completo del mes */}
+        {/* Listado completo del período */}
         <div className="space-y-3">
           <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
-            Reservas del mes ({reservasMes.length})
+            Reservas del período ({reservas.length})
           </h2>
           <div className="overflow-x-auto glass-card rounded-xl">
             <table className="w-full text-sm min-w-[500px]">
@@ -233,13 +297,13 @@ export default async function IngresosPage({ params }: Props) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.05]">
-                {reservasMes.length === 0 ? (
+                {reservas.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-6 text-white/25 text-center">
-                      Sin reservas este mes
+                      Sin reservas este período
                     </td>
                   </tr>
-                ) : reservasMes.map((r) => (
+                ) : reservas.map((r) => (
                   <tr key={r.id} className="hover:bg-white/[0.02]">
                     <td className="px-4 py-3 text-white/50 tabular-nums">
                       {r.startTime.getUTCDate().toString().padStart(2, "0")}/

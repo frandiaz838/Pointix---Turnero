@@ -5,7 +5,7 @@ import { auth } from "@/lib/session"
 import { OcupacionChart } from "@/components/admin/ocupacion-chart"
 import { generarSlots } from "@/lib/slots"
 import { LayoutGrid } from "lucide-react"
-import { getSport, sportLabel } from "@/lib/sports"
+import { sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -172,7 +172,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-base font-bold text-white leading-tight">{cachaMasReservada.name}</p>
-                  <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${getSport(cachaMasReservada.sport).badgeClassSolid}`}>
+                  <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
                     {sportLabel(cachaMasReservada.sport)}
                   </span>
                 </div>

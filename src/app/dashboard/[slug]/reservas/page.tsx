@@ -3,15 +3,16 @@ import Link from "next/link"
 import { CalendarDays, User, Phone } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
-import { getSport, sportLabel } from "@/lib/sports"
+import { sportLabel } from "@/lib/sports"
 import { SportIcon } from "@/components/ui/sport-icon"
 import { CancelarReservaBtn } from "@/components/admin/cancelar-reserva-btn"
 import { ConfirmarReservaBtn } from "@/components/admin/confirmar-reserva-btn"
 import { ReservasControles } from "@/components/admin/reservas-controles"
+import { ReservasSearch } from "@/components/admin/reservas-search"
 
 interface Props {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ fecha?: string; periodo?: string }>
+  searchParams: Promise<{ fecha?: string; periodo?: string; q?: string }>
 }
 
 const DIAS_FULL = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
@@ -42,7 +43,7 @@ const estadoLabel: Record<string, string> = {
 
 export default async function ReservasAdminPage({ params, searchParams }: Props) {
   const { slug } = await params
-  const { fecha, periodo } = await searchParams
+  const { fecha, periodo, q } = await searchParams
   const session = await auth()
 
   const tenant = await prisma.tenant.findUnique({ where: { slug } })
@@ -51,6 +52,9 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
   if (!session?.user || session.user.role !== "ADMIN" || session.user.tenantId !== tenant.id) {
     redirect("/dashboard")
   }
+
+  const queryBusqueda = q?.trim() ?? ""
+  const enModoBusqueda = queryBusqueda.length > 0
 
   const ahora = new Date()
   const hoyStr = ahora.toISOString().split("T")[0]
@@ -95,17 +99,41 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
     periodoActivo = "hoy"
   }
 
+  // En modo búsqueda ignoramos el período para encontrar al cliente en cualquier fecha,
+  // pero limitamos a los últimos 12 meses para que la query no explote.
+  const filtroBusqueda = enModoBusqueda
+    ? {
+        OR: [
+          { guestName:  { contains: queryBusqueda, mode: "insensitive" as const } },
+          { guestPhone: { contains: queryBusqueda } },
+          { guestEmail: { contains: queryBusqueda, mode: "insensitive" as const } },
+          { user: { name:  { contains: queryBusqueda, mode: "insensitive" as const } } },
+          { user: { email: { contains: queryBusqueda, mode: "insensitive" as const } } },
+        ],
+      }
+    : null
+
+  const inicioBusqueda = new Date(ahora)
+  inicioBusqueda.setUTCMonth(inicioBusqueda.getUTCMonth() - 12)
+
   const reservas = await prisma.booking.findMany({
     where: {
       tenantId: tenant.id,
-      startTime: { gte: inicioRango, lte: finRango },
+      ...(enModoBusqueda
+        ? { startTime: { gte: inicioBusqueda }, ...filtroBusqueda }
+        : { startTime: { gte: inicioRango, lte: finRango } }),
     },
     include: {
-      user: { select: { name: true } },
+      user: { select: { name: true, email: true } },
       court: { select: { name: true, sport: true } },
     },
-    orderBy: { startTime: "asc" },
+    orderBy: { startTime: enModoBusqueda ? "desc" : "asc" },
+    take: enModoBusqueda ? 100 : undefined,
   })
+
+  // En modo búsqueda mostramos los resultados agrupados por fecha (visualizar cuándo
+  // jugó el cliente a lo largo del año).
+  if (enModoBusqueda) esMultiple = true
 
   const gruposFecha: Array<{ label: string; reservas: typeof reservas }> = []
   if (esMultiple) {
@@ -141,19 +169,40 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
         className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
         style={{ background: "radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%)" }}
       />
-      <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-          ← Volver al panel
+      <header className="glass-header sticky top-0 z-50 px-6 py-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
+            ← Volver al panel
+          </Link>
+          <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Reservas</h1>
+        </div>
+        <Link
+          href={`/dashboard/${slug}/reservas/nueva`}
+          className="btn-lime-glow shrink-0 flex items-center gap-1.5 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3 py-2 rounded-lg"
+        >
+          + Nueva
         </Link>
-        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Reservas</h1>
       </header>
 
       <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-5">
-        <ReservasControles
-          slug={slug}
-          periodoActivo={periodoActivo}
-          fechaSeleccionada={fechaSeleccionada}
-        />
+        <ReservasSearch initial={queryBusqueda} />
+
+        {!enModoBusqueda && (
+          <ReservasControles
+            slug={slug}
+            periodoActivo={periodoActivo}
+            fechaSeleccionada={fechaSeleccionada}
+          />
+        )}
+
+        {enModoBusqueda && (
+          <p className="text-xs text-white/40">
+            {reservas.length === 0
+              ? <>Sin resultados para <span className="text-white/70 font-semibold">&ldquo;{queryBusqueda}&rdquo;</span></>
+              : <>{reservas.length} {reservas.length === 1 ? "resultado" : "resultados"} para <span className="text-white/70 font-semibold">&ldquo;{queryBusqueda}&rdquo;</span> (últimos 12 meses)</>
+            }
+          </p>
+        )}
 
         {!esMultiple && (
           <div className="space-y-3">
@@ -173,7 +222,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
         {esMultiple && (
           <div className="space-y-6">
             {gruposFecha.length === 0 ? (
-              <EstadoVacio />
+              <EstadoVacio mensaje={enModoBusqueda ? "Ningún cliente coincide con esa búsqueda" : undefined} />
             ) : (
               gruposFecha.map(({ label, reservas: lista }) => (
                 <div key={label} className="space-y-3">
@@ -191,11 +240,11 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
   )
 }
 
-function EstadoVacio() {
+function EstadoVacio({ mensaje }: { mensaje?: string }) {
   return (
     <div className="glass-card rounded-xl px-6 py-10 flex flex-col items-center gap-3 text-center">
       <CalendarDays className="w-7 h-7 text-white/15" />
-      <p className="text-sm font-medium text-white/30">No hay reservas para este período</p>
+      <p className="text-sm font-medium text-white/30">{mensaje ?? "No hay reservas para este período"}</p>
     </div>
   )
 }
@@ -224,7 +273,6 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
   const duracionMin = Math.round((r.endTime.getTime() - r.startTime.getTime()) / 60000)
   const horaInicio = formatHora(r.startTime)
   const horaFin = formatHora(r.endTime)
-  const sport = getSport(r.court.sport)
   const nombreCliente = r.user ? (r.user.name ?? "(sin nombre)") : (r.guestName ?? "(sin nombre)")
   const telefono = !r.user && r.guestPhone ? formatTelefono(r.guestPhone) : null
 
@@ -246,7 +294,7 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
         <div className="flex items-center gap-1.5 flex-wrap">
           <SportIcon sport={r.court.sport} size={14} />
           <span className="text-sm font-medium text-white/80">{r.court.name}</span>
-          <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${sport.badgeClassSolid}`}>
+          <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
             {sportLabel(r.court.sport)}
           </span>
         </div>

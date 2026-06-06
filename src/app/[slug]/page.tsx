@@ -44,7 +44,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
   })
   if (!tenant) notFound()
 
-  const [reservas, bookingsHoy] = await Promise.all([
+  const [reservas, bookingsHoy, bloqueos, bloqueosHoy] = await Promise.all([
     prisma.booking.findMany({
       where: {
         tenantId: tenant.id,
@@ -61,12 +61,35 @@ export default async function TenantPage({ params, searchParams }: Props) {
       },
       select: { courtId: true },
     }),
+    prisma.courtBlock.findMany({
+      where: {
+        court: { tenantId: tenant.id },
+        startTime: { lt: fin },
+        endTime:   { gt: inicio },
+      },
+      select: { courtId: true, startTime: true, endTime: true },
+    }),
+    prisma.courtBlock.findMany({
+      where: {
+        court: { tenantId: tenant.id },
+        startTime: { lt: finHoy },
+        endTime:   { gt: inicioHoy },
+      },
+      select: { courtId: true, startTime: true, endTime: true },
+    }),
   ])
 
   // ── Info del hero (basada en HOY real, no en la fecha del filtro) ──
   const ocupadosPorCanchaHoy = new Map<string, number>()
   bookingsHoy.forEach((b) => {
     ocupadosPorCanchaHoy.set(b.courtId, (ocupadosPorCanchaHoy.get(b.courtId) ?? 0) + 1)
+  })
+  bloqueosHoy.forEach((b) => {
+    const endM   = b.endTime.getUTCMinutes()
+    const startH = b.startTime.getUTCHours()
+    const endH   = endM >= 59 ? b.endTime.getUTCHours() + 1 : b.endTime.getUTCHours()
+    const horasBloqueadas = Math.max(0, endH - startH)
+    ocupadosPorCanchaHoy.set(b.courtId, (ocupadosPorCanchaHoy.get(b.courtId) ?? 0) + horasBloqueadas)
   })
 
   const schedulesHoy = tenant.courts.flatMap((c) => {
@@ -107,6 +130,22 @@ export default async function TenantPage({ params, searchParams }: Props) {
     courtId: r.courtId,
     hora: `${String(r.startTime.getUTCHours()).padStart(2, "0")}:${String(r.startTime.getUTCMinutes()).padStart(2, "0")}`,
   }))
+
+  // Expandir bloqueos a un slot por hora (la grilla los trata como "ocupados")
+  const bloqueosData = bloqueos.flatMap(b => {
+    const horas: { courtId: string; hora: string }[] = []
+    const startH = b.startTime.getUTCHours()
+    const endH   = b.endTime.getUTCHours()
+    const endM   = b.endTime.getUTCMinutes()
+    // Si endTime es 23:59 lo tratamos como hasta fin de día
+    const limiteH = endM >= 59 ? endH + 1 : endH
+    for (let h = startH; h < limiteH; h++) {
+      horas.push({ courtId: b.courtId, hora: `${String(h).padStart(2, "0")}:00` })
+    }
+    return horas
+  })
+
+  const reservasYBloqueos = [...reservasData, ...bloqueosData]
 
   const deportesDisponibles = [...new Set(tenant.courts.map((c) => c.sport as string))]
 
@@ -188,7 +227,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
         <GrillaReservas
           slug={slug}
           canchas={canchasData}
-          reservas={reservasData}
+          reservas={reservasYBloqueos}
           fecha={fecha}
           deporte={deporte}
           deportesDisponibles={deportesDisponibles}
