@@ -28,7 +28,7 @@ function formatHora(date: Date) {
 
 const estadoBadge: Record<string, string> = {
   PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
-  CONFIRMED: "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25",
+  CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
   COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
 }
@@ -135,11 +135,11 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
       {/* Orbs */}
       <div
         className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.14) 0%, transparent 70%)" }}
       />
       <div
         className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
-        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%)" }}
       />
       <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">

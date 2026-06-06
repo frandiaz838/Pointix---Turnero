@@ -89,7 +89,7 @@ export function CanchaForm({ tenantId, slug, cancha }: Props) {
         />
       </div>
 
-      <Button type="submit" className="btn-lime-glow w-full bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
+      <Button type="submit" className="btn-lime-glow w-full bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
         {pending ? "Guardando..." : esEdicion ? "Guardar cambios" : "Crear cancha"}
       </Button>
     </form>

@@ -45,7 +45,7 @@ export function RegisterForm() {
     <div className="w-full max-w-md mx-auto">
       {/* Brand */}
       <div className="text-center mb-8">
-        <span className="font-display text-5xl font-black uppercase text-[#CAFF00] tracking-tight leading-none">
+        <span className="font-display text-5xl font-black uppercase text-[#A3FF12] tracking-tight leading-none">
           Pointix
         </span>
         <p className="text-white/40 text-sm mt-2">Creá tu cuenta</p>
@@ -124,7 +124,7 @@ export function RegisterForm() {
 
           <Button
             type="submit"
-            className="btn-lime-glow w-full h-11 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold text-sm"
+            className="btn-lime-glow w-full h-11 bg-[#A3FF12] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold text-sm"
             disabled={loading}
           >
             {loading ? "Creando cuenta..." : "Crear cuenta"}
@@ -133,7 +133,7 @@ export function RegisterForm() {
 
         <p className="text-center text-sm text-white/30 pt-1">
           ¿Ya tenés cuenta?{" "}
-          <Link href="/login" className="text-[#CAFF00] hover:underline font-medium">
+          <Link href="/login" className="text-[#A3FF12] hover:underline font-medium">
             Ingresá
           </Link>
         </p>

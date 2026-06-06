@@ -11,7 +11,7 @@ interface Props {
   porDeporte: { name: string; total: number }[]
 }
 
-const COLORES = ["#CAFF00", "#22d3ee", "#a78bfa", "#fb923c"]
+const COLORES = ["#A3FF12", "#22d3ee", "#a78bfa", "#fb923c"]
 
 export function IngresosCharts({ porCancha, porDeporte }: Props) {
   const [isMobile, setIsMobile] = useState(false)
@@ -58,7 +58,7 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
               />
               <Bar
                 dataKey="total"
-                fill="#CAFF00"
+                fill="#A3FF12"
                 radius={[0, 4, 4, 0]}
                 label={{
                   position: "right",

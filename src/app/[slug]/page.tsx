@@ -111,7 +111,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
   const deportesDisponibles = [...new Set(tenant.courts.map((c) => c.sport as string))]
 
   return (
-    <main className="min-h-screen bg-[#0C0E14] text-white relative overflow-x-hidden">
+    <main className="min-h-screen bg-toxic-gradient text-white relative overflow-x-hidden">
 
       {/* Toast de confirmación de reserva */}
       <ConfirmationToast />
@@ -120,14 +120,14 @@ export default async function TenantPage({ params, searchParams }: Props) {
       <div
         className="animate-orb pointer-events-none fixed -left-[120px] -top-[120px] w-[420px] h-[420px] sm:-left-[200px] sm:-top-[200px] sm:w-[800px] sm:h-[800px] rounded-full opacity-50 sm:opacity-80"
         style={{
-          background: "radial-gradient(circle, rgba(124,58,237,0.22) 0%, transparent 60%)",
+          background: "radial-gradient(circle, rgba(163,255,18,0.22) 0%, transparent 60%)",
           filter: "blur(90px)",
         }}
       />
       <div
-        className="animate-orb-alt pointer-events-none fixed -right-[120px] -bottom-[120px] w-[420px] h-[420px] sm:-right-[200px] sm:-bottom-[200px] sm:w-[700px] sm:h-[700px] rounded-full opacity-50 sm:opacity-80"
+        className="animate-orb-alt pointer-events-none fixed -right-[120px] -bottom-[120px] w-[420px] h-[420px] sm:-right-[200px] sm:-bottom-[200px] sm:w-[700px] sm:h-[700px] rounded-full opacity-60 sm:opacity-90"
         style={{
-          background: "radial-gradient(circle, rgba(16,185,129,0.16) 0%, transparent 60%)",
+          background: "radial-gradient(circle, rgba(0,229,255,0.24) 0%, transparent 60%)",
           filter: "blur(90px)",
         }}
       />

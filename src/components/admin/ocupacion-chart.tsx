@@ -8,7 +8,7 @@ interface DataItem {
 }
 
 function colorPorOcupacion(v: number) {
-  if (v >= 75) return "#CAFF00"
+  if (v >= 75) return "#A3FF12"
   if (v >= 40) return "#22d3ee"
   return "#748390"
 }
@@ -45,7 +45,7 @@ export function OcupacionChart({ data, maxDominio = 100 }: { data: DataItem[]; m
       </ResponsiveContainer>
       <div className="flex gap-4 text-xs text-white/30 mt-2 justify-end">
         <span className="flex items-center gap-1.5">
-          <span className="w-3 h-3 rounded-sm bg-[#CAFF00] inline-block" /> ≥ 75%
+          <span className="w-3 h-3 rounded-sm bg-[#A3FF12] inline-block" /> ≥ 75%
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-3 h-3 rounded-sm bg-[#22d3ee] inline-block" /> 40–74%

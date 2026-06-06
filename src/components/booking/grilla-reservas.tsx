@@ -172,7 +172,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
 
   const fechaDate = new Date(fecha + "T12:00:00Z")
   const hoyDate = new Date(hoy + "T00:00:00")
-  const inputClass = "w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#CAFF00]/40 focus:ring-2 focus:ring-[#CAFF00]/15 transition-colors backdrop-blur-sm"
+  const inputClass = "w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-[#A3FF12]/40 focus:ring-2 focus:ring-[#A3FF12]/15 transition-colors backdrop-blur-sm"
 
   return (
     <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
@@ -193,7 +193,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
               <CalendarDays className="w-4 h-4 text-white/40" />
               {capitalizarPrimera(formatFecha(fecha))}
               {fecha === hoy && (
-                <span className="text-[10px] font-bold text-[#CAFF00]/70 uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-[#A3FF12]/70 uppercase tracking-wider">
                   hoy
                 </span>
               )}
@@ -222,7 +222,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
           {fecha > hoy && (
             <button
               onClick={() => navigate(hoy, deporte)}
-              className="ml-1 text-xs font-medium text-white/50 hover:text-[#CAFF00] transition-colors underline-offset-4 hover:underline"
+              className="ml-1 text-xs font-medium text-white/50 hover:text-[#A3FF12] transition-colors underline-offset-4 hover:underline"
             >
               Volver a hoy
             </button>
@@ -237,7 +237,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
                 onClick={() => navigate(fecha, dep)}
                 className={`px-3 py-1.5 rounded-xl text-sm font-bold border transition-all duration-200 ${
                   deporte === dep
-                    ? "bg-[#CAFF00] text-black border-[#CAFF00] glow-lime"
+                    ? "bg-[#A3FF12] text-black border-[#A3FF12] glow-lime"
                     : "glass-nav text-white/60 hover:text-white hover:bg-white/[0.1]"
                 }`}
               >
@@ -272,7 +272,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
                       {sportLabel(cancha.sport)}
                     </span>
-                    <span className="text-xs text-[#CAFF00]/60 font-display font-black ml-auto">
+                    <span className="text-xs text-[#A3FF12]/60 font-display font-black ml-auto">
                       ${cancha.pricePerHour.toLocaleString("es-AR")}/h
                     </span>
                   </div>
@@ -376,8 +376,8 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
       {selectedSlot && (
         <div
           ref={panelRef}
-          className="glass-card border-lime-gradient animate-confirmation-glow rounded-2xl p-6 space-y-5"
-          style={{ boxShadow: "0 0 60px rgba(202,255,0,0.08), 0 24px 64px rgba(0,0,0,0.5)" }}
+          className="glass-card border-dual-gradient animate-confirmation-glow rounded-2xl p-6 space-y-5"
+          style={{ boxShadow: "0 0 60px rgba(163,255,18,0.08), 0 24px 64px rgba(0,0,0,0.5)" }}
         >
           <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight leading-none">
             Tu reserva
@@ -410,7 +410,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-medium text-white/35">Total a pagar</span>
               <span
-                className="font-display font-black text-[#CAFF00] text-glow-lime"
+                className="font-display font-black text-[#A3FF12] text-glow-lime"
                 style={{ fontSize: "clamp(2rem,5vw,2.8rem)" }}
               >
                 ${selectedSlot.precio.toLocaleString("es-AR")}
@@ -460,7 +460,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
             <button
               onClick={handleConfirmar}
               disabled={isPending}
-              className="btn-lime-glow flex-1 bg-[#CAFF00] hover:bg-[#d4ff1a] text-black rounded-xl py-3.5 px-6 text-sm font-bold disabled:opacity-50"
+              className="btn-lime-glow flex-1 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black rounded-xl py-3.5 px-6 text-sm font-bold disabled:opacity-50"
             >
               {isPending ? "Confirmando…" : "Confirmar reserva"}
             </button>

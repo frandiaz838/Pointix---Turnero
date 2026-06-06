@@ -18,7 +18,7 @@ interface Props {
 
 const estadoBadge: Record<string, string> = {
   PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
-  CONFIRMED: "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25",
+  CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
   COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
 }
@@ -104,7 +104,7 @@ export default async function AdminDashboardPage({ params }: Props) {
   const diffAyer = reservasHoy.length - countAyer
   const comparacionAyer =
     diffAyer > 0
-      ? { text: `↑ ${diffAyer} más que ayer`, color: "text-[#CAFF00]" }
+      ? { text: `↑ ${diffAyer} más que ayer`, color: "text-[#A3FF12]" }
       : diffAyer < 0
       ? { text: `↓ ${Math.abs(diffAyer)} menos que ayer`, color: "text-red-400" }
       : { text: "Igual que ayer", color: "text-white/30" }
@@ -126,11 +126,11 @@ export default async function AdminDashboardPage({ params }: Props) {
       {/* Orbs de fondo */}
       <div
         className="pointer-events-none fixed top-[-30%] right-[-15%] w-[60%] h-[60%] rounded-full opacity-60"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.15) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.15) 0%, transparent 70%)" }}
       />
       <div
         className="pointer-events-none fixed bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.12) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%)" }}
       />
 
       {/* Header sticky glass */}
@@ -150,7 +150,7 @@ export default async function AdminDashboardPage({ params }: Props) {
             </Link>
             <Link
               href={`/dashboard/${slug}/canchas/nueva`}
-              className="btn-lime-glow flex items-center gap-1.5 bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3 py-2 rounded-lg"
+              className="btn-lime-glow flex items-center gap-1.5 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3 py-2 rounded-lg"
             >
               + Nueva cancha
             </Link>
@@ -181,14 +181,14 @@ export default async function AdminDashboardPage({ params }: Props) {
           {/* Ingresos — con borde lime gradient */}
           <Link
             href={`/dashboard/${slug}/ingresos`}
-            className="glass-card border-lime-gradient rounded-2xl p-5 space-y-3 block transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_40px_rgba(202,255,0,0.08)]"
+            className="glass-card border-lime-gradient rounded-2xl p-5 space-y-3 block transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_40px_rgba(163,255,18,0.08)]"
           >
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-[#CAFF00]/50 uppercase tracking-[0.18em]">Ingresos hoy</p>
-              <TrendingUp className="w-3.5 h-3.5 text-[#CAFF00]/40" />
+              <p className="text-[10px] font-bold text-[#A3FF12]/50 uppercase tracking-[0.18em]">Ingresos hoy</p>
+              <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/40" />
             </div>
             <p
-              className="font-display font-black text-[#CAFF00] leading-none text-glow-lime"
+              className="font-display font-black text-[#A3FF12] leading-none text-glow-lime"
               style={{ fontSize: "clamp(1.8rem,5vw,2.8rem)" }}
             >
               $<CountUp value={ingresosHoy} />
@@ -285,7 +285,7 @@ export default async function AdminDashboardPage({ params }: Props) {
                             <p className="font-semibold text-white truncate">{cancha.name}</p>
                             <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full border ${
                               cancha.isActive
-                                ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
+                                ? "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25"
                                 : "bg-white/[0.04] text-white/20 border-white/[0.06]"
                             }`}>
                               {cancha.isActive ? "Activa" : "Inactiva"}

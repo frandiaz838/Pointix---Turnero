@@ -28,7 +28,7 @@ export default async function EditarCanchaPage({ params }: Props) {
     <main className="min-h-screen bg-[#0C0E14] relative">
       <div
         className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.14) 0%, transparent 70%)" }}
       />
       <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">

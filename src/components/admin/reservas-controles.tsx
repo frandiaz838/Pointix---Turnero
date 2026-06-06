@@ -48,7 +48,7 @@ export function ReservasControles({ slug, periodoActivo, fechaSeleccionada }: Pr
           href={href(slug)}
           className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
             periodoActivo === key
-              ? "btn-lime-glow bg-[#CAFF00] text-black border border-[#CAFF00]"
+              ? "btn-lime-glow bg-[#A3FF12] text-black border border-[#A3FF12]"
               : "glass-nav text-white/60 hover:text-white"
           }`}
         >
@@ -60,7 +60,7 @@ export function ReservasControles({ slug, periodoActivo, fechaSeleccionada }: Pr
         <PopoverTrigger
           className={`${buttonVariants({ variant: "outline", size: "sm" })} gap-1.5 ${
             periodoActivo === "custom"
-              ? "border-[#CAFF00]/50 bg-[#CAFF00]/[0.08] text-[#CAFF00]"
+              ? "border-[#A3FF12]/50 bg-[#A3FF12]/[0.08] text-[#A3FF12]"
               : ""
           }`}
         >

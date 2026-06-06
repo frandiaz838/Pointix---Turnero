@@ -14,7 +14,7 @@ const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto"
 const DIAS_SEMANA = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
 
 const estadoBadge: Record<string, string> = {
-  CONFIRMED: "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25",
+  CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
   PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
   COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
@@ -117,11 +117,11 @@ export default async function IngresosPage({ params }: Props) {
       {/* Orbs */}
       <div
         className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(124,58,237,0.14) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.14) 0%, transparent 70%)" }}
       />
       <div
         className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
-        style={{ background: "radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)" }}
+        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%)" }}
       />
       <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
@@ -158,10 +158,10 @@ export default async function IngresosPage({ params }: Props) {
 
           <div className="col-span-2 sm:col-span-1 glass-card border-lime-gradient rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-[#CAFF00]/60 uppercase tracking-[0.15em]">Este mes</p>
-              <TrendingUp className="w-3.5 h-3.5 text-[#CAFF00]/50" />
+              <p className="text-[10px] font-bold text-[#A3FF12]/60 uppercase tracking-[0.15em]">Este mes</p>
+              <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/50" />
             </div>
-            <p className="font-display text-4xl font-black text-[#CAFF00] tracking-tight text-glow-lime">
+            <p className="font-display text-4xl font-black text-[#A3FF12] tracking-tight text-glow-lime">
               ${ingresosMes.toLocaleString("es-AR")}
             </p>
           </div>
@@ -182,24 +182,24 @@ export default async function IngresosPage({ params }: Props) {
               </thead>
               <tbody className="divide-y divide-white/[0.05]">
                 {tablaSemana.map((fila) => (
-                  <tr key={fila.fecha} className={fila.esHoy ? "bg-[#CAFF00]/[0.04]" : ""}>
+                  <tr key={fila.fecha} className={fila.esHoy ? "bg-[#A3FF12]/[0.04]" : ""}>
                     <td className={`px-4 py-3 ${fila.esHoy ? "font-bold text-white" : "text-white/70"}`}>
                       {fila.label}
                       {fila.esHoy && (
-                        <span className="ml-2 text-[10px] text-[#CAFF00] font-bold uppercase tracking-wide">hoy</span>
+                        <span className="ml-2 text-[10px] text-[#A3FF12] font-bold uppercase tracking-wide">hoy</span>
                       )}
                     </td>
                     <td className={`px-4 py-3 text-right ${fila.esHoy ? "font-bold text-white" : "text-white/40"}`}>
                       {fila.cantidad}
                     </td>
-                    <td className={`px-4 py-3 text-right font-semibold ${fila.esHoy ? "text-[#CAFF00]" : fila.total > 0 ? "text-white" : "text-white/20"}`}>
+                    <td className={`px-4 py-3 text-right font-semibold ${fila.esHoy ? "text-[#A3FF12]" : fila.total > 0 ? "text-white" : "text-white/20"}`}>
                       {fila.total > 0 ? `$${fila.total.toLocaleString("es-AR")}` : "—"}
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
                       {fila.total > 0 && (
                         <div className="h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-[#CAFF00] rounded-full"
+                            className="h-full bg-[#A3FF12] rounded-full"
                             style={{ width: `${fila.barra}%` }}
                           />
                         </div>

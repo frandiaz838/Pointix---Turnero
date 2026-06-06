@@ -59,7 +59,7 @@
   --card-foreground:             #F2F4F8;
   --popover:                     #1A1E2A;
   --popover-foreground:          #F2F4F8;
-  --primary:                     #CAFF00;
+  --primary:                     #A3FF12;
   --primary-foreground:          #0C0E14;
   --secondary:                   #1A1E2A;
   --secondary-foreground:        #F2F4F8;
@@ -71,21 +71,21 @@
   --destructive-foreground:      #ffffff;
   --border:                      rgba(255, 255, 255, 0.07);
   --input:                       rgba(255, 255, 255, 0.08);
-  --ring:                        #CAFF00;
+  --ring:                        #A3FF12;
   --radius:                      0.5rem;
-  --chart-1:                     #CAFF00;
+  --chart-1:                     #A3FF12;
   --chart-2:                     #4ade80;
   --chart-3:                     #22d3ee;
   --chart-4:                     #a78bfa;
   --chart-5:                     #fb923c;
   --sidebar:                     #0C0E14;
   --sidebar-foreground:          #F2F4F8;
-  --sidebar-primary:             #CAFF00;
+  --sidebar-primary:             #A3FF12;
   --sidebar-primary-foreground:  #0C0E14;
   --sidebar-accent:              #1A1E2A;
   --sidebar-accent-foreground:   #F2F4F8;
   --sidebar-border:              rgba(255, 255, 255, 0.07);
-  --sidebar-ring:                #CAFF00;
+  --sidebar-ring:                #A3FF12;
 }
 
 @layer base {
@@ -98,6 +98,15 @@
   html {
     @apply font-sans scroll-smooth;
   }
+}
+
+/* ─── Background con gradient toxic fresh (dark → cyan tint abajo) ─── */
+.bg-toxic-gradient {
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 100%, rgba(0, 229, 255, 0.16) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 40% at 80% 90%, rgba(0, 229, 255, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(163, 255, 18, 0.05) 0%, transparent 65%),
+    linear-gradient(180deg, #0C0E14 0%, #081d2a 100%);
 }
 
 /* ─── Textura de líneas de cancha ─── */
@@ -136,37 +145,54 @@
 
 /* ─── Glow effects ─── */
 .glow-lime {
-  box-shadow: 0 0 20px rgba(202, 255, 0, 0.35), 0 0 60px rgba(202, 255, 0, 0.1);
+  box-shadow: 0 0 20px rgba(163, 255, 18, 0.35), 0 0 60px rgba(163, 255, 18, 0.1);
 }
 
 .glow-lime-intense {
-  box-shadow: 0 0 30px rgba(202, 255, 0, 0.55), 0 0 80px rgba(202, 255, 0, 0.2),
-              inset 0 0 15px rgba(202, 255, 0, 0.08);
+  box-shadow: 0 0 30px rgba(163, 255, 18, 0.55), 0 0 80px rgba(163, 255, 18, 0.2),
+              inset 0 0 15px rgba(163, 255, 18, 0.08);
 }
 
 .text-glow-lime {
-  text-shadow: 0 0 20px rgba(202, 255, 0, 0.55), 0 0 50px rgba(202, 255, 0, 0.2);
+  text-shadow: 0 0 20px rgba(163, 255, 18, 0.55), 0 0 50px rgba(163, 255, 18, 0.2);
+}
+
+/* ─── Cyan secondary (highlights, premium accents) ─── */
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.35), 0 0 60px rgba(0, 229, 255, 0.1);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.5), 0 0 50px rgba(0, 229, 255, 0.18);
+}
+
+/* Borde gradient dual lime + cyan para cards premium */
+.border-dual-gradient {
+  background:
+    linear-gradient(rgba(12, 14, 20, 0.95), rgba(12, 14, 20, 0.95)) padding-box,
+    linear-gradient(135deg, rgba(163, 255, 18, 0.45) 0%, rgba(0, 229, 255, 0.35) 60%, transparent 100%) border-box;
+  border: 1px solid transparent;
 }
 
 /* ─── Btn lime glow ─── */
 .btn-lime-glow {
-  box-shadow: 0 0 20px rgba(202, 255, 0, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 20px rgba(163, 255, 18, 0.3), 0 4px 16px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 .btn-lime-glow:hover {
-  box-shadow: 0 0 32px rgba(202, 255, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 32px rgba(163, 255, 18, 0.5), 0 8px 24px rgba(0, 0, 0, 0.4);
   transform: translateY(-1px);
 }
 .btn-lime-glow:active {
   transform: translateY(0) scale(0.97);
-  box-shadow: 0 0 14px rgba(202, 255, 0, 0.3);
+  box-shadow: 0 0 14px rgba(163, 255, 18, 0.3);
 }
 
 /* ─── Gradient border lime ─── */
 .border-lime-gradient {
   background:
     linear-gradient(rgba(12, 14, 20, 0.95), rgba(12, 14, 20, 0.95)) padding-box,
-    linear-gradient(135deg, rgba(202, 255, 0, 0.4) 0%, rgba(202, 255, 0, 0.05) 50%, transparent 100%) border-box;
+    linear-gradient(135deg, rgba(163, 255, 18, 0.4) 0%, rgba(163, 255, 18, 0.05) 50%, transparent 100%) border-box;
   border: 1px solid transparent;
 }
 
@@ -183,24 +209,24 @@
 
 /* ─── Slot states ─── */
 .slot-available {
-  background: rgba(202, 255, 0, 0.10);
-  border: 1px solid rgba(202, 255, 0, 0.35);
-  color: rgba(202, 255, 0, 0.95);
+  background: rgba(163, 255, 18, 0.10);
+  border: 1px solid rgba(163, 255, 18, 0.35);
+  color: rgba(163, 255, 18, 0.95);
   transition: all 0.15s ease;
 }
 .slot-available:hover {
-  background: rgba(202, 255, 0, 0.18);
-  border-color: rgba(202, 255, 0, 0.55);
-  box-shadow: 0 0 14px rgba(202, 255, 0, 0.28), 0 0 30px rgba(202, 255, 0, 0.1);
-  color: #CAFF00;
+  background: rgba(163, 255, 18, 0.18);
+  border-color: rgba(163, 255, 18, 0.55);
+  box-shadow: 0 0 14px rgba(163, 255, 18, 0.28), 0 0 30px rgba(163, 255, 18, 0.1);
+  color: #A3FF12;
   transform: scale(1.06);
 }
 .slot-selected {
-  background: rgba(202, 255, 0, 0.22) !important;
-  border: 2px solid #CAFF00 !important;
-  box-shadow: 0 0 24px rgba(202, 255, 0, 0.5), 0 0 60px rgba(202, 255, 0, 0.15),
-              inset 0 0 14px rgba(202, 255, 0, 0.1) !important;
-  color: #CAFF00 !important;
+  background: rgba(163, 255, 18, 0.22) !important;
+  border: 2px solid #A3FF12 !important;
+  box-shadow: 0 0 24px rgba(163, 255, 18, 0.5), 0 0 60px rgba(0, 229, 255, 0.2),
+              inset 0 0 14px rgba(0, 229, 255, 0.18) !important;
+  color: #A3FF12 !important;
   transform: scale(1.06);
 }
 .slot-occupied {
@@ -224,7 +250,7 @@
 /* ─── Gradient separator ─── */
 .separator-lime {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(202, 255, 0, 0.4), transparent);
+  background: linear-gradient(90deg, transparent, rgba(163, 255, 18, 0.4), transparent);
 }
 .separator-subtle {
   height: 1px;
@@ -248,8 +274,8 @@
 }
 
 @keyframes glowPulse {
-  0%, 100% { box-shadow: 0 0 16px rgba(202, 255, 0, 0.25); }
-  50%       { box-shadow: 0 0 32px rgba(202, 255, 0, 0.55), 0 0 64px rgba(202, 255, 0, 0.15); }
+  0%, 100% { box-shadow: 0 0 16px rgba(163, 255, 18, 0.25); }
+  50%       { box-shadow: 0 0 32px rgba(163, 255, 18, 0.55), 0 0 64px rgba(163, 255, 18, 0.15); }
 }
 
 @keyframes orbFloat {
@@ -283,8 +309,8 @@
 }
 
 @keyframes confirmationGlow {
-  0%, 100% { box-shadow: 0 0 0 rgba(202,255,0,0), 0 24px 64px rgba(0,0,0,0.5); }
-  50%       { box-shadow: 0 0 50px rgba(202,255,0,0.3), 0 24px 64px rgba(0,0,0,0.5); }
+  0%, 100% { box-shadow: 0 0 0 rgba(163,255,18,0), 0 0 0 rgba(0,229,255,0), 0 24px 64px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 50px rgba(163,255,18,0.28), 0 0 80px rgba(0,229,255,0.18), 0 24px 64px rgba(0,0,0,0.5); }
 }
 
 .animate-orb               { animation: orbFloat         16s ease-in-out infinite; }

@@ -60,7 +60,7 @@ export function ConfirmationToast() {
       <div
         role="status"
         aria-live="polite"
-        className="mx-auto sm:max-w-md glass-card flex items-center gap-2.5 text-[#CAFF00] rounded-xl px-4 py-2.5 text-sm font-semibold glow-lime"
+        className="mx-auto sm:max-w-md glass-card flex items-center gap-2.5 text-[#A3FF12] rounded-xl px-4 py-2.5 text-sm font-semibold glow-lime"
         style={{
           animation: exit ? "toastOut 0.35s ease forwards" : "toastIn 0.35s ease both",
         }}

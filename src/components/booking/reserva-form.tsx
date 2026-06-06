@@ -21,7 +21,7 @@ interface Props {
 }
 
 const inputClass =
-  "w-full border border-white/[0.1] bg-white/[0.04] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#CAFF00]/40 transition-colors [color-scheme:dark]"
+  "w-full border border-white/[0.1] bg-white/[0.04] rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#A3FF12]/40 transition-colors [color-scheme:dark]"
 
 export function ReservaForm({
   courtId,
@@ -83,7 +83,7 @@ export function ReservaForm({
               key={i}
               className={`flex-1 text-center text-xs py-1.5 rounded-lg font-semibold border ${
                 diasAbiertos.includes(i)
-                  ? "bg-[#CAFF00]/10 text-[#CAFF00] border-[#CAFF00]/25"
+                  ? "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25"
                   : "bg-white/[0.03] text-white/20 border-white/[0.06]"
               }`}
             >
@@ -132,7 +132,7 @@ export function ReservaForm({
                 Ocupado
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-sm bg-[#CAFF00] inline-block" />
+                <span className="w-3 h-3 rounded-sm bg-[#A3FF12] inline-block" />
                 Seleccionado
               </span>
             </div>
@@ -178,7 +178,7 @@ export function ReservaForm({
       {canchaAbierta && (
         <Button
           type="submit"
-          className="btn-lime-glow w-full h-11 bg-[#CAFF00] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold"
+          className="btn-lime-glow w-full h-11 bg-[#A3FF12] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold"
           disabled={!horaSeleccionada || pending}
         >
           {pending

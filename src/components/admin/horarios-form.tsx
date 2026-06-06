@@ -21,10 +21,10 @@ interface Props {
 }
 
 const inputTimeClass =
-  "border border-white/[0.1] bg-white/[0.05] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#CAFF00]/40 transition-colors [color-scheme:dark]"
+  "border border-white/[0.1] bg-white/[0.05] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#A3FF12]/40 transition-colors [color-scheme:dark]"
 
 const selectClass =
-  "border border-white/[0.1] bg-white/[0.05] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#CAFF00]/40 transition-colors [color-scheme:dark]"
+  "border border-white/[0.1] bg-white/[0.05] rounded-lg px-2.5 py-1.5 text-sm text-white outline-none focus:border-[#A3FF12]/40 transition-colors [color-scheme:dark]"
 
 export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Props) {
   const [activos, setActivos] = useState<Record<number, boolean>>(() =>
@@ -58,7 +58,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
                   name={`activo_${dia}`}
                   checked={activos[dia]}
                   onChange={(e) => setActivos((prev) => ({ ...prev, [dia]: e.target.checked }))}
-                  className="w-4 h-4 rounded accent-[#CAFF00] cursor-pointer"
+                  className="w-4 h-4 rounded accent-[#A3FF12] cursor-pointer"
                 />
                 <span className="text-sm font-medium text-white/80">{nombre}</span>
               </label>
@@ -106,7 +106,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
         })}
       </div>
 
-      <Button type="submit" className="btn-lime-glow w-full bg-[#CAFF00] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
+      <Button type="submit" className="btn-lime-glow w-full bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
         {pending ? "Guardando..." : "Guardar horarios"}
       </Button>
     </form>

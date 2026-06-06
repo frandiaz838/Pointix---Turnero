@@ -38,7 +38,7 @@ export function AdminMobileMenu({ slug }: { slug: string }) {
         }}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
-          <span className="font-display font-black uppercase text-[#CAFF00] text-xl tracking-tight">
+          <span className="font-display font-black uppercase text-[#A3FF12] text-xl tracking-tight">
             Pointix
           </span>
           <button
