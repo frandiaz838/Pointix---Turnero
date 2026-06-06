@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useTransition, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { generarSlots } from "@/lib/slots"
 import { crearReserva } from "@/actions/reservas"
 import { ChevronLeft, ChevronRight, CalendarDays, Clock, AlertCircle } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { es } from "date-fns/locale"
-import { getSport, sportLabel } from "@/lib/sports"
+import { sportLabel } from "@/lib/sports"
 
 interface Cancha {
   id: string
@@ -49,24 +49,55 @@ function calcHoraFin(hora: string, mins: number) {
   return `${String(Math.floor(t / 60) % 24).padStart(2,"0")}:${String(t % 60).padStart(2,"0")}`
 }
 
+// Agrupa por momento del día. < 12 mañana, 12-18 tarde, 19+ noche.
+function momentoDelDia(hora: string): "manana" | "tarde" | "noche" {
+  const h = parseInt(hora.split(":")[0], 10)
+  if (h < 12) return "manana"
+  if (h < 19) return "tarde"
+  return "noche"
+}
+
+// Formato de teléfono argentino: agrupa últimos 8 dígitos como ####-####.
+function formatPhoneArg(input: string): string {
+  const digits = input.replace(/\D/g, "").slice(0, 13)
+  if (digits.length === 0) return ""
+  if (digits.length <= 4) return digits
+  if (digits.length <= 8) return `${digits.slice(0, -4)}-${digits.slice(-4)}`
+  const last8 = digits.slice(-8)
+  const area = digits.slice(0, -8)
+  return `${area} ${last8.slice(0, 4)}-${last8.slice(4)}`
+}
+
+const MOMENTO_LABEL: Record<"manana" | "tarde" | "noche", string> = {
+  manana: "Mañana",
+  tarde:  "Tarde",
+  noche:  "Noche",
+}
+
 type Estado = "disponible" | "ocupado" | "pasado" | "cerrado"
 
 export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deportesDisponibles, isLoggedIn }: Props) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const reservado = searchParams.get("reservado")
+
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null)
   const [guestName, setGuestName] = useState("")
   const [guestPhone, setGuestPhone] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [calendarOpen, setCalendarOpen] = useState(false)
-  const [slotsReady, setSlotsReady] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
+  // Cuando llega ?reservado=true (post-confirmación), limpiar el panel
+  // y los inputs para que no quede el formulario abierto.
   useEffect(() => {
-    setSlotsReady(false)
-    const t = setTimeout(() => setSlotsReady(true), 60)
-    return () => clearTimeout(t)
-  }, [fecha, deporte])
+    if (!reservado) return
+    setSelectedSlot(null)
+    setError(null)
+    setGuestName("")
+    setGuestPhone("")
+  }, [reservado])
 
   useEffect(() => {
     if (selectedSlot) panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
@@ -78,7 +109,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
 
   function navigate(nuevaFecha: string, nuevoDeporte: string) {
     if (nuevaFecha < hoy) return
-    router.push(`/${slug}/reservar?${new URLSearchParams({ fecha: nuevaFecha, deporte: nuevoDeporte })}`)
+    router.push(`/${slug}?${new URLSearchParams({ fecha: nuevaFecha, deporte: nuevoDeporte })}`)
     setSelectedSlot(null); setError(null)
   }
 
@@ -161,6 +192,11 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
             <PopoverTrigger className="glass-nav rounded-xl px-3 py-2 flex items-center gap-2 hover:bg-white/[0.1] transition-all text-sm font-medium text-white cursor-pointer">
               <CalendarDays className="w-4 h-4 text-white/40" />
               {capitalizarPrimera(formatFecha(fecha))}
+              {fecha === hoy && (
+                <span className="text-[10px] font-bold text-[#CAFF00]/70 uppercase tracking-wider">
+                  hoy
+                </span>
+              )}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" side="bottom" align="start">
               <Calendar
@@ -182,6 +218,15 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
           >
             <ChevronRight className="w-4 h-4 text-white/60" />
           </button>
+
+          {fecha > hoy && (
+            <button
+              onClick={() => navigate(hoy, deporte)}
+              className="ml-1 text-xs font-medium text-white/50 hover:text-[#CAFF00] transition-colors underline-offset-4 hover:underline"
+            >
+              Volver a hoy
+            </button>
+          )}
         </div>
 
         {deportesDisponibles.length > 1 && (
@@ -211,44 +256,54 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
         </div>
       ) : (
         <>
-          {/* ── MOBILE — cards con grid 3 cols ─── */}
+          {/* ── MOBILE — cards con slots agrupados por momento ─── */}
           <div className="block sm:hidden space-y-4">
             {canchasConSlots.map(cancha => {
               const slotsVisibles = cancha.slots.filter(s => s.estado !== "cerrado")
+              const grupos = (["manana", "tarde", "noche"] as const).map(m => ({
+                momento: m,
+                slots: slotsVisibles.filter(s => momentoDelDia(s.hora) === m),
+              })).filter(g => g.slots.length > 0)
+
               return (
-                <div key={cancha.id} className="glass-card rounded-2xl p-4 space-y-3">
+                <div key={cancha.id} className="glass-card rounded-2xl p-4 space-y-4">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-bold text-white">{cancha.name}</span>
-                    <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${getSport(cancha.sport).badgeClassSolid}`}>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
                       {sportLabel(cancha.sport)}
                     </span>
-                    <span className="text-xs text-[#CAFF00]/50 font-display font-black ml-auto">
+                    <span className="text-xs text-[#CAFF00]/60 font-display font-black ml-auto">
                       ${cancha.pricePerHour.toLocaleString("es-AR")}/h
                     </span>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {slotsVisibles.map(({ hora, estado }, i) => {
-                      const isSel = selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
-                      return (
-                        <button
-                          key={hora}
-                          disabled={estado !== "disponible"}
-                          onClick={() => handleSelectSlot(cancha, hora, estado)}
-                          className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
-                            isSel ? "slot-selected" :
-                            estado === "disponible" ? "slot-available" :
-                            estado === "ocupado" ? "slot-occupied" : "slot-past"
-                          }`}
-                          style={slotsReady ? {
-                            animation: `slotAppear 0.3s ease forwards`,
-                            animationDelay: `${i * 22}ms`,
-                            opacity: 0,
-                          } : undefined}
-                        >
-                          {hora}
-                        </button>
-                      )
-                    })}
+
+                  <div className="space-y-3">
+                    {grupos.map(({ momento, slots }) => (
+                      <div key={momento}>
+                        <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2">
+                          {MOMENTO_LABEL[momento]}
+                        </p>
+                        <div className="grid grid-cols-4 gap-2">
+                          {slots.map(({ hora, estado }) => {
+                            const isSel = selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
+                            return (
+                              <button
+                                key={hora}
+                                disabled={estado !== "disponible"}
+                                onClick={() => handleSelectSlot(cancha, hora, estado)}
+                                className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
+                                  isSel ? "slot-selected" :
+                                  estado === "disponible" ? "slot-available" :
+                                  estado === "ocupado" ? "slot-occupied" : "slot-past"
+                                }`}
+                              >
+                                {hora}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               )
@@ -289,7 +344,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
                         <p className="font-semibold text-white">{cancha.name}</p>
                         <p className="text-xs text-white/25">{sportLabel(cancha.sport)}</p>
                       </td>
-                      {cancha.slots.map(({ hora, estado }, i) => {
+                      {cancha.slots.map(({ hora, estado }) => {
                         const isSel = selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
                         return (
                           <td key={hora} className="px-1 py-2 text-center">
@@ -302,11 +357,6 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
                                 estado === "ocupado" ? "slot-occupied" :
                                 estado === "pasado" ? "slot-past" : "slot-closed"
                               }`}
-                              style={slotsReady ? {
-                                animation: `slotAppear 0.3s ease forwards`,
-                                animationDelay: `${(idx * slotsUnion.length + i) * 12}ms`,
-                                opacity: 0,
-                              } : undefined}
                             >
                               {estado === "cerrado" ? "" : estado === "disponible" ? "✓" : estado === "ocupado" ? "✗" : "–"}
                             </button>
@@ -326,7 +376,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
       {selectedSlot && (
         <div
           ref={panelRef}
-          className="glass-card border-lime-gradient rounded-2xl p-6 space-y-5"
+          className="glass-card border-lime-gradient animate-confirmation-glow rounded-2xl p-6 space-y-5"
           style={{ boxShadow: "0 0 60px rgba(202,255,0,0.08), 0 24px 64px rgba(0,0,0,0.5)" }}
         >
           <h3 className="font-display text-2xl font-black uppercase text-white tracking-tight leading-none">
@@ -335,7 +385,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
 
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-lg font-bold text-white">{selectedSlot.courtName}</span>
-            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full border ${getSport(selectedSlot.sport).badgeClassSolid}`}>
+            <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
               {sportLabel(selectedSlot.sport)}
             </span>
           </div>
@@ -356,20 +406,39 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
 
           <div className="separator-lime" />
 
-          <div className="flex items-baseline justify-between">
-            <span className="text-sm font-medium text-white/35">Total a pagar</span>
-            <span
-              className="font-display font-black text-[#CAFF00] text-glow-lime"
-              style={{ fontSize: "clamp(2rem,5vw,2.8rem)" }}
-            >
-              ${selectedSlot.precio.toLocaleString("es-AR")}
-            </span>
+          <div>
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium text-white/35">Total a pagar</span>
+              <span
+                className="font-display font-black text-[#CAFF00] text-glow-lime"
+                style={{ fontSize: "clamp(2rem,5vw,2.8rem)" }}
+              >
+                ${selectedSlot.precio.toLocaleString("es-AR")}
+              </span>
+            </div>
+            <p className="text-xs text-white/30 text-right mt-1">
+              Pago en el complejo · {selectedSlot.slotMinutes} min
+            </p>
           </div>
 
           {!isLoggedIn && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="Tu nombre completo" autoComplete="name" className={inputClass} />
-              <input value={guestPhone} onChange={e => setGuestPhone(e.target.value)} placeholder="Tu teléfono" type="tel" autoComplete="tel" className={inputClass} />
+              <input
+                value={guestName}
+                onChange={e => setGuestName(e.target.value)}
+                placeholder="Tu nombre completo"
+                autoComplete="name"
+                className={inputClass}
+              />
+              <input
+                value={guestPhone}
+                onChange={e => setGuestPhone(formatPhoneArg(e.target.value))}
+                placeholder="11 1234-5678"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                className={inputClass}
+              />
             </div>
           )}
 
@@ -380,18 +449,18 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
             </div>
           )}
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex items-center justify-between gap-4 pt-1">
             <button
               onClick={() => { setSelectedSlot(null); setError(null) }}
               disabled={isPending}
-              className="flex-1 glass-nav rounded-xl py-3 text-sm font-semibold text-white/55 hover:text-white transition-all disabled:opacity-40"
+              className="text-sm font-medium text-white/45 hover:text-white/85 transition-colors disabled:opacity-40 underline-offset-4 hover:underline"
             >
               Cancelar
             </button>
             <button
               onClick={handleConfirmar}
               disabled={isPending}
-              className="btn-lime-glow flex-1 bg-[#CAFF00] hover:bg-[#d4ff1a] text-black rounded-xl py-3 text-sm font-bold disabled:opacity-50"
+              className="btn-lime-glow flex-1 bg-[#CAFF00] hover:bg-[#d4ff1a] text-black rounded-xl py-3.5 px-6 text-sm font-bold disabled:opacity-50"
             >
               {isPending ? "Confirmando…" : "Confirmar reserva"}
             </button>
