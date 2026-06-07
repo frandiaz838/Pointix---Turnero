@@ -154,7 +154,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
             <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-white/40" /> Desde
             </label>
-            <Select value={desde} onValueChange={setDesde}>
+            <Select value={desde} onValueChange={(v) => setDesde(v ?? "")}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
@@ -167,7 +167,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
             <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-white/40" /> Hasta
             </label>
-            <Select value={hasta} onValueChange={setHasta}>
+            <Select value={hasta} onValueChange={(v) => setHasta(v ?? "")}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>

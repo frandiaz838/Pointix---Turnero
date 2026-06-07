@@ -194,7 +194,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
       {/* Cancha */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-white/65">Cancha</label>
-        <Select value={courtId} onValueChange={setCourtId}>
+        <Select value={courtId} onValueChange={(v) => setCourtId(v ?? "")}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Elegí una cancha…">
               {courtId
@@ -255,7 +255,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
             <Clock className="w-3.5 h-3.5 text-white/40" />
             Hora
           </label>
-          <Select value={hora} onValueChange={setHora} disabled={horasDisponibles.length === 0}>
+          <Select value={hora} onValueChange={(v) => setHora(v ?? "")} disabled={horasDisponibles.length === 0}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder={
                 !canchaSeleccionada ? "Elegí cancha…" :
