@@ -14,6 +14,11 @@ function createPrismaClient() {
   const pool = new Pool({
     connectionString,
     ssl: { rejectUnauthorized: false },
+    // Supabase session pooler limita a 15 conexiones. Mantenemos un pool chico
+    // y cerramos conexiones idle rápido para no quedarnos pegados en dev/HMR.
+    max: 5,
+    idleTimeoutMillis: 10_000,
+    connectionTimeoutMillis: 8_000,
   })
 
   const adapter = new PrismaPg(pool)
