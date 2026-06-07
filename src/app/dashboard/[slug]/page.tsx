@@ -8,9 +8,10 @@ import { LogoutBtn } from "@/components/admin/logout-btn"
 import { AdminMobileMenu } from "@/components/admin/mobile-menu"
 import { CountUp } from "@/components/admin/count-up"
 import { generarSlots } from "@/lib/slots"
-import { Clock, TrendingUp, CalendarDays, LayoutGrid } from "lucide-react"
+import { Clock, TrendingUp, CalendarDays, LayoutGrid, Inbox, LayoutDashboard } from "lucide-react"
 import { sportLabel } from "@/lib/sports"
 import { SportIcon } from "@/components/ui/sport-icon"
+import { EmptyState } from "@/components/admin/empty-state"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -212,9 +213,21 @@ export default async function AdminDashboardPage({ params }: Props) {
         <div className="space-y-3">
           <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Reservas de hoy</h2>
           {reservasHoy.length === 0 ? (
-            <p className="text-sm text-white/25 glass-card rounded-xl px-5 py-4">
-              No hay reservas para hoy.
-            </p>
+            <EmptyState
+              icon={Inbox}
+              titulo="No hay reservas para hoy"
+              descripcion={
+                <>
+                  Compartí tu link de reservas en Instagram o WhatsApp:{" "}
+                  <code className="text-[#A3FF12]/80 bg-white/[0.05] px-1.5 py-0.5 rounded text-[10px]">
+                    pointix-turnero.vercel.app/{slug}
+                  </code>
+                </>
+              }
+              acciones={[
+                { label: "+ Crear reserva manual", href: `/dashboard/${slug}/reservas/nueva`, variant: "primary" },
+              ]}
+            />
           ) : (
             <div className="glass-card rounded-2xl divide-y divide-white/[0.05]">
               {reservasHoy.map((r) => (
@@ -247,7 +260,14 @@ export default async function AdminDashboardPage({ params }: Props) {
           <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Canchas</h2>
 
           {canchas.length === 0 ? (
-            <p className="text-sm text-white/30">No hay canchas todavía. ¡Agregá la primera!</p>
+            <EmptyState
+              icon={LayoutDashboard}
+              titulo="Todavía no tenés canchas"
+              descripcion="Creá la primera cancha para empezar a recibir reservas."
+              acciones={[
+                { label: "+ Crear primera cancha", href: `/dashboard/${slug}/canchas/nueva`, variant: "primary" },
+              ]}
+            />
           ) : (
             <div className="space-y-6">
               {gruposCanchas.map(({ sport, canchas: lista }) => (

@@ -47,6 +47,19 @@ export async function editarCancha(courtId: string, tenantId: string, slug: stri
   redirect(`/dashboard/${slug}`)
 }
 
+// Devuelve cuántas reservas futuras (PENDING/CONFIRMED) tiene una cancha.
+// Útil para mostrar warning antes de desactivar.
+export async function contarReservasFuturasCancha(courtId: string, tenantId: string): Promise<number> {
+  await verificarAdmin(tenantId)
+  return prisma.booking.count({
+    where: {
+      courtId,
+      startTime: { gte: new Date() },
+      status: { in: ["PENDING", "CONFIRMED"] },
+    },
+  })
+}
+
 export async function toggleCanchaActiva(courtId: string, isActive: boolean, tenantId: string, slug: string) {
   await verificarAdmin(tenantId)
 

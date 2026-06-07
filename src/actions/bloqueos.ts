@@ -3,20 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
-
-// Mismo helper que en reservas.ts — comparar pasado en la convención de
-// "AR local guardado como UTC" que usa todo el codebase.
-function nowInArAsArtificialUtc(): Date {
-  const ahora = new Date()
-  const partes = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "America/Argentina/Buenos_Aires",
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-    hour12: false,
-  }).formatToParts(ahora)
-  const get = (t: string) => partes.find(p => p.type === t)?.value ?? "00"
-  return new Date(`${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}.000Z`)
-}
+import { nowInArAsArtificialUtc } from "@/lib/timezone"
 
 // Crear un bloqueo: rango de tiempo en el que la cancha no acepta reservas.
 // Si endTime <= startTime, se trata el día entero.

@@ -1,20 +1,29 @@
 import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
-import { CalendarDays, User, Phone } from "lucide-react"
+import { CalendarDays, User, Phone, Inbox, Pencil } from "lucide-react"
+import { EmptyState } from "@/components/admin/empty-state"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { sportLabel } from "@/lib/sports"
 import { SportIcon } from "@/components/ui/sport-icon"
 import { CancelarReservaBtn } from "@/components/admin/cancelar-reserva-btn"
 import { ConfirmarReservaBtn } from "@/components/admin/confirmar-reserva-btn"
+import { MarcarNoShowBtn } from "@/components/admin/marcar-noshow-btn"
 import { ReservasControles } from "@/components/admin/reservas-controles"
 import { ReservasSearch } from "@/components/admin/reservas-search"
+import { ReservasEstadoFilter, type EstadoFiltro } from "@/components/admin/reservas-estado-filter"
+import { Paginacion } from "@/components/admin/paginacion"
 import { AdminToast } from "@/components/admin/admin-toast"
+import { UndoConfirmacionToast } from "@/components/admin/undo-confirmacion-toast"
+import { nowInArAsArtificialUtc } from "@/lib/timezone"
 
 interface Props {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ fecha?: string; periodo?: string; q?: string }>
+  searchParams: Promise<{ fecha?: string; periodo?: string; q?: string; estado?: string; pagina?: string }>
 }
+
+const ITEMS_POR_PAGINA = 25
+const ESTADOS_VALIDOS = ["PENDING", "CONFIRMED", "CANCELLED", "COMPLETED", "NO_SHOW"] as const
 
 const DIAS_FULL = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
@@ -33,6 +42,7 @@ const estadoBadge: Record<string, string> = {
   CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
   COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+  NO_SHOW:   "bg-orange-500/10 text-orange-400 border-orange-500/20",
 }
 
 const estadoLabel: Record<string, string> = {
@@ -40,6 +50,7 @@ const estadoLabel: Record<string, string> = {
   CONFIRMED: "Confirmada",
   CANCELLED: "Cancelada",
   COMPLETED: "Completada",
+  NO_SHOW:   "No vino",
 }
 
 // Para reservas que ya pasaron (endTime < now), reinterpretamos el estado
@@ -49,6 +60,7 @@ const estadoBadgePasado: Record<string, string> = {
   CONFIRMED: "bg-white/[0.05] text-white/45 border-white/[0.1]",
   CANCELLED: "bg-red-500/[0.05] text-red-400/50 border-red-500/[0.12]",
   COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+  NO_SHOW:   "bg-orange-500/[0.05] text-orange-400/55 border-orange-500/[0.15]",
 }
 
 const estadoLabelPasado: Record<string, string> = {
@@ -56,27 +68,23 @@ const estadoLabelPasado: Record<string, string> = {
   CONFIRMED: "Cumplida",
   CANCELLED: "Cancelada",
   COMPLETED: "Cumplida",
-}
-
-// "Ahora" en Argentina, expresado como UTC ficticio (misma convención que
-// los startTime/endTime guardados en la DB). Permite comparar past/future
-// sin que el TZ del server (UTC en Vercel) ensucie el cálculo.
-function nowInArAsArtificialUtc(): Date {
-  const ahora = new Date()
-  const partes = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "America/Argentina/Buenos_Aires",
-    year: "numeric", month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-    hour12: false,
-  }).formatToParts(ahora)
-  const get = (t: string) => partes.find(p => p.type === t)?.value ?? "00"
-  return new Date(`${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}.000Z`)
+  NO_SHOW:   "No vino",
 }
 
 export default async function ReservasAdminPage({ params, searchParams }: Props) {
   const { slug } = await params
-  const { fecha, periodo, q } = await searchParams
+  const { fecha, periodo, q, estado: estadoParam, pagina: paginaParam } = await searchParams
   const session = await auth()
+
+  // Filtro por estado
+  const estadoFiltro: EstadoFiltro =
+    estadoParam && (ESTADOS_VALIDOS as readonly string[]).includes(estadoParam)
+      ? (estadoParam as EstadoFiltro)
+      : "todos"
+
+  // Paginación
+  const paginaNum = parseInt(paginaParam ?? "1", 10)
+  const pagina = Math.max(1, Number.isFinite(paginaNum) && paginaNum > 0 ? paginaNum : 1)
 
   const tenant = await prisma.tenant.findUnique({ where: { slug } })
   if (!tenant) notFound()
@@ -148,20 +156,32 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
   const inicioBusqueda = new Date(ahora)
   inicioBusqueda.setUTCMonth(inicioBusqueda.getUTCMonth() - 12)
 
-  const reservas = await prisma.booking.findMany({
-    where: {
-      tenantId: tenant.id,
-      ...(enModoBusqueda
-        ? { startTime: { gte: inicioBusqueda }, ...filtroBusqueda }
-        : { startTime: { gte: inicioRango, lte: finRango } }),
-    },
-    include: {
-      user: { select: { name: true, email: true } },
-      court: { select: { name: true, sport: true } },
-    },
-    orderBy: { startTime: enModoBusqueda ? "desc" : "asc" },
-    take: enModoBusqueda ? 100 : undefined,
-  })
+  // Where común a count + findMany: filtros tenant + período/búsqueda + estado
+  const filtroEstado = estadoFiltro !== "todos" ? { status: estadoFiltro } : {}
+
+  const where = {
+    tenantId: tenant.id,
+    ...filtroEstado,
+    ...(enModoBusqueda
+      ? { startTime: { gte: inicioBusqueda }, ...filtroBusqueda }
+      : { startTime: { gte: inicioRango, lte: finRango } }),
+  }
+
+  const [reservas, totalReservas] = await Promise.all([
+    prisma.booking.findMany({
+      where,
+      include: {
+        user: { select: { name: true, email: true } },
+        court: { select: { name: true, sport: true } },
+      },
+      orderBy: { startTime: enModoBusqueda ? "desc" : "asc" },
+      skip: (pagina - 1) * ITEMS_POR_PAGINA,
+      take: ITEMS_POR_PAGINA,
+    }),
+    prisma.booking.count({ where }),
+  ])
+
+  const totalPaginas = Math.max(1, Math.ceil(totalReservas / ITEMS_POR_PAGINA))
 
   // En modo búsqueda mostramos los resultados agrupados por fecha (visualizar cuándo
   // jugó el cliente a lo largo del año).
@@ -195,6 +215,8 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
   return (
     <main className="min-h-screen bg-toxic-gradient relative">
       <AdminToast param="creada" mensaje="Reserva creada" />
+      <AdminToast param="editada" mensaje="Reserva editada" />
+      <UndoConfirmacionToast />
       <header className="glass-header sticky top-0 z-50 px-6 py-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
@@ -221,11 +243,13 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
           />
         )}
 
+        <ReservasEstadoFilter activo={estadoFiltro} />
+
         {enModoBusqueda && (
           <p className="text-xs text-white/40">
-            {reservas.length === 0
+            {totalReservas === 0
               ? <>Sin resultados para <span className="text-white/70 font-semibold">&ldquo;{queryBusqueda}&rdquo;</span></>
-              : <>{reservas.length} {reservas.length === 1 ? "resultado" : "resultados"} para <span className="text-white/70 font-semibold">&ldquo;{queryBusqueda}&rdquo;</span> (últimos 12 meses)</>
+              : <>{totalReservas} {totalReservas === 1 ? "resultado" : "resultados"} para <span className="text-white/70 font-semibold">&ldquo;{queryBusqueda}&rdquo;</span> (últimos 12 meses)</>
             }
           </p>
         )}
@@ -238,9 +262,24 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
               </h2>
             )}
             {reservas.length === 0 ? (
-              <EstadoVacio />
+              <EmptyState
+                icon={Inbox}
+                titulo={
+                  enModoBusqueda ? "Ningún cliente coincide" :
+                  estadoFiltro !== "todos" ? "No hay reservas con ese estado" :
+                  "No hay reservas para este período"
+                }
+                descripcion={
+                  enModoBusqueda ? "Probá buscar con otro nombre o teléfono." :
+                  "¿El cliente te confirmó por WhatsApp? Cargala vos manualmente."
+                }
+                acciones={
+                  enModoBusqueda ? undefined :
+                  [{ label: "+ Nueva reserva", href: `/dashboard/${slug}/reservas/nueva`, variant: "primary" }]
+                }
+              />
             ) : (
-              reservas.map((r) => <ReservaCard key={r.id} reserva={r} nowAr={nowAr} />)
+              reservas.map((r) => <ReservaCard key={r.id} reserva={r} nowAr={nowAr} slug={slug} />)
             )}
           </div>
         )}
@@ -248,32 +287,41 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
         {esMultiple && (
           <div className="space-y-6">
             {gruposFecha.length === 0 ? (
-              <EstadoVacio mensaje={enModoBusqueda ? "Ningún cliente coincide con esa búsqueda" : undefined} />
+              <EmptyState
+                icon={Inbox}
+                titulo={enModoBusqueda ? "Ningún cliente coincide" : "No hay reservas para este período"}
+                descripcion={enModoBusqueda ? "Probá con otro término de búsqueda." : undefined}
+                acciones={
+                  enModoBusqueda ? undefined :
+                  [{ label: "+ Nueva reserva", href: `/dashboard/${slug}/reservas/nueva`, variant: "primary" }]
+                }
+              />
             ) : (
               gruposFecha.map(({ label, reservas: lista }) => (
                 <div key={label} className="space-y-3">
                   <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] border-b border-white/[0.06] pb-2">
                     {label}
                   </h2>
-                  {lista.map((r) => <ReservaCard key={r.id} reserva={r} nowAr={nowAr} />)}
+                  {lista.map((r) => <ReservaCard key={r.id} reserva={r} nowAr={nowAr} slug={slug} />)}
                 </div>
               ))
             )}
           </div>
+        )}
+
+        {totalReservas > 0 && (
+          <Paginacion
+            pagina={pagina}
+            totalPaginas={totalPaginas}
+            totalItems={totalReservas}
+            itemsPorPagina={ITEMS_POR_PAGINA}
+          />
         )}
       </section>
     </main>
   )
 }
 
-function EstadoVacio({ mensaje }: { mensaje?: string }) {
-  return (
-    <div className="glass-card rounded-xl px-6 py-10 flex flex-col items-center gap-3 text-center">
-      <CalendarDays className="w-7 h-7 text-white/15" />
-      <p className="text-sm font-medium text-white/30">{mensaje ?? "No hay reservas para este período"}</p>
-    </div>
-  )
-}
 
 type Reserva = {
   id: string
@@ -295,7 +343,7 @@ function formatTelefono(tel: string) {
   return tel
 }
 
-function ReservaCard({ reserva: r, nowAr }: { reserva: Reserva; nowAr: Date }) {
+function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Date; slug: string }) {
   const duracionMin = Math.round((r.endTime.getTime() - r.startTime.getTime()) / 60000)
   const horaInicio = formatHora(r.startTime)
   const horaFin = formatHora(r.endTime)
@@ -312,6 +360,8 @@ function ReservaCard({ reserva: r, nowAr }: { reserva: Reserva; nowAr: Date }) {
 
   // Si ya pasó, no tiene sentido confirmar/cancelar — la jugada ya ocurrió.
   const mostrarAcciones = !esPasada && (r.status === "PENDING" || r.status === "CONFIRMED")
+  // Si ya pasó y aún estaba CONFIRMED/PENDING, ofrecer "Marcar no-show".
+  const mostrarNoShow = esPasada && (r.status === "CONFIRMED" || r.status === "PENDING")
 
   return (
     <div className={`card-float glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 transition-opacity ${esPasada ? "opacity-55" : ""}`}>
@@ -359,9 +409,18 @@ function ReservaCard({ reserva: r, nowAr }: { reserva: Reserva; nowAr: Date }) {
         {mostrarAcciones && (
           <div className="flex items-center gap-2">
             {r.status === "PENDING" && <ConfirmarReservaBtn bookingId={r.id} />}
+            <Link
+              href={`/dashboard/${slug}/reservas/${r.id}/editar`}
+              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md glass-nav text-white/65 hover:text-white transition-colors"
+              title="Editar reserva"
+            >
+              <Pencil className="w-3 h-3" />
+              Editar
+            </Link>
             <CancelarReservaBtn bookingId={r.id} />
           </div>
         )}
+        {mostrarNoShow && <MarcarNoShowBtn bookingId={r.id} />}
       </div>
     </div>
   )
