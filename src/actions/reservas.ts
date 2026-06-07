@@ -4,6 +4,22 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
+import { generarSlots } from "@/lib/slots"
+
+// En este codebase todas las horas se guardan como "AR local interpretado como UTC".
+// Para comparar "es pasado" con un startTime ya construido así, necesitamos
+// el "ahora en AR" expresado de la misma forma.
+function nowInArAsArtificialUtc(): Date {
+  const ahora = new Date()
+  const partes = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  }).formatToParts(ahora)
+  const get = (t: string) => partes.find(p => p.type === t)?.value ?? "00"
+  return new Date(`${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}.000Z`)
+}
 
 export async function cancelarReserva(bookingId: string) {
   const session = await auth()
@@ -152,10 +168,20 @@ export async function crearReservaManual(formData: FormData) {
   const [y, m, d] = fecha.split("-").map(Number)
   const diaSemana = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
   const schedule = cancha.schedules.find(s => s.dayOfWeek === diaSemana)
-  const slotMinutes = schedule?.slotMinutes ?? 60
+  if (!schedule) throw new Error(`La cancha "${cancha.name}" no abre ese día`)
 
+  const slotsValidos = generarSlots(schedule.openTime, schedule.closeTime, schedule.slotMinutes)
+  if (!slotsValidos.includes(hora)) {
+    throw new Error(`El horario ${hora} no es válido para "${cancha.name}" ese día (abre ${schedule.openTime} a ${schedule.closeTime})`)
+  }
+
+  const slotMinutes = schedule.slotMinutes
   const startTime = new Date(`${fecha}T${hora}:00.000Z`)
   const endTime   = new Date(startTime.getTime() + slotMinutes * 60 * 1000)
+
+  if (startTime < nowInArAsArtificialUtc()) {
+    throw new Error("Ese horario ya pasó")
+  }
 
   const conflicto = await prisma.booking.findFirst({
     where: {
@@ -191,5 +217,6 @@ export async function crearReservaManual(formData: FormData) {
   })
 
   revalidatePath(`/dashboard/${slug}/reservas`)
-  redirect(`/dashboard/${slug}/reservas`)
+  // Redirige a la fecha de la reserva con flag de éxito (toast)
+  redirect(`/dashboard/${slug}/reservas?fecha=${fecha}&creada=true`)
 }

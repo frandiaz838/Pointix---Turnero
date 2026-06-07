@@ -121,17 +121,7 @@ export default async function AdminDashboardPage({ params }: Props) {
   }))
 
   return (
-    <div className="min-h-screen bg-[#0C0E14] relative">
-
-      {/* Orbs de fondo */}
-      <div
-        className="pointer-events-none fixed top-[-30%] right-[-15%] w-[60%] h-[60%] rounded-full opacity-60"
-        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.15) 0%, transparent 70%)" }}
-      />
-      <div
-        className="pointer-events-none fixed bottom-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%)" }}
-      />
+    <div className="min-h-screen bg-toxic-gradient relative">
 
       {/* Header sticky glass */}
       <header className="glass-header sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">

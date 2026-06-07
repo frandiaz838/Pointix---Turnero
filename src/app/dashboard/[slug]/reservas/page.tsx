@@ -9,6 +9,7 @@ import { CancelarReservaBtn } from "@/components/admin/cancelar-reserva-btn"
 import { ConfirmarReservaBtn } from "@/components/admin/confirmar-reserva-btn"
 import { ReservasControles } from "@/components/admin/reservas-controles"
 import { ReservasSearch } from "@/components/admin/reservas-search"
+import { AdminToast } from "@/components/admin/admin-toast"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -39,6 +40,37 @@ const estadoLabel: Record<string, string> = {
   CONFIRMED: "Confirmada",
   CANCELLED: "Cancelada",
   COMPLETED: "Completada",
+}
+
+// Para reservas que ya pasaron (endTime < now), reinterpretamos el estado
+// visualmente: una CONFIRMED en el pasado = "Cumplida", una PENDING = "Expirada".
+const estadoBadgePasado: Record<string, string> = {
+  PENDING:   "bg-white/[0.05] text-white/35 border-white/[0.08]",
+  CONFIRMED: "bg-white/[0.05] text-white/45 border-white/[0.1]",
+  CANCELLED: "bg-red-500/[0.05] text-red-400/50 border-red-500/[0.12]",
+  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+}
+
+const estadoLabelPasado: Record<string, string> = {
+  PENDING:   "Expirada",
+  CONFIRMED: "Cumplida",
+  CANCELLED: "Cancelada",
+  COMPLETED: "Cumplida",
+}
+
+// "Ahora" en Argentina, expresado como UTC ficticio (misma convención que
+// los startTime/endTime guardados en la DB). Permite comparar past/future
+// sin que el TZ del server (UTC en Vercel) ensucie el cálculo.
+function nowInArAsArtificialUtc(): Date {
+  const ahora = new Date()
+  const partes = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  }).formatToParts(ahora)
+  const get = (t: string) => partes.find(p => p.type === t)?.value ?? "00"
+  return new Date(`${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:${get("second")}.000Z`)
 }
 
 export default async function ReservasAdminPage({ params, searchParams }: Props) {
@@ -158,17 +190,11 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
       ? formatFechaDia(fecha)
       : ""
 
+  const nowAr = nowInArAsArtificialUtc()
+
   return (
-    <main className="min-h-screen bg-[#0C0E14] relative">
-      {/* Orbs */}
-      <div
-        className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.14) 0%, transparent 70%)" }}
-      />
-      <div
-        className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
-        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%)" }}
-      />
+    <main className="min-h-screen bg-toxic-gradient relative">
+      <AdminToast param="creada" mensaje="Reserva creada" />
       <header className="glass-header sticky top-0 z-50 px-6 py-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
@@ -214,7 +240,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
             {reservas.length === 0 ? (
               <EstadoVacio />
             ) : (
-              reservas.map((r) => <ReservaCard key={r.id} reserva={r} />)
+              reservas.map((r) => <ReservaCard key={r.id} reserva={r} nowAr={nowAr} />)
             )}
           </div>
         )}
@@ -229,7 +255,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
                   <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] border-b border-white/[0.06] pb-2">
                     {label}
                   </h2>
-                  {lista.map((r) => <ReservaCard key={r.id} reserva={r} />)}
+                  {lista.map((r) => <ReservaCard key={r.id} reserva={r} nowAr={nowAr} />)}
                 </div>
               ))
             )}
@@ -269,15 +295,26 @@ function formatTelefono(tel: string) {
   return tel
 }
 
-function ReservaCard({ reserva: r }: { reserva: Reserva }) {
+function ReservaCard({ reserva: r, nowAr }: { reserva: Reserva; nowAr: Date }) {
   const duracionMin = Math.round((r.endTime.getTime() - r.startTime.getTime()) / 60000)
   const horaInicio = formatHora(r.startTime)
   const horaFin = formatHora(r.endTime)
   const nombreCliente = r.user ? (r.user.name ?? "(sin nombre)") : (r.guestName ?? "(sin nombre)")
   const telefono = !r.user && r.guestPhone ? formatTelefono(r.guestPhone) : null
 
+  const esPasada = r.endTime < nowAr
+  const badgeClasses = esPasada
+    ? estadoBadgePasado[r.status] ?? estadoBadgePasado.PENDING
+    : estadoBadge[r.status]    ?? estadoBadge.PENDING
+  const badgeLabel = esPasada
+    ? estadoLabelPasado[r.status] ?? r.status
+    : estadoLabel[r.status]    ?? r.status
+
+  // Si ya pasó, no tiene sentido confirmar/cancelar — la jugada ya ocurrió.
+  const mostrarAcciones = !esPasada && (r.status === "PENDING" || r.status === "CONFIRMED")
+
   return (
-    <div className="card-float glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+    <div className={`card-float glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 transition-opacity ${esPasada ? "opacity-55" : ""}`}>
       <div className="space-y-1.5 min-w-0">
         {/* Hora y estado */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -285,8 +322,8 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
             {horaInicio} — {horaFin}
             <span className="text-white/30 font-normal ml-1.5">({duracionMin} min)</span>
           </span>
-          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
-            {estadoLabel[r.status] ?? r.status}
+          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${badgeClasses}`}>
+            {badgeLabel}
           </span>
         </div>
 
@@ -316,8 +353,10 @@ function ReservaCard({ reserva: r }: { reserva: Reserva }) {
 
       {/* Precio y acciones */}
       <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
-        <p className="font-bold text-sm text-white">${Number(r.totalPrice).toLocaleString("es-AR")}</p>
-        {(r.status === "PENDING" || r.status === "CONFIRMED") && (
+        <p className={`font-bold text-sm ${esPasada ? "text-white/60" : "text-white"}`}>
+          ${Number(r.totalPrice).toLocaleString("es-AR")}
+        </p>
+        {mostrarAcciones && (
           <div className="flex items-center gap-2">
             {r.status === "PENDING" && <ConfirmarReservaBtn bookingId={r.id} />}
             <CancelarReservaBtn bookingId={r.id} />

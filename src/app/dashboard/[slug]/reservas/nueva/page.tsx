@@ -21,9 +21,49 @@ export default async function NuevaReservaAdminPage({ params, searchParams }: Pr
     redirect("/dashboard")
   }
 
-  const canchas = await prisma.court.findMany({
-    where: { tenantId: tenant.id, isActive: true },
-    orderBy: [{ sport: "asc" }, { name: "asc" }],
+  const ahora = new Date()
+  const en90dias = new Date(ahora)
+  en90dias.setDate(ahora.getDate() + 90)
+
+  const [canchas, reservasOcupando, bloqueos] = await Promise.all([
+    prisma.court.findMany({
+      where: { tenantId: tenant.id, isActive: true },
+      include: { schedules: true },
+      orderBy: [{ sport: "asc" }, { name: "asc" }],
+    }),
+    prisma.booking.findMany({
+      where: {
+        tenantId: tenant.id,
+        status: { in: ["PENDING", "CONFIRMED"] },
+        startTime: { gte: ahora, lte: en90dias },
+      },
+      select: { courtId: true, startTime: true },
+    }),
+    prisma.courtBlock.findMany({
+      where: {
+        court: { tenantId: tenant.id },
+        endTime: { gte: ahora },
+      },
+      select: { courtId: true, startTime: true, endTime: true },
+    }),
+  ])
+
+  // Construir ocupacion: array de { courtId, fecha (YYYY-MM-DD), hora (HH:00) }
+  // a partir de reservas + bloqueos. La grilla del form los filtra.
+  const ocupacion: { courtId: string; fecha: string; hora: string }[] = []
+  reservasOcupando.forEach(r => {
+    const f = `${r.startTime.getUTCFullYear()}-${String(r.startTime.getUTCMonth() + 1).padStart(2, "0")}-${String(r.startTime.getUTCDate()).padStart(2, "0")}`
+    const h = `${String(r.startTime.getUTCHours()).padStart(2, "0")}:00`
+    ocupacion.push({ courtId: r.courtId, fecha: f, hora: h })
+  })
+  bloqueos.forEach(b => {
+    const cursor = new Date(b.startTime)
+    while (cursor < b.endTime) {
+      const f = `${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}-${String(cursor.getUTCDate()).padStart(2, "0")}`
+      const h = `${String(cursor.getUTCHours()).padStart(2, "0")}:00`
+      ocupacion.push({ courtId: b.courtId, fecha: f, hora: h })
+      cursor.setUTCHours(cursor.getUTCHours() + 1)
+    }
   })
 
   const hoyAr = new Intl.DateTimeFormat("en-CA", {
@@ -31,15 +71,7 @@ export default async function NuevaReservaAdminPage({ params, searchParams }: Pr
   }).format(new Date())
 
   return (
-    <main className="min-h-screen bg-[#0C0E14] relative">
-      <div
-        className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.14) 0%, transparent 70%)" }}
-      />
-      <div
-        className="pointer-events-none fixed bottom-[-15%] left-[-8%] w-[45%] h-[45%] rounded-full opacity-40"
-        style={{ background: "radial-gradient(circle, rgba(0,229,255,0.1) 0%, transparent 70%)" }}
-      />
+    <main className="min-h-screen bg-toxic-gradient relative">
 
       <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}/reservas`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
@@ -73,7 +105,14 @@ export default async function NuevaReservaAdminPage({ params, searchParams }: Pr
               name: c.name,
               sport: c.sport as string,
               pricePerHour: Number(c.pricePerHour),
+              schedules: c.schedules.map(s => ({
+                dayOfWeek: s.dayOfWeek,
+                openTime: s.openTime,
+                closeTime: s.closeTime,
+                slotMinutes: s.slotMinutes,
+              })),
             }))}
+            ocupacion={ocupacion}
           />
         )}
       </section>

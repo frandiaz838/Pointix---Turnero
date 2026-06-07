@@ -51,11 +51,7 @@ export default async function BloqueosPage({ params }: Props) {
   })
 
   return (
-    <main className="min-h-screen bg-[#0C0E14] relative">
-      <div
-        className="pointer-events-none fixed top-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full opacity-50"
-        style={{ background: "radial-gradient(circle, rgba(163,255,18,0.14) 0%, transparent 70%)" }}
-      />
+    <main className="min-h-screen bg-toxic-gradient relative">
       <header className="glass-header sticky top-0 z-50 px-6 py-4">
         <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
           ← Volver al panel
@@ -91,11 +87,10 @@ export default async function BloqueosPage({ params }: Props) {
                 const todoElDia = esTodoElDia(b)
                 return (
                   <div key={b.id} className="px-4 py-3 flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1 space-y-1.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Calendar className="w-3.5 h-3.5 text-white/30 shrink-0" />
-                        <span className="text-sm font-medium text-white">
-                          {formatFechaCompleta(b.startTime)}
+                        <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25">
+                          {cancha.name}
                         </span>
                         {todoElDia ? (
                           <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
@@ -107,8 +102,14 @@ export default async function BloqueosPage({ params }: Props) {
                           </span>
                         )}
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-white/30 shrink-0" />
+                        <span className="text-sm font-medium text-white/80">
+                          {formatFechaCompleta(b.startTime)}
+                        </span>
+                      </div>
                       {b.reason && (
-                        <p className="text-xs text-white/40 mt-1 truncate">{b.reason}</p>
+                        <p className="text-xs text-white/40 truncate">{b.reason}</p>
                       )}
                     </div>
                     <EliminarBloqueoBtn bloqueoId={b.id} slug={slug} courtId={courtId} />
