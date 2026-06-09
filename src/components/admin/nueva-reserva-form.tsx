@@ -335,10 +335,13 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
             <input
               name="guestEmail"
               type="email"
-              placeholder="opcional"
+              placeholder="cliente@email.com"
               autoComplete="off"
               className={inputBase}
             />
+            <p className="text-[11px] text-white/30 leading-relaxed">
+              Si cargás email, le llega la confirmación al cliente.
+            </p>
           </div>
         </div>
       </div>

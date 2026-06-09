@@ -1,6 +1,7 @@
 "use client"
 
-import { useTransition } from "react"
+import { useState, useTransition } from "react"
+import { AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -25,20 +26,30 @@ interface Props {
 
 export function CanchaForm({ tenantId, slug, cancha }: Props) {
   const [pending, startTransition] = useTransition()
+  const [error, setError] = useState<string | null>(null)
   const esEdicion = !!cancha
 
-  function handleSubmit(formData: FormData) {
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    const formData = new FormData(e.currentTarget)
     startTransition(async () => {
-      if (esEdicion) {
-        await editarCancha(cancha.id, tenantId, slug, formData)
-      } else {
-        await crearCancha(tenantId, slug, formData)
+      try {
+        if (esEdicion) {
+          await editarCancha(cancha.id, tenantId, slug, formData)
+        } else {
+          await crearCancha(tenantId, slug, formData)
+        }
+      } catch (err) {
+        if (err instanceof Error && !err.message.includes("NEXT_REDIRECT")) {
+          setError(err.message)
+        }
       }
     })
   }
 
   return (
-    <form action={handleSubmit} className="glass-card rounded-xl p-6 space-y-5">
+    <form onSubmit={handleSubmit} className="glass-card rounded-xl p-6 space-y-5">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre de la cancha</Label>
         <Input
@@ -88,6 +99,13 @@ export function CanchaForm({ tenantId, slug, cancha }: Props) {
           required
         />
       </div>
+
+      {error && (
+        <div role="alert" className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {error}
+        </div>
+      )}
 
       <Button type="submit" className="btn-lime-glow w-full bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
         {pending ? "Guardando..." : esEdicion ? "Guardar cambios" : "Crear cancha"}

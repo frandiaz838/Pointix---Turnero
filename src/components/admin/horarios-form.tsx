@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useTransition } from "react"
-import { Copy, Check } from "lucide-react"
+import { useState, useTransition, useEffect } from "react"
+import { Copy, Check, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { guardarHorarios } from "@/actions/canchas"
 
@@ -49,6 +49,14 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
   const [pending, startTransition] = useTransition()
   const [copyOpenFor, setCopyOpenFor] = useState<number | null>(null)
   const [copyTargets, setCopyTargets] = useState<Set<number>>(new Set())
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    if (!success) return
+    const t = setTimeout(() => setSuccess(false), 3500)
+    return () => clearTimeout(t)
+  }, [success])
 
   function updateDia(dia: number, patch: Partial<DiaState>) {
     setDias(prev => prev.map((d, i) => (i === dia ? { ...d, ...patch } : d)))
@@ -81,6 +89,18 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    setError(null)
+    setSuccess(false)
+
+    // Validar que las apertura < cierre en cada día activo
+    for (let i = 0; i < dias.length; i++) {
+      const d = dias[i]
+      if (d.activo && d.apertura >= d.cierre) {
+        setError(`En ${DIAS[i]}: la hora de cierre debe ser posterior a la de apertura.`)
+        return
+      }
+    }
+
     const formData = new FormData()
     dias.forEach((d, i) => {
       if (d.activo) {
@@ -91,7 +111,14 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
       }
     })
     startTransition(async () => {
-      await guardarHorarios(courtId, tenantId, slug, formData)
+      try {
+        await guardarHorarios(courtId, tenantId, slug, formData)
+        setSuccess(true)
+      } catch (err) {
+        if (err instanceof Error && !err.message.includes("NEXT_REDIRECT")) {
+          setError(err.message)
+        }
+      }
     })
   }
 
@@ -213,6 +240,20 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
           )
         })}
       </div>
+
+      {error && (
+        <div role="alert" className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-sm rounded-xl px-4 py-3">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {success && (
+        <div role="status" className="flex items-center gap-2 bg-[#A3FF12]/10 border border-[#A3FF12]/25 text-[#A3FF12] text-sm rounded-xl px-4 py-3">
+          <CheckCircle className="w-4 h-4 shrink-0" />
+          Horarios guardados
+        </div>
+      )}
 
       <Button type="submit" className="btn-lime-glow w-full bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold" disabled={pending}>
         {pending ? "Guardando..." : "Guardar horarios"}

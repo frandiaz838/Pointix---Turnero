@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { crearPreferenciaParaReserva } from "@/actions/mp"
-import { AlertCircle, Clock, CalendarDays } from "lucide-react"
+import { AlertCircle, Clock, CalendarDays, Loader2 } from "lucide-react"
 import { nowInArAsArtificialUtc } from "@/lib/timezone"
 
 interface Props {
@@ -94,7 +94,7 @@ export default async function PagarPage({ params, searchParams }: Props) {
     redirect(`/${slug}/pagar/${booking.id}`)
   }
 
-  // Si vino con ?status=failure o ?status=pending desde MP, mostramos UI distinta
+  // Si vino con ?status=failure desde MP
   if (status === "failure") {
     return (
       <main className="min-h-screen bg-toxic-gradient text-white px-6 py-12 flex items-center justify-center">
@@ -108,7 +108,54 @@ export default async function PagarPage({ params, searchParams }: Props) {
           <p className="text-white/55 text-sm">
             Tu reserva sigue apartada por unos minutos más. Reintentá el pago.
           </p>
+          <div className="glass-nav rounded-xl p-4 text-left space-y-2 text-sm">
+            <div className="flex items-center gap-2 text-white/65">
+              <CalendarDays className="w-3.5 h-3.5" />
+              {formatFecha(booking.startTime)}
+            </div>
+            <div className="flex items-center gap-2 text-white/65">
+              <Clock className="w-3.5 h-3.5" />
+              {formatHora(booking.startTime)} — {formatHora(booking.endTime)}
+            </div>
+            <p className="text-white/40 text-xs pt-1">{booking.court.name}</p>
+          </div>
           <RetryPagoButton slug={slug} bookingId={booking.id} />
+        </div>
+      </main>
+    )
+  }
+
+  // Si vino con ?status=pending desde MP (efectivo, RapiPago, etc.)
+  if (status === "pending") {
+    return (
+      <main className="min-h-screen bg-toxic-gradient text-white px-6 py-12 flex items-center justify-center">
+        <div className="max-w-md w-full glass-card rounded-2xl p-8 text-center space-y-4">
+          <div className="w-12 h-12 rounded-full bg-[#00E5FF]/10 border border-[#00E5FF]/25 flex items-center justify-center mx-auto">
+            <Loader2 className="w-5 h-5 text-[#00E5FF] animate-spin" />
+          </div>
+          <h1 className="font-display text-2xl font-black uppercase tracking-tight">
+            Pago en proceso
+          </h1>
+          <p className="text-white/55 text-sm leading-relaxed">
+            Tu pago se está acreditando. En cuanto se confirme, recibís el comprobante por mail y la reserva queda lista.
+          </p>
+          <div className="glass-nav rounded-xl p-4 text-left space-y-2 text-sm">
+            <div className="flex items-center gap-2 text-white/65">
+              <CalendarDays className="w-3.5 h-3.5" />
+              {formatFecha(booking.startTime)}
+            </div>
+            <div className="flex items-center gap-2 text-white/65">
+              <Clock className="w-3.5 h-3.5" />
+              {formatHora(booking.startTime)} — {formatHora(booking.endTime)}
+            </div>
+            <p className="text-white/40 text-xs pt-1">{booking.court.name}</p>
+          </div>
+          <Link
+            href={`/${slug}`}
+            className="text-xs text-white/50 hover:text-white inline-block"
+          >
+            ← Volver al complejo
+          </Link>
         </div>
       </main>
     )
