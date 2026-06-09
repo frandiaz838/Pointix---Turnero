@@ -39,24 +39,27 @@ interface ReservaParaWhatsapp {
 
 /**
  * Arma el mensaje prearmado que el cliente va a enviarle al complejo.
+ * Usa formato de WhatsApp (*negrita*) en vez de emojis para evitar problemas
+ * de renderizado en distintos clientes.
  */
 export function buildMensajeReserva(d: ReservaParaWhatsapp): string {
   const fecha = formatFecha(d.startTime)
   const horaInicio = formatHora(d.startTime)
   const horaFin    = formatHora(d.endTime)
   const precio = `$${d.precio.toLocaleString("es-AR")}`
-  const estadoPago = d.paidOnline ? "Pagado online ✅" : "Pago en el complejo"
+  const estadoPago = d.paidOnline ? "pagado online" : "pago en el complejo"
 
   return [
-    `¡Hola! Acabo de hacer una reserva en *${d.clubNombre}*:`,
+    `¡Hola! Acabo de reservar en *${d.clubNombre}* ⚡`,
     ``,
-    `👤 ${d.clienteNombre}`,
-    `🎾 ${d.canchaName} · ${d.sport}`,
+    `📍 ${d.canchaName} (${d.sport})`,
     `📅 ${fecha}`,
-    `🕐 ${horaInicio} a ${horaFin}`,
-    `💰 ${precio} · ${estadoPago}`,
+    `⏰ ${horaInicio} a ${horaFin} hs`,
+    `💵 ${precio} (${estadoPago})`,
     ``,
-    `¿Me podrías confirmar que llegó bien? ¡Gracias!`,
+    `— ${d.clienteNombre}`,
+    ``,
+    `¿Me confirmás que llegó? ¡Gracias!`,
   ].join("\n")
 }
 

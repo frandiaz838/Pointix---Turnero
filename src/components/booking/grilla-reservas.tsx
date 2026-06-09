@@ -84,6 +84,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
   const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null)
   const [guestName, setGuestName] = useState("")
   const [guestPhone, setGuestPhone] = useState("")
+  const [guestEmail, setGuestEmail] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -97,6 +98,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
     setError(null)
     setGuestName("")
     setGuestPhone("")
+    setGuestEmail("")
   }, [reservado])
 
   useEffect(() => {
@@ -163,7 +165,11 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
     formData.set("courtId", selectedSlot.courtId)
     formData.set("fecha", fecha); formData.set("hora", selectedSlot.hora)
     formData.set("slug", slug); formData.set("slotMinutes", String(selectedSlot.slotMinutes))
-    if (!isLoggedIn) { formData.set("guestName", guestName); formData.set("guestPhone", guestPhone) }
+    if (!isLoggedIn) {
+      formData.set("guestName", guestName)
+      formData.set("guestPhone", guestPhone)
+      if (guestEmail.trim()) formData.set("guestEmail", guestEmail.trim())
+    }
     startTransition(async () => {
       try { await crearReserva(formData) }
       catch (e) { if (e instanceof Error && !e.message.includes("NEXT_REDIRECT")) setError(e.message) }
@@ -422,23 +428,39 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
           </div>
 
           {!isLoggedIn && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                value={guestName}
-                onChange={e => setGuestName(e.target.value)}
-                placeholder="Tu nombre completo"
-                autoComplete="name"
-                className={inputClass}
-              />
-              <input
-                value={guestPhone}
-                onChange={e => setGuestPhone(formatPhoneArg(e.target.value))}
-                placeholder="11 1234-5678"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                className={inputClass}
-              />
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input
+                  value={guestName}
+                  onChange={e => setGuestName(e.target.value)}
+                  placeholder="Tu nombre completo"
+                  autoComplete="name"
+                  className={inputClass}
+                />
+                <input
+                  value={guestPhone}
+                  onChange={e => setGuestPhone(formatPhoneArg(e.target.value))}
+                  placeholder="11 1234-5678"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <input
+                  value={guestEmail}
+                  onChange={e => setGuestEmail(e.target.value)}
+                  placeholder="tu@email.com (opcional)"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  className={inputClass}
+                />
+                <p className="text-[11px] text-white/30 mt-1.5 px-1">
+                  Para mandarte la confirmación por mail.
+                </p>
+              </div>
             </div>
           )}
 

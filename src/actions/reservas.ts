@@ -201,6 +201,7 @@ export async function crearReserva(formData: FormData) {
   const slug = formData.get("slug") as string
   const guestName = formData.get("guestName") as string | null
   const guestPhone = formData.get("guestPhone") as string | null
+  const guestEmail = ((formData.get("guestEmail") as string | null) ?? "").trim() || null
 
   // Si no hay sesión, nombre y teléfono son obligatorios
   if (!session?.user && (!guestName?.trim() || !guestPhone?.trim())) {
@@ -238,7 +239,7 @@ export async function crearReserva(formData: FormData) {
 
   const datosCliente = session?.user?.id
     ? { userId: session.user.id }
-    : { guestName: guestName!, guestPhone: guestPhone! }
+    : { guestName: guestName!, guestPhone: guestPhone!, guestEmail }
 
   // Si el tenant tiene MercadoPago configurado, seteamos expiresAt y redirigimos a /pagar.
   // Si no, la reserva queda PENDING para que el admin confirme al pagar en el complejo.
