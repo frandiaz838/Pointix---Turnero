@@ -136,8 +136,8 @@ export default async function AdminDashboardPage({ params }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2">
-            <Link href={`/dashboard/${slug}/mp-config`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-              MercadoPago
+            <Link href={`/dashboard/${slug}/configuracion`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+              Configuración
             </Link>
             <Link href={`/dashboard/${slug}/reservas`} className={buttonVariants({ variant: "outline", size: "sm" })}>
               Ver reservas

@@ -63,7 +63,7 @@ export async function crearPreferenciaParaReserva(
       ],
       external_reference: booking.id,
       back_urls: {
-        success: `${appUrl}/${booking.tenant.slug}?reservado=true`,
+        success: `${appUrl}/${booking.tenant.slug}?reservado=${booking.id}`,
         failure: `${appUrl}/${booking.tenant.slug}/pagar/${booking.id}?status=failure`,
         pending: `${appUrl}/${booking.tenant.slug}/pagar/${booking.id}?status=pending`,
       },

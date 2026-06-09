@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { MercadoPagoConfig, Payment } from "mercadopago"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
+import { notificarReservaConfirmada } from "@/lib/booking-notifications"
 
 // MercadoPago llama a este endpoint cuando hay novedades de pago.
 // Body típico:
@@ -85,6 +86,11 @@ export async function POST(req: NextRequest) {
 
     revalidatePath(`/dashboard/${tenantUsado.slug}/reservas`)
     revalidatePath(`/${tenantUsado.slug}`)
+
+    // Si el pago se acreditó, mandar email de confirmación al cliente
+    if (nuevoStatus === "CONFIRMED") {
+      await notificarReservaConfirmada(bookingId)
+    }
 
     return NextResponse.json({ ok: true, bookingId, newStatus: nuevoStatus ?? "unchanged" })
   } catch (e) {

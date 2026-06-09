@@ -4,16 +4,28 @@ import { Clock } from "lucide-react"
 import { auth } from "@/lib/session"
 import { GrillaReservas } from "@/components/booking/grilla-reservas"
 import { ConfirmationToast } from "@/components/booking/confirmation-toast"
+import { BookingSuccessCard } from "@/components/booking/booking-success-card"
 import { generarSlots } from "@/lib/slots"
+import { buildMensajeReserva, buildWhatsappUrl } from "@/lib/whatsapp"
+import { sportLabel } from "@/lib/sports"
 
 interface Props {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ reservado?: string; fecha?: string; deporte?: string }>
 }
 
+const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"]
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
+function formatFechaLarga(d: Date): string {
+  return `${DIAS[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`
+}
+function formatHoraUtc(d: Date): string {
+  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`
+}
+
 export default async function TenantPage({ params, searchParams }: Props) {
   const { slug } = await params
-  const { fecha: fechaParam, deporte: deporteParam } = await searchParams
+  const { reservado: reservadoParam, fecha: fechaParam, deporte: deporteParam } = await searchParams
   const session = await auth()
 
   const hoyAr = new Intl.DateTimeFormat("en-CA", {
@@ -43,6 +55,16 @@ export default async function TenantPage({ params, searchParams }: Props) {
     },
   })
   if (!tenant) notFound()
+
+  // Si reservado es un bookingId (no "true"), buscar la reserva para mostrar
+  // la tarjeta de éxito con CTA de WhatsApp.
+  const esBookingIdValido = !!reservadoParam && reservadoParam !== "true" && reservadoParam.length > 10
+  const bookingExitoso = esBookingIdValido
+    ? await prisma.booking.findFirst({
+        where: { id: reservadoParam, tenantId: tenant.id },
+        include: { court: { select: { name: true, sport: true } } },
+      })
+    : null
 
   // Marca como EXPIRED las reservas PENDING que pasaron su expiresAt sin pagar.
   // Esto libera los slots automáticamente sin necesidad de cron.
@@ -160,11 +182,39 @@ export default async function TenantPage({ params, searchParams }: Props) {
 
   const deportesDisponibles = [...new Set(tenant.courts.map((c) => c.sport as string))]
 
+  // Armar datos para el success card si corresponde
+  let successCardProps: React.ComponentProps<typeof BookingSuccessCard> | null = null
+  if (bookingExitoso) {
+    const mensaje = buildMensajeReserva({
+      clienteNombre: bookingExitoso.guestName ?? "Cliente",
+      clubNombre: tenant.name,
+      canchaName: bookingExitoso.court.name,
+      sport: sportLabel(bookingExitoso.court.sport as string),
+      startTime: bookingExitoso.startTime,
+      endTime: bookingExitoso.endTime,
+      precio: Number(bookingExitoso.totalPrice),
+      paidOnline: bookingExitoso.status === "CONFIRMED" && !!bookingExitoso.mpPaymentId,
+    })
+    const whatsappUrl = tenant.whatsappNumber ? buildWhatsappUrl(tenant.whatsappNumber, mensaje) : null
+    successCardProps = {
+      clubNombre: tenant.name,
+      canchaName: bookingExitoso.court.name,
+      sport: sportLabel(bookingExitoso.court.sport as string),
+      fechaTexto: formatFechaLarga(bookingExitoso.startTime),
+      horaInicio: formatHoraUtc(bookingExitoso.startTime),
+      horaFin: formatHoraUtc(bookingExitoso.endTime),
+      precio: Number(bookingExitoso.totalPrice),
+      paidOnline: bookingExitoso.status === "CONFIRMED" && !!bookingExitoso.mpPaymentId,
+      estadoConfirmado: bookingExitoso.status === "CONFIRMED",
+      whatsappUrl,
+    }
+  }
+
   return (
     <main className="min-h-screen bg-toxic-gradient text-white relative overflow-x-hidden">
 
-      {/* Toast de confirmación de reserva */}
-      <ConfirmationToast />
+      {/* Tarjeta de éxito post-pago (con CTA WhatsApp) o toast simple */}
+      {successCardProps ? <BookingSuccessCard {...successCardProps} /> : <ConfirmationToast />}
 
       {/* ── ORBS DE FONDO (sutiles) ───────────────────────── */}
       <div

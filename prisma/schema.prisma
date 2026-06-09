@@ -69,6 +69,14 @@ model Tenant {
   // Default 30 min — tiempo razonable para completar checkout MP.
   mpExpiryMinutes Int @default(30)
 
+  // Número de WhatsApp del complejo (formato internacional sin +, ej: 5491155555555).
+  // Si está seteado, después de cada reserva el cliente ve un CTA para
+  // confirmar la reserva por WhatsApp con un mensaje prearmado.
+  whatsappNumber String?
+
+  // Dirección del complejo (texto libre — se muestra al cliente y en el mail).
+  address String?
+
   users    User[]
   courts   Court[]
   bookings Booking[]

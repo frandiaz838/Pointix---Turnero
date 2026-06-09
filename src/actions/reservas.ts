@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { generarSlots } from "@/lib/slots"
 import { nowInArAsArtificialUtc } from "@/lib/timezone"
+import { notificarReservaConfirmada } from "@/lib/booking-notifications"
 
 export async function cancelarReserva(bookingId: string) {
   const session = await auth()
@@ -41,6 +42,9 @@ export async function confirmarReserva(bookingId: string) {
   })
 
   revalidatePath(`/dashboard/${reserva.court.tenant.slug}/reservas`)
+
+  // Email de confirmación al cliente (si tiene email)
+  await notificarReservaConfirmada(bookingId)
 }
 
 // Editar una reserva existente: cambiar cancha, fecha, hora y/o datos del cliente.
@@ -329,7 +333,7 @@ export async function crearReservaManual(formData: FormData) {
   })
   if (bloqueo) throw new Error("Esa cancha está bloqueada en ese horario")
 
-  await prisma.booking.create({
+  const nueva = await prisma.booking.create({
     data: {
       courtId,
       tenantId: cancha.tenantId,
@@ -344,6 +348,12 @@ export async function crearReservaManual(formData: FormData) {
   })
 
   revalidatePath(`/dashboard/${slug}/reservas`)
+
+  // Email de confirmación al cliente (si dejó email)
+  if (guestEmail) {
+    await notificarReservaConfirmada(nueva.id)
+  }
+
   // Redirige a la fecha de la reserva con flag de éxito (toast)
   redirect(`/dashboard/${slug}/reservas?fecha=${fecha}&creada=true`)
 }
