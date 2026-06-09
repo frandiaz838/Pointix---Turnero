@@ -15,7 +15,7 @@ import { ReservasEstadoFilter, type EstadoFiltro } from "@/components/admin/rese
 import { Paginacion } from "@/components/admin/paginacion"
 import { AdminToast } from "@/components/admin/admin-toast"
 import { UndoConfirmacionToast } from "@/components/admin/undo-confirmacion-toast"
-import { nowInArAsArtificialUtc } from "@/lib/timezone"
+import { nowInArAsArtificialUtc, todayInArIso } from "@/lib/timezone"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -31,6 +31,19 @@ const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto"
 function formatFechaDia(iso: string) {
   const d = new Date(iso + "T12:00:00Z")
   return `${DIAS_FULL[d.getUTCDay()]} ${d.getUTCDate()} de ${MESES[d.getUTCMonth()]}`
+}
+
+// Formato compacto de rango de fechas.
+// - Mismo mes: "8 al 14 de junio"
+// - Distinto mes mismo año: "29 jun al 5 jul"
+// - Distinto año: "29 dic 2026 al 5 ene 2027"
+function formatRangoFechas(inicio: Date, fin: Date) {
+  const dA = inicio.getUTCDate(), mA = inicio.getUTCMonth(), yA = inicio.getUTCFullYear()
+  const dB = fin.getUTCDate(),    mB = fin.getUTCMonth(),    yB = fin.getUTCFullYear()
+  const corto = (m: number) => MESES[m].slice(0, 3)
+  if (mA === mB && yA === yB) return `${dA} al ${dB} de ${MESES[mA]}`
+  if (yA === yB)              return `${dA} ${corto(mA)} al ${dB} ${corto(mB)}`
+  return `${dA} ${corto(mA)} ${yA} al ${dB} ${corto(mB)} ${yB}`
 }
 
 function formatHora(date: Date) {
@@ -201,11 +214,23 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
     }
   }
 
+  // Para que "Hoy" / "Mañana" muestren también la fecha real al lado
+  const hoyArIso = todayInArIso()
+  const mañanaArIso = (() => {
+    const [y, m, d] = hoyArIso.split("-").map(Number)
+    const next = new Date(Date.UTC(y, m - 1, d + 1))
+    return next.toISOString().split("T")[0]
+  })()
+
   const tituloFecha =
     periodoActivo === "hoy"
-      ? "Hoy"
+      ? `Hoy · ${formatFechaDia(hoyArIso)}`
       : periodoActivo === "manana"
-      ? "Mañana"
+      ? `Mañana · ${formatFechaDia(mañanaArIso)}`
+      : periodoActivo === "semana"
+      ? `Esta semana · ${formatRangoFechas(inicioRango, finRango)}`
+      : periodoActivo === "2semanas"
+      ? `Próximas 2 semanas · ${formatRangoFechas(inicioRango, finRango)}`
       : periodoActivo === "custom" && fecha
       ? formatFechaDia(fecha)
       : ""
@@ -286,6 +311,11 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
 
         {esMultiple && (
           <div className="space-y-6">
+            {!enModoBusqueda && tituloFecha && (
+              <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
+                {tituloFecha}
+              </h2>
+            )}
             {gruposFecha.length === 0 ? (
               <EmptyState
                 icon={Inbox}
