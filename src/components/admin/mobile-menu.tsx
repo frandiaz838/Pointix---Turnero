@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, X, CalendarDays, PlusCircle, LogOut, TrendingUp, LayoutGrid } from "lucide-react"
+import { Menu, X, CalendarDays, PlusCircle, LogOut, TrendingUp, LayoutGrid, CreditCard } from "lucide-react"
 import { cerrarSesion } from "@/actions/auth"
 
 export function AdminMobileMenu({ slug }: { slug: string }) {
@@ -91,6 +91,17 @@ export function AdminMobileMenu({ slug }: { slug: string }) {
             >
               <PlusCircle className="w-4 h-4 shrink-0 text-white/50" />
               Nueva cancha
+            </Link>
+          </div>
+
+          <div className="pt-1 mt-1 border-t border-white/[0.07]">
+            <Link
+              href={`/dashboard/${slug}/mp-config`}
+              onClick={close}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/[0.06] text-sm font-medium text-white/75 hover:text-white transition-colors"
+            >
+              <CreditCard className="w-4 h-4 shrink-0 text-white/50" />
+              MercadoPago
             </Link>
           </div>
 

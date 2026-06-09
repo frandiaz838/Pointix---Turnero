@@ -236,7 +236,18 @@ export async function crearReserva(formData: FormData) {
     ? { userId: session.user.id }
     : { guestName: guestName!, guestPhone: guestPhone! }
 
-  await prisma.booking.create({
+  // Si el tenant tiene MercadoPago configurado, seteamos expiresAt y redirigimos a /pagar.
+  // Si no, la reserva queda PENDING para que el admin confirme al pagar en el complejo.
+  const tenantConfig = await prisma.tenant.findUnique({
+    where: { id: cancha.tenantId },
+    select: { mpAccessToken: true, mpExpiryMinutes: true },
+  })
+  const tieneMp = !!tenantConfig?.mpAccessToken
+  const expiresAt = tieneMp && tenantConfig
+    ? new Date(Date.now() + (tenantConfig.mpExpiryMinutes ?? 30) * 60 * 1000)
+    : null
+
+  const nuevaReserva = await prisma.booking.create({
     data: {
       courtId,
       tenantId: cancha.tenantId,
@@ -244,12 +255,17 @@ export async function crearReserva(formData: FormData) {
       endTime,
       totalPrice: cancha.pricePerHour,
       status: "PENDING",
+      expiresAt,
       ...datosCliente,
     },
   })
 
   revalidatePath(`/${slug}`)
-  redirect(`/${slug}?reservado=true`)
+  if (tieneMp) {
+    redirect(`/${slug}/pagar/${nuevaReserva.id}`)
+  } else {
+    redirect(`/${slug}?reservado=true`)
+  }
 }
 
 // Crear reserva manual desde el admin (cliente llamó por teléfono, etc.)

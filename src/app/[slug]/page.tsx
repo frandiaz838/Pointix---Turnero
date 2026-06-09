@@ -44,6 +44,17 @@ export default async function TenantPage({ params, searchParams }: Props) {
   })
   if (!tenant) notFound()
 
+  // Marca como EXPIRED las reservas PENDING que pasaron su expiresAt sin pagar.
+  // Esto libera los slots automáticamente sin necesidad de cron.
+  await prisma.booking.updateMany({
+    where: {
+      tenantId: tenant.id,
+      status: "PENDING",
+      expiresAt: { lt: new Date(), not: null },
+    },
+    data: { status: "EXPIRED" },
+  })
+
   const [reservas, bookingsHoy, bloqueos, bloqueosHoy] = await Promise.all([
     prisma.booking.findMany({
       where: {
