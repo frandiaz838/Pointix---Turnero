@@ -50,12 +50,12 @@ export function buildMensajeReserva(d: ReservaParaWhatsapp): string {
   const estadoPago = d.paidOnline ? "pagado online" : "pago en el complejo"
 
   return [
-    `¡Hola! Acabo de reservar en *${d.clubNombre}* ⚡`,
+    `¡Hola! Acabo de reservar en *${d.clubNombre}*.`,
     ``,
-    `📍 ${d.canchaName} (${d.sport})`,
-    `📅 ${fecha}`,
-    `⏰ ${horaInicio} a ${horaFin} hs`,
-    `💵 ${precio} (${estadoPago})`,
+    `*Cancha:* ${d.canchaName} (${d.sport})`,
+    `*Día:* ${fecha}`,
+    `*Horario:* ${horaInicio} a ${horaFin} hs`,
+    `*Total:* ${precio} (${estadoPago})`,
     ``,
     `— ${d.clienteNombre}`,
     ``,
