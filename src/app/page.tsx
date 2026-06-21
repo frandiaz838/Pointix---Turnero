@@ -63,7 +63,7 @@ export default function Home() {
           style={{
             fontSize: "clamp(2.5rem, 7vw, 5rem)",
             lineHeight: "1.05",
-            letterSpacing: "0.005em",
+            letterSpacing: "0.025em",
             animation: "fadeInUp 0.5s ease 0.3s both",
           }}
         >
@@ -130,7 +130,10 @@ export default function Home() {
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
                   Reservas de hoy
                 </p>
-                <p className="font-display font-black text-white text-lg leading-none mt-1.5 tracking-tight">
+                <p
+                  className="font-display font-black text-white text-lg leading-none mt-1.5"
+                  style={{ letterSpacing: "0.035em" }}
+                >
                   Club Río
                 </p>
               </div>
@@ -138,7 +141,10 @@ export default function Home() {
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
                   Ingresos
                 </p>
-                <p className="font-display font-black text-[#A3FF12] text-xl leading-none mt-1.5 tracking-tight">
+                <p
+                  className="font-display font-black text-[#A3FF12] text-xl leading-none mt-1.5"
+                  style={{ letterSpacing: "0.035em" }}
+                >
                   $128.500
                 </p>
               </div>
@@ -218,7 +224,7 @@ export default function Home() {
             style={{
               fontSize: "clamp(2rem, 5vw, 3.5rem)",
               lineHeight: "1.08",
-              letterSpacing: "0.005em",
+              letterSpacing: "0.025em",
             }}
           >
             En 3 pasos<br />
@@ -267,7 +273,7 @@ export default function Home() {
                   </div>
                   <h3
                     className="font-display font-black uppercase text-white text-xl sm:text-2xl"
-                    style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+                    style={{ lineHeight: "1.15", letterSpacing: "0.04em" }}
                   >
                     {paso.titulo}
                   </h3>
@@ -301,7 +307,7 @@ export default function Home() {
             </div>
             <h3
               className="font-display font-black uppercase text-white text-xl"
-              style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+              style={{ lineHeight: "1.15", letterSpacing: "0.04em" }}
             >
               Grilla en tiempo real
             </h3>
@@ -316,7 +322,7 @@ export default function Home() {
             </div>
             <h3
               className="font-display font-black uppercase text-white text-xl"
-              style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+              style={{ lineHeight: "1.15", letterSpacing: "0.04em" }}
             >
               Expira y libera solo
             </h3>
@@ -331,7 +337,7 @@ export default function Home() {
             </div>
             <h3
               className="font-display font-black uppercase text-white text-xl"
-              style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+              style={{ lineHeight: "1.15", letterSpacing: "0.04em" }}
             >
               Mail + WhatsApp
             </h3>
@@ -359,7 +365,7 @@ export default function Home() {
               style={{
                 fontSize: "clamp(1.75rem, 4vw, 2.75rem)",
                 lineHeight: "1.08",
-                letterSpacing: "0.005em",
+                letterSpacing: "0.025em",
               }}
             >
               Listo para dejar de<br />
