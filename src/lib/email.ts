@@ -59,10 +59,16 @@ function buildConfirmacionHtml(d: ReservaConfirmadaData): string {
       <td align="center">
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="max-width:560px;width:100%;">
 
-          <!-- Header marca -->
+          <!-- Header marca (wordmark PNG hosteado en public/) -->
           <tr>
             <td align="center" style="padding-bottom:24px;">
-              <span style="color:#A3FF12;font-size:11px;font-weight:800;letter-spacing:0.45em;text-transform:uppercase;">Pointix</span>
+              <img
+                src="${appUrl}/logo-wordmark-white.png"
+                alt="Pointix"
+                width="140"
+                height="42"
+                style="display:inline-block;width:140px;height:auto;max-width:140px;border:0;outline:0;text-decoration:none;"
+              />
             </td>
           </tr>
 

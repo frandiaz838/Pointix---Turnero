@@ -314,17 +314,14 @@ export default async function AdminDashboardPage({ params }: Props) {
                             </p>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Link href={`/dashboard/${slug}/canchas/${cancha.id}/horarios`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-                            Horarios
-                          </Link>
-                          <Link href={`/dashboard/${slug}/canchas/${cancha.id}/bloqueos`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-                            Bloqueos
-                          </Link>
-                          <Link href={`/dashboard/${slug}/canchas/${cancha.id}/editar`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <ToggleActivaBtn courtId={cancha.id} isActive={cancha.isActive} tenantId={tenant.id} slug={slug} />
+                          <Link
+                            href={`/dashboard/${slug}/canchas/${cancha.id}`}
+                            className="btn-lime-glow inline-flex items-center gap-1.5 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3.5 py-2 rounded-lg transition-all"
+                          >
                             Editar
                           </Link>
-                          <ToggleActivaBtn courtId={cancha.id} isActive={cancha.isActive} tenantId={tenant.id} slug={slug} />
                         </div>
                       </div>
                     )
