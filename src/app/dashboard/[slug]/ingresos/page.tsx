@@ -31,13 +31,19 @@ const estadoLabel: Record<string, string> = {
 }
 
 function parsePeriodo(s: string | undefined): PeriodoIngresos {
-  if (s === "mes-pasado" || s === "este-año" || s === "año-pasado") return s
+  if (s === "hoy" || s === "mes-pasado" || s === "este-año" || s === "año-pasado") return s
   return "este-mes"
 }
 
 function calcRango(periodo: PeriodoIngresos, ahora: Date) {
   const y = ahora.getUTCFullYear()
   const m = ahora.getUTCMonth()
+  const d = ahora.getUTCDate()
+  if (periodo === "hoy") {
+    const inicio = new Date(Date.UTC(y, m, d, 0, 0, 0, 0))
+    const fin    = new Date(Date.UTC(y, m, d, 23, 59, 59, 999))
+    return { inicio, fin, tipo: "dia" as const, label: `Hoy · ${d} ${MESES[m]}` }
+  }
   if (periodo === "mes-pasado") {
     const inicio = new Date(Date.UTC(y, m - 1, 1))
     const fin    = new Date(Date.UTC(y, m, 0, 23, 59, 59, 999))
@@ -183,7 +189,10 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <p className="text-[10px] font-bold text-[#A3FF12]/60 uppercase tracking-[0.15em]">Confirmado</p>
               <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/50" />
             </div>
-            <p className="font-display text-4xl font-black text-[#A3FF12] tracking-tight text-glow-lime">
+            <p
+              className="font-display font-black text-[#A3FF12] tracking-tight text-glow-lime tabular-nums leading-none"
+              style={{ fontSize: "clamp(2.25rem, 8vw, 3.5rem)" }}
+            >
               ${totalConfirmado.toLocaleString("es-AR")}
             </p>
             <p className="text-xs text-white/30">
@@ -196,7 +205,10 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Pendiente</p>
               <Receipt className="w-3.5 h-3.5 text-white/20" />
             </div>
-            <p className="font-display text-4xl font-black text-white/85 tracking-tight">
+            <p
+              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-none"
+              style={{ fontSize: "clamp(2.25rem, 8vw, 3.5rem)" }}
+            >
               ${totalPendiente.toLocaleString("es-AR")}
             </p>
             <p className="text-xs text-white/30">
@@ -209,7 +221,10 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Promedio por reserva</p>
               <Calculator className="w-3.5 h-3.5 text-white/20" />
             </div>
-            <p className="font-display text-3xl font-black text-white/85 tracking-tight">
+            <p
+              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-none"
+              style={{ fontSize: "clamp(1.8rem, 6vw, 2.5rem)" }}
+            >
               ${promedio.toLocaleString("es-AR")}
             </p>
             <p className="text-xs text-white/30">
@@ -218,7 +233,8 @@ export default async function IngresosPage({ params, searchParams }: Props) {
           </div>
         </div>
 
-        {/* Breakdown table — por día o por mes */}
+        {/* Breakdown table — solo para mes o año. Para "hoy" no aplica. */}
+        {tipo !== "dia" && (
         <div className="space-y-3">
           <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
             {tipo === "mes" ? `Desglose diario — ${label}` : `Desglose mensual — ${label}`}
@@ -266,6 +282,7 @@ export default async function IngresosPage({ params, searchParams }: Props) {
             </table>
           </div>
         </div>
+        )}
 
         {/* Gráficos */}
         <IngresosCharts porCancha={porCancha} porDeporte={porDeporte} />
@@ -275,51 +292,90 @@ export default async function IngresosPage({ params, searchParams }: Props) {
           <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
             Reservas del período ({reservas.length})
           </h2>
-          <div className="overflow-x-auto glass-card rounded-xl">
-            <table className="w-full text-sm min-w-[500px]">
-              <thead className="border-b border-white/[0.07]">
-                <tr>
-                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Fecha</th>
-                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Hora</th>
-                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cancha</th>
-                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cliente</th>
-                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Estado</th>
-                  <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Monto</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/[0.05]">
-                {reservas.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-4 py-6 text-white/25 text-center">
-                      Sin reservas este período
-                    </td>
-                  </tr>
-                ) : reservas.map((r) => (
-                  <tr key={r.id} className="hover:bg-white/[0.02]">
-                    <td className="px-4 py-3 text-white/50 tabular-nums">
-                      {r.startTime.getUTCDate().toString().padStart(2, "0")}/
-                      {(r.startTime.getUTCMonth() + 1).toString().padStart(2, "0")}
-                    </td>
-                    <td className="px-4 py-3 text-white/50 tabular-nums">
-                      {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
-                    </td>
-                    <td className="px-4 py-3 text-white/80">{r.court.name}</td>
-                    <td className="px-4 py-3 text-white/50">
-                      {r.user ? (r.user.name ?? r.user.email) : (r.guestName ?? "Invitado")}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status]}`}>
+
+          {reservas.length === 0 ? (
+            <div className="glass-card rounded-xl p-6 text-white/25 text-center text-sm">
+              Sin reservas este período
+            </div>
+          ) : (
+            <>
+              {/* Mobile: cards */}
+              <div className="sm:hidden space-y-2.5">
+                {reservas.map((r) => (
+                  <div
+                    key={r.id}
+                    className="glass-card rounded-xl p-4 space-y-2"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-white truncate">
+                          {r.court.name}
+                        </p>
+                        <p className="text-xs text-white/50 truncate">
+                          {r.user ? (r.user.name ?? r.user.email) : (r.guestName ?? "Invitado")}
+                        </p>
+                      </div>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${estadoBadge[r.status]}`}>
                         {estadoLabel[r.status]}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-white">
-                      ${Number(r.totalPrice).toLocaleString("es-AR")}
-                    </td>
-                  </tr>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-white/[0.05]">
+                      <div className="text-xs text-white/50 tabular-nums">
+                        {r.startTime.getUTCDate().toString().padStart(2, "0")}/
+                        {(r.startTime.getUTCMonth() + 1).toString().padStart(2, "0")}
+                        <span className="mx-1.5 text-white/25">·</span>
+                        {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
+                      </div>
+                      <span className="text-sm font-bold text-white tabular-nums">
+                        ${Number(r.totalPrice).toLocaleString("es-AR")}
+                      </span>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </div>
+
+              {/* Desktop: tabla */}
+              <div className="hidden sm:block glass-card rounded-xl overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="border-b border-white/[0.07]">
+                    <tr>
+                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Fecha</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Hora</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cancha</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cliente</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Estado</th>
+                      <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Monto</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/[0.05]">
+                    {reservas.map((r) => (
+                      <tr key={r.id} className="hover:bg-white/[0.02]">
+                        <td className="px-4 py-3 text-white/50 tabular-nums">
+                          {r.startTime.getUTCDate().toString().padStart(2, "0")}/
+                          {(r.startTime.getUTCMonth() + 1).toString().padStart(2, "0")}
+                        </td>
+                        <td className="px-4 py-3 text-white/50 tabular-nums">
+                          {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
+                        </td>
+                        <td className="px-4 py-3 text-white/80">{r.court.name}</td>
+                        <td className="px-4 py-3 text-white/50">
+                          {r.user ? (r.user.name ?? r.user.email) : (r.guestName ?? "Invitado")}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status]}`}>
+                            {estadoLabel[r.status]}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-white">
+                          ${Number(r.totalPrice).toLocaleString("es-AR")}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </div>
 
       </section>

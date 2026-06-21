@@ -2,6 +2,11 @@ import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { Clock } from "lucide-react"
 import { auth } from "@/lib/session"
+
+// Renderizado siempre fresh para que "hoy" no quede cacheado desde una
+// petición vieja (caso típico: usuario vuelve al día siguiente con la
+// pestaña abierta y la página muestra la fecha de ayer como "hoy").
+export const dynamic = "force-dynamic"
 import { GrillaReservas } from "@/components/booking/grilla-reservas"
 import { ConfirmationToast } from "@/components/booking/confirmation-toast"
 import { BookingSuccessCard } from "@/components/booking/booking-success-card"
@@ -297,6 +302,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
           canchas={canchasData}
           reservas={reservasYBloqueos}
           fecha={fecha}
+          hoyAr={hoyAr}
           deporte={deporte}
           deportesDisponibles={deportesDisponibles}
           isLoggedIn={!!session?.user}

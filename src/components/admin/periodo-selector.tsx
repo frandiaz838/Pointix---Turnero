@@ -1,8 +1,9 @@
 import Link from "next/link"
 
-export type PeriodoIngresos = "este-mes" | "mes-pasado" | "este-año" | "año-pasado"
+export type PeriodoIngresos = "hoy" | "este-mes" | "mes-pasado" | "este-año" | "año-pasado"
 
 const OPCIONES: { key: PeriodoIngresos; label: string }[] = [
+  { key: "hoy",        label: "Hoy" },
   { key: "este-mes",   label: "Este mes" },
   { key: "mes-pasado", label: "Mes pasado" },
   { key: "este-año",   label: "Este año" },

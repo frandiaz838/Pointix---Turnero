@@ -27,7 +27,11 @@ interface SelectedSlot {
 
 interface Props {
   slug: string; canchas: Cancha[]; reservas: Reserva[]
-  fecha: string; deporte: string; deportesDisponibles: string[]; isLoggedIn: boolean
+  fecha: string
+  /** "Hoy" calculado en el server con timezone AR, evita desfases por
+   * cliente con la pestaña abierta cruzando medianoche o con TZ distinto. */
+  hoyAr: string
+  deporte: string; deportesDisponibles: string[]; isLoggedIn: boolean
 }
 
 const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"]
@@ -76,7 +80,7 @@ const MOMENTO_LABEL: Record<"manana" | "tarde" | "noche", string> = {
 
 type Estado = "disponible" | "ocupado" | "pasado" | "cerrado"
 
-export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deportesDisponibles, isLoggedIn }: Props) {
+export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte, deportesDisponibles, isLoggedIn }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const reservado = searchParams.get("reservado")
@@ -105,8 +109,11 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, deporte, deport
     if (selectedSlot) panelRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" })
   }, [selectedSlot])
 
+  // "hoy" lo recibimos del server calculado con timezone AR. Eso evita
+  // que cuando un cliente deja la pestaña abierta cruzando medianoche
+  // siga viendo la fecha de ayer como "hoy" (caso reportado).
+  const hoy = hoyAr
   const ahora = new Date()
-  const hoy = [ahora.getFullYear(), String(ahora.getMonth()+1).padStart(2,"0"), String(ahora.getDate()).padStart(2,"0")].join("-")
   const ahoraHour = ahora.getHours()
 
   function navigate(nuevaFecha: string, nuevoDeporte: string) {

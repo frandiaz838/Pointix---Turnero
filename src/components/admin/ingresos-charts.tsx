@@ -53,7 +53,9 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
                 width={yAxisWidth}
               />
               <Tooltip
-                contentStyle={{ background: "rgba(12,14,20,0.9)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
+                contentStyle={{ background: "rgba(12,14,20,0.95)", backdropFilter: "blur(16px)", border: "1px solid rgba(163,255,18,0.25)", borderRadius: "10px", padding: "10px 12px", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}
+                labelStyle={{ color: "#FFFFFF", fontWeight: 700, fontSize: "13px", marginBottom: "4px" }}
+                itemStyle={{ color: "#A3FF12", fontWeight: 600, fontSize: "13px", padding: 0 }}
                 formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, "Ingresos"]}
               />
               <Bar
@@ -95,7 +97,9 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ background: "rgba(12,14,20,0.9)", backdropFilter: "blur(16px)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#F2F4F8" }}
+                contentStyle={{ background: "rgba(12,14,20,0.95)", backdropFilter: "blur(16px)", border: "1px solid rgba(163,255,18,0.25)", borderRadius: "10px", padding: "10px 12px", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}
+                labelStyle={{ color: "#FFFFFF", fontWeight: 700, fontSize: "13px", marginBottom: "4px" }}
+                itemStyle={{ color: "#A3FF12", fontWeight: 600, fontSize: "13px", padding: 0 }}
                 formatter={(v) => [`$${Number(v).toLocaleString("es-AR")}`, ""]}
               />
               <Legend
