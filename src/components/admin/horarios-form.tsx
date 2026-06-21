@@ -92,10 +92,21 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
     setError(null)
     setSuccess(false)
 
-    // Validar que las apertura < cierre en cada día activo
+    // Validar que apertura < cierre en cada día activo.
+    // "00:00" como cierre representa medianoche del día siguiente (fin del día),
+    // mismo criterio que usa generarSlots en el backend.
+    const toMin = (hhmm: string): number => {
+      const [h, m] = hhmm.split(":").map(Number)
+      return h === 0 && m === 0 ? 24 * 60 : h * 60 + m
+    }
     for (let i = 0; i < dias.length; i++) {
       const d = dias[i]
-      if (d.activo && d.apertura >= d.cierre) {
+      if (!d.activo) continue
+      const aperturaMin = (() => {
+        const [h, m] = d.apertura.split(":").map(Number)
+        return h * 60 + m
+      })()
+      if (aperturaMin >= toMin(d.cierre)) {
         setError(`En ${DIAS[i]}: la hora de cierre debe ser posterior a la de apertura.`)
         return
       }

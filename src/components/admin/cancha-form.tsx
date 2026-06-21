@@ -93,7 +93,8 @@ export function CanchaForm({ tenantId, slug, cancha }: Props) {
           name="pricePerHour"
           type="number"
           min="0"
-          step="100"
+          step="1"
+          inputMode="numeric"
           placeholder="3500"
           defaultValue={cancha?.pricePerHour}
           required
