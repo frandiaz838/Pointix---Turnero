@@ -56,14 +56,18 @@ export async function guardarConfigMp(tenantId: string, slug: string, formData: 
     mpSenaPercentage = n > 0 && n < 100 ? n : null
   }
 
+  // OJO: NO pisar el token con null si el accessToken viene vacío. Eso pasa
+  // cuando el admin guarda otros campos (expiración, seña) sin reemplazar el
+  // token. Para borrar el token está el botón "Desconectar" que llama a
+  // eliminarConfigMp explícitamente.
   const dataToUpdate: {
-    mpAccessToken: string | null
+    mpAccessToken?: string
     mpExpiryMinutes: number
     mpSenaPercentage?: number | null
   } = {
-    mpAccessToken: accessToken || null,
     mpExpiryMinutes: Number.isFinite(expiryMinutes) && expiryMinutes > 0 ? expiryMinutes : 30,
   }
+  if (accessToken) dataToUpdate.mpAccessToken = accessToken
   if (senaRaw !== "") dataToUpdate.mpSenaPercentage = mpSenaPercentage
 
   await prisma.tenant.update({
