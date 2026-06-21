@@ -28,16 +28,19 @@ export function AdminMobileMenu({ slug }: { slug: string }) {
         onClick={close}
       />
 
-      {/* Drawer — fondo sólido (no rgba) para que el contenido no se vea detrás.
-          Uso style inline + backdrop-blur para que Safari mobile no aplique
-          transparencia por interpretación del color arbitrary de Tailwind. */}
+      {/* Drawer — fondo 100% sólido para que el contenido del dashboard
+          no se vea detrás. NO usar backdrop-filter aca: en iOS Safari el
+          backdrop-filter sobre un elemento con bg opaco a veces "filtra"
+          y revela parcialmente el contenido detrás. */}
       <div
-        className={`fixed top-0 right-0 h-full w-72 max-w-[85vw] z-50 border-l border-white/[0.08] backdrop-blur-2xl transition-transform duration-300 sm:hidden ${
+        className={`fixed top-0 right-0 h-full w-80 max-w-[88vw] z-50 border-l border-white/[0.08] transition-transform duration-300 sm:hidden ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
         style={{
-          backgroundColor: "#0F1218",
+          background: "#0F1218",
           boxShadow: "-8px 0 48px rgba(0,0,0,0.6)",
+          WebkitBackdropFilter: "none",
+          backdropFilter: "none",
         }}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
