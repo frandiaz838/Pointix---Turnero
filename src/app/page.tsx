@@ -123,15 +123,17 @@ export default function Home() {
             }}
           />
 
+          {/* Preview de la grilla del cliente */}
           <div className="relative glass-card rounded-2xl p-6 sm:p-7 text-left shadow-2xl">
-            {/* Header del mock */}
-            <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/[0.06]">
+
+            {/* Header */}
+            <div className="flex items-center justify-between mb-5">
               <div>
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
-                  Reservas de hoy
+                  Así reservan tus clientes
                 </p>
                 <p
-                  className="font-display font-black text-white text-lg leading-none mt-1.5"
+                  className="font-display font-black uppercase text-white text-xl sm:text-2xl leading-none mt-1.5"
                   style={{ letterSpacing: "0.035em" }}
                 >
                   Club Río
@@ -139,71 +141,89 @@ export default function Home() {
               </div>
               <div className="text-right">
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
-                  Ingresos
+                  Hoy
                 </p>
-                <p
-                  className="font-display font-black text-[#A3FF12] text-xl leading-none mt-1.5"
-                  style={{ letterSpacing: "0.035em" }}
-                >
-                  $128.500
+                <p className="font-semibold text-white text-sm mt-1.5">
+                  Sáb 21 jun
                 </p>
               </div>
             </div>
 
-            {/* Lista de reservas */}
-            <div className="space-y-2.5">
+            {/* Filtros deporte */}
+            <div className="flex items-center gap-2 mb-5">
               {[
-                { nombre: "Juan P.", cancha: "Cancha 1 · Pádel", hora: "18:00", monto: "$5.000", estado: "ok" },
-                { nombre: "María L.", cancha: "Cancha 2 · Pádel", hora: "19:00", monto: "$5.000", estado: "wait" },
-                { nombre: "Carlos R.", cancha: "Cancha 3 · Fútbol 5", hora: "20:00", monto: "$6.500", estado: "ok" },
-                { nombre: "Sofía M.", cancha: "Cancha 1 · Pádel", hora: "21:00", monto: "$5.500", estado: "ok" },
-              ].map((r, i) => (
-                <div
+                { label: "Todos", active: true },
+                { label: "Pádel", active: false },
+                { label: "Fútbol", active: false },
+              ].map((tag, i) => (
+                <span
                   key={i}
-                  className="flex items-center gap-3 sm:gap-4 px-3 py-2.5 rounded-xl bg-white/[0.025] border border-white/[0.05]"
+                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border ${
+                    tag.active
+                      ? "bg-[#A3FF12] text-black border-[#A3FF12]"
+                      : "bg-white/[0.03] text-white/50 border-white/[0.08]"
+                  }`}
                 >
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-gradient-to-br from-[#A3FF12]/15 to-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#A3FF12] text-sm font-bold">
-                    {r.nombre[0]}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-white truncate">
-                      {r.nombre}
-                    </p>
-                    <p className="text-[11px] sm:text-xs text-white/40 truncate">
-                      {r.cancha}
-                    </p>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-white/55">
-                    <Clock className="w-3 h-3" />
-                    {r.hora}
-                  </div>
-                  <div className="text-sm font-bold text-white shrink-0 tabular-nums">
-                    {r.monto}
-                  </div>
-                  <div
-                    className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center ${
-                      r.estado === "ok"
-                        ? "bg-[#A3FF12]/15 border border-[#A3FF12]/30 text-[#A3FF12]"
-                        : "bg-yellow-400/10 border border-yellow-400/25 text-yellow-400"
-                    }`}
-                  >
-                    {r.estado === "ok" ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                  </div>
+                  {tag.label}
+                </span>
+              ))}
+            </div>
+
+            {/* Grilla — header de horas */}
+            <div className="flex items-center gap-2 mb-2 pl-[88px] sm:pl-[120px]">
+              {["17", "18", "19", "20", "21", "22"].map((h) => (
+                <div key={h} className="flex-1 text-center text-[10px] font-mono font-bold text-white/35">
+                  {h}:00
                 </div>
               ))}
             </div>
 
-            {/* Footer */}
+            {/* Grilla — filas de canchas */}
+            <div className="space-y-1.5">
+              {[
+                { cancha: "Cancha 1", sport: "Pádel", slots: ["c", "c", "o", "d", "d", "d"] },
+                { cancha: "Cancha 2", sport: "Pádel", slots: ["c", "o", "c", "c", "d", "d"] },
+                { cancha: "Cancha 3", sport: "Fútbol 5", slots: ["c", "c", "c", "d", "d", "d"] },
+              ].map((row, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <div className="w-[80px] sm:w-[112px] shrink-0">
+                    <p className="text-xs font-semibold text-white truncate leading-tight">
+                      {row.cancha}
+                    </p>
+                    <p className="text-[10px] text-white/35 leading-tight">{row.sport}</p>
+                  </div>
+                  {row.slots.map((s, j) => (
+                    <div
+                      key={j}
+                      className={`flex-1 h-9 sm:h-10 rounded-lg border flex items-center justify-center transition-all ${
+                        s === "c"
+                          ? "bg-[#A3FF12]/10 border-[#A3FF12]/30"
+                          : s === "o"
+                          ? "bg-red-500/10 border-red-500/20"
+                          : "bg-white/[0.025] border-white/[0.05]"
+                      }`}
+                    >
+                      {s === "c" && <Check className="w-3 h-3 text-[#A3FF12]" />}
+                      {s === "o" && <span className="text-[10px] font-bold text-red-400">×</span>}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            {/* Footer leyenda + CTA */}
             <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between">
-              <span className="text-xs text-white/45">
-                4 reservas confirmadas
+              <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/55">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-sm bg-[#A3FF12]/50" /> Disponible
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-sm bg-red-500/50" /> Ocupado
+                </span>
+              </div>
+              <span className="text-xs font-semibold text-[#A3FF12]">
+                Reservás en 30 segundos →
               </span>
-              <a
-                href="#"
-                className="text-xs font-semibold text-[#A3FF12]/80 hover:text-[#A3FF12] transition-colors flex items-center gap-1"
-              >
-                Ver todas <ChevronRight className="w-3 h-3" />
-              </a>
             </div>
           </div>
         </div>
@@ -386,8 +406,8 @@ export default function Home() {
                   +18% vs semana pasada
                 </span>
               </div>
-              <div className="flex items-end justify-between gap-1.5 sm:gap-2 h-24 sm:h-28">
-                {[
+              {(() => {
+                const data = [
                   { dia: "L", h: 35 },
                   { dia: "M", h: 50 },
                   { dia: "X", h: 42 },
@@ -395,27 +415,40 @@ export default function Home() {
                   { dia: "V", h: 78 },
                   { dia: "S", h: 100 },
                   { dia: "D", h: 88 },
-                ].map((d, i) => (
-                  <div key={i} className="flex-1 flex flex-col items-center gap-2">
-                    <div className="w-full relative h-full flex items-end">
-                      <div
-                        className="w-full rounded-t-md transition-all"
-                        style={{
-                          height: `${d.h}%`,
-                          background:
-                            i === 5
-                              ? "linear-gradient(180deg, #A3FF12 0%, rgba(163,255,18,0.3) 100%)"
-                              : "linear-gradient(180deg, rgba(163,255,18,0.6) 0%, rgba(163,255,18,0.15) 100%)",
-                          boxShadow: i === 5 ? "0 0 16px rgba(163,255,18,0.5)" : "none",
-                        }}
-                      />
+                ]
+                return (
+                  <>
+                    <div className="flex items-end justify-between gap-1.5 sm:gap-2 h-24 sm:h-28 mb-2">
+                      {data.map((d, i) => (
+                        <div
+                          key={i}
+                          className="flex-1 rounded-t-md transition-all"
+                          style={{
+                            height: `${d.h}%`,
+                            background:
+                              i === 5
+                                ? "linear-gradient(180deg, #A3FF12 0%, rgba(163,255,18,0.3) 100%)"
+                                : "linear-gradient(180deg, rgba(163,255,18,0.6) 0%, rgba(163,255,18,0.15) 100%)",
+                            boxShadow: i === 5 ? "0 0 16px rgba(163,255,18,0.5)" : "none",
+                          }}
+                        />
+                      ))}
                     </div>
-                    <span className={`text-[10px] font-bold ${i === 5 ? "text-[#A3FF12]" : "text-white/30"}`}>
-                      {d.dia}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                    <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+                      {data.map((d, i) => (
+                        <span
+                          key={i}
+                          className={`flex-1 text-center text-[10px] font-bold ${
+                            i === 5 ? "text-[#A3FF12]" : "text-white/30"
+                          }`}
+                        >
+                          {d.dia}
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                )
+              })()}
             </div>
 
             {/* Canchas */}
