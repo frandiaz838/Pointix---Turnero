@@ -91,10 +91,10 @@ export default function Home() {
         >
           <Link
             href="/register"
-            className="btn-lime-glow w-full sm:w-auto bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-base rounded-xl px-7 py-4 inline-flex items-center justify-center gap-2"
+            className="group btn-lime-glow w-full sm:w-auto bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-base rounded-xl px-7 py-4 inline-flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform duration-200"
           >
             Sumar mi complejo
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
           </Link>
           <Link
             href="/login"
@@ -156,16 +156,17 @@ export default function Home() {
                 { label: "Pádel", active: false },
                 { label: "Fútbol", active: false },
               ].map((tag, i) => (
-                <span
+                <button
                   key={i}
-                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border ${
+                  type="button"
+                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 hover:scale-105 ${
                     tag.active
-                      ? "bg-[#A3FF12] text-black border-[#A3FF12]"
-                      : "bg-white/[0.03] text-white/50 border-white/[0.08]"
+                      ? "bg-[#A3FF12] text-black border-[#A3FF12] shadow-[0_0_16px_rgba(163,255,18,0.3)]"
+                      : "bg-white/[0.03] text-white/50 border-white/[0.08] hover:bg-white/[0.08] hover:text-white/80 hover:border-white/[0.15]"
                   }`}
                 >
                   {tag.label}
-                </span>
+                </button>
               ))}
             </div>
 
@@ -195,9 +196,9 @@ export default function Home() {
                   {row.slots.map((s, j) => (
                     <div
                       key={j}
-                      className={`flex-1 h-9 sm:h-10 rounded-lg border flex items-center justify-center transition-all ${
+                      className={`flex-1 h-9 sm:h-10 rounded-lg border flex items-center justify-center transition-all duration-200 ${
                         s === "c"
-                          ? "bg-[#A3FF12]/10 border-[#A3FF12]/30"
+                          ? "bg-[#A3FF12]/10 border-[#A3FF12]/30 hover:bg-[#A3FF12]/25 hover:border-[#A3FF12]/60 hover:scale-110 cursor-pointer hover:shadow-[0_0_12px_rgba(163,255,18,0.4)]"
                           : s === "o"
                           ? "bg-red-500/10 border-red-500/20"
                           : "bg-white/[0.025] border-white/[0.05]"
@@ -259,29 +260,32 @@ export default function Home() {
               icon: CreditCard,
               titulo: "Conectás MercadoPago",
               desc: "Pegás tu Access Token de MP en 2 clics. La plata cae directo a tu cuenta — Pointix no toca ni un peso.",
+              reaseguro: "¿No sabés cómo? Lo hacemos juntos.",
             },
             {
               num: "02",
               icon: Sparkles,
               titulo: "Cargás canchas y horarios",
               desc: "Definís tus canchas, deportes, precios y horarios de cada día de la semana. Listo en 5 minutos.",
+              reaseguro: null,
             },
             {
               num: "03",
               icon: Link2,
               titulo: "Compartís el link",
               desc: "Subís el link a tu Instagram, lo mandás por WhatsApp y empezás a recibir reservas pagas automáticamente.",
+              reaseguro: null,
             },
           ].map((paso, i, arr) => {
             const Icon = paso.icon
             return (
               <Fragment key={i}>
                 <div
-                  className="glass-card flex-1 rounded-2xl p-7 sm:p-8 space-y-5"
+                  className="group glass-card flex-1 rounded-2xl p-7 sm:p-8 space-y-5 border border-white/[0.06] hover:border-[#A3FF12]/30 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_32px_rgba(163,255,18,0.12)]"
                   style={{ animation: `fadeInUp 0.5s ease ${0.1 + i * 0.1}s both` }}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/30 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/30 flex items-center justify-center group-hover:bg-[#A3FF12]/20 group-hover:border-[#A3FF12]/50 group-hover:scale-110 transition-all duration-300">
                       <Icon className="w-5 h-5 text-[#A3FF12]" />
                     </div>
                     <span
@@ -300,6 +304,14 @@ export default function Home() {
                   <p className="text-base text-white/55 leading-relaxed">
                     {paso.desc}
                   </p>
+                  {paso.reaseguro && (
+                    <div className="flex items-center gap-2 pt-2 mt-2 border-t border-white/[0.06] text-sm">
+                      <Sparkles className="w-3.5 h-3.5 text-[#A3FF12] shrink-0" />
+                      <span className="text-[#A3FF12]/90 font-medium">
+                        {paso.reaseguro}
+                      </span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Chevron entre cards (no después del último) */}
@@ -378,12 +390,15 @@ export default function Home() {
               ].map((kpi, i) => {
                 const Icon = kpi.icon
                 return (
-                  <div key={i} className="rounded-xl bg-white/[0.025] border border-white/[0.05] p-3 sm:p-4">
+                  <div
+                    key={i}
+                    className="group/kpi rounded-xl bg-white/[0.025] border border-white/[0.05] p-3 sm:p-4 hover:bg-white/[0.04] hover:border-[#A3FF12]/25 transition-all duration-200 cursor-pointer"
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-[9px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                      <span className="text-[9px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] group-hover/kpi:text-white/60 transition-colors">
                         {kpi.label}
                       </span>
-                      <Icon className="w-3.5 h-3.5 text-white/30" />
+                      <Icon className="w-3.5 h-3.5 text-white/30 group-hover/kpi:text-[#A3FF12]/70 transition-colors" />
                     </div>
                     <p
                       className={`font-display font-black ${kpi.accent} text-xl sm:text-3xl leading-none`}
@@ -467,7 +482,10 @@ export default function Home() {
                   { name: "Cancha 2 · Pádel", ocupacion: "70%" },
                   { name: "Cancha 3 · Fútbol 5", ocupacion: "62%" },
                 ].map((c, i) => (
-                  <div key={i} className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2.5">
+                  <div
+                    key={i}
+                    className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2.5 hover:bg-white/[0.05] hover:border-[#A3FF12]/20 transition-all duration-200 cursor-pointer"
+                  >
                     <p className="text-xs font-semibold text-white truncate">{c.name}</p>
                     <div className="flex items-center justify-between mt-1.5">
                       <span className="text-[10px] text-white/40">Ocupación</span>
@@ -506,8 +524,8 @@ export default function Home() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
 
-          <div className="glass-card rounded-2xl p-7 sm:p-8 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center">
+          <div className="group glass-card rounded-2xl p-7 sm:p-8 space-y-4 border border-white/[0.06] hover:border-[#A3FF12]/30 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_32px_rgba(163,255,18,0.12)]">
+            <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center group-hover:bg-[#A3FF12]/20 group-hover:border-[#A3FF12]/50 group-hover:scale-110 transition-all duration-300">
               <Sparkles className="w-5 h-5 text-[#A3FF12]" />
             </div>
             <h3
@@ -521,8 +539,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="glass-card rounded-2xl p-7 sm:p-8 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center">
+          <div className="group glass-card rounded-2xl p-7 sm:p-8 space-y-4 border border-white/[0.06] hover:border-[#A3FF12]/30 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_32px_rgba(163,255,18,0.12)]">
+            <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center group-hover:bg-[#A3FF12]/20 group-hover:border-[#A3FF12]/50 group-hover:scale-110 transition-all duration-300">
               <Zap className="w-5 h-5 text-[#A3FF12]" />
             </div>
             <h3
@@ -536,8 +554,8 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="glass-card rounded-2xl p-7 sm:p-8 space-y-4">
-            <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center">
+          <div className="group glass-card rounded-2xl p-7 sm:p-8 space-y-4 border border-white/[0.06] hover:border-[#A3FF12]/30 hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_32px_rgba(163,255,18,0.12)]">
+            <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center group-hover:bg-[#A3FF12]/20 group-hover:border-[#A3FF12]/50 group-hover:scale-110 transition-all duration-300">
               <MessageCircle className="w-5 h-5 text-[#A3FF12]" />
             </div>
             <h3
