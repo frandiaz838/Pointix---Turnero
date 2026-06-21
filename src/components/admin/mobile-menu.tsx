@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X, CalendarDays, PlusCircle, LogOut, TrendingUp, LayoutGrid, Settings } from "lucide-react"
 import { cerrarSesion } from "@/actions/auth"
 
@@ -35,9 +36,18 @@ export function AdminMobileMenu({ slug }: { slug: string }) {
         style={{ boxShadow: "-8px 0 48px rgba(0,0,0,0.6)" }}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
-          <span className="font-display font-black uppercase text-[#A3FF12] text-xl tracking-tight">
-            Pointix
-          </span>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/logo-isotype-white.svg"
+              alt=""
+              width={20}
+              height={36}
+              className="h-7 w-auto"
+            />
+            <span className="font-display font-black uppercase text-white text-lg tracking-tight">
+              Pointix
+            </span>
+          </div>
           <button
             onClick={close}
             className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"

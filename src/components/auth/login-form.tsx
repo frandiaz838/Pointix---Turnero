@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -47,11 +48,18 @@ export function LoginForm() {
   return (
     <div className="w-full max-w-md mx-auto">
       {/* Brand */}
-      <div className="text-center mb-8">
-        <span className="font-display text-5xl font-black uppercase text-[#A3FF12] tracking-tight leading-none">
-          Pointix
-        </span>
-        <p className="text-white/40 text-sm mt-2">Ingresá a tu cuenta</p>
+      <div className="flex flex-col items-center mb-8">
+        <Link href="/" aria-label="Ir al inicio">
+          <Image
+            src="/logo-wordmark-white.svg"
+            alt="Pointix"
+            width={240}
+            height={72}
+            className="h-14 w-auto"
+            priority
+          />
+        </Link>
+        <p className="text-white/40 text-sm mt-3">Ingresá a tu cuenta</p>
       </div>
 
       {/* Card */}
