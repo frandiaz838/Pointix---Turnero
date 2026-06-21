@@ -299,16 +299,16 @@ export default async function TenantPage({ params, searchParams }: Props) {
       {/* ── FOOTER ─────────────────────────────────────────── */}
       <footer className="relative z-10 py-10 text-center">
         <div className="separator-subtle max-w-xs mx-auto mb-6" />
-        <a href="/" className="inline-flex items-center gap-1.5 group">
+        <a href="/" className="inline-block">
           <img
-            src="/logo-isotype-white.svg"
-            alt=""
-            className="h-4 w-auto opacity-25 group-hover:opacity-50 transition-opacity"
+            src="/logo-wordmark-white.svg"
+            alt="Pointix"
+            className="h-5 w-auto opacity-30 hover:opacity-60 transition-opacity"
           />
-          <span className="text-white/20 group-hover:text-white/40 text-[10px] font-bold tracking-widest uppercase transition-colors">
-            Pointix · Reservas deportivas
-          </span>
         </a>
+        <p className="text-white/20 text-[10px] tracking-widest uppercase mt-3">
+          Reservas deportivas
+        </p>
       </footer>
 
     </main>

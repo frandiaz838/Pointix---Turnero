@@ -36,18 +36,13 @@ export function AdminMobileMenu({ slug }: { slug: string }) {
         style={{ boxShadow: "-8px 0 48px rgba(0,0,0,0.6)" }}
       >
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/logo-isotype-white.svg"
-              alt=""
-              width={20}
-              height={36}
-              className="h-7 w-auto"
-            />
-            <span className="font-display font-black uppercase text-white text-lg tracking-tight">
-              Pointix
-            </span>
-          </div>
+          <Image
+            src="/logo-wordmark-white.svg"
+            alt="Pointix"
+            width={120}
+            height={36}
+            className="h-7 w-auto"
+          />
           <button
             onClick={close}
             className="p-1.5 rounded-lg hover:bg-white/[0.06] transition-colors"
