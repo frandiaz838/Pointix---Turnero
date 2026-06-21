@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { CheckCircle2, X, MessageCircle, Calendar, Clock, MapPin } from "lucide-react"
+import type { DesgloseSeña } from "@/lib/pricing"
 
 interface Props {
   clubNombre: string
@@ -15,6 +16,8 @@ interface Props {
   paidOnline: boolean
   estadoConfirmado: boolean
   whatsappUrl: string | null
+  /** Si hay seña parcial, se muestra seña pagada + resto en complejo. */
+  desglose?: DesgloseSeña | null
 }
 
 export function BookingSuccessCard({
@@ -28,6 +31,7 @@ export function BookingSuccessCard({
   paidOnline,
   estadoConfirmado,
   whatsappUrl,
+  desglose,
 }: Props) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -96,16 +100,40 @@ export function BookingSuccessCard({
             <Clock className="w-3.5 h-3.5 shrink-0 text-white/35" />
             <span>{horaInicio} a {horaFin} hs</span>
           </div>
-          <div className="flex items-center justify-between pt-2 mt-2 border-t border-white/[0.06]">
-            <span className="text-xs text-white/40 uppercase tracking-wider">Total</span>
-            <span className="font-display font-black text-[#A3FF12] text-xl">
-              ${precio.toLocaleString("es-AR")}
-            </span>
-          </div>
-          {paidOnline && (
-            <div className="text-[10px] text-[#A3FF12]/80 uppercase tracking-wider text-right">
-              Pagado online
+          {desglose && desglose.esSeña ? (
+            <div className="pt-2 mt-2 border-t border-white/[0.06] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/40 uppercase tracking-wider">
+                  Seña pagada ({desglose.porcentajeSeña}%)
+                </span>
+                <span className="font-display font-black text-[#A3FF12] text-xl">
+                  ${desglose.online.toLocaleString("es-AR")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2">
+                <span className="text-xs text-white/55">A pagar en el complejo</span>
+                <span className="font-semibold text-white text-base">
+                  ${desglose.enComplejo.toLocaleString("es-AR")}
+                </span>
+              </div>
+              <p className="text-[10px] text-white/35 text-right">
+                Total cancha: ${precio.toLocaleString("es-AR")}
+              </p>
             </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between pt-2 mt-2 border-t border-white/[0.06]">
+                <span className="text-xs text-white/40 uppercase tracking-wider">Total</span>
+                <span className="font-display font-black text-[#A3FF12] text-xl">
+                  ${precio.toLocaleString("es-AR")}
+                </span>
+              </div>
+              {paidOnline && (
+                <div className="text-[10px] text-[#A3FF12]/80 uppercase tracking-wider text-right">
+                  Pagado online
+                </div>
+              )}
+            </>
           )}
         </div>
 

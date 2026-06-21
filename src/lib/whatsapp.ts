@@ -1,6 +1,8 @@
 // Utilidades para armar links wa.me de "confirmar reserva por WhatsApp"
 // que abren WhatsApp del cliente con un mensaje prearmado al complejo.
 
+import type { DesgloseSeña } from "@/lib/pricing"
+
 const DIAS  = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
 function formatFecha(d: Date): string {
@@ -35,6 +37,8 @@ interface ReservaParaWhatsapp {
   endTime: Date
   precio: number
   paidOnline: boolean
+  /** Si hay seña parcial (esSeña true), se muestra el desglose en el mensaje. */
+  desglose?: DesgloseSeña | null
 }
 
 /**
@@ -47,20 +51,34 @@ export function buildMensajeReserva(d: ReservaParaWhatsapp): string {
   const horaInicio = formatHora(d.startTime)
   const horaFin    = formatHora(d.endTime)
   const precio = `$${d.precio.toLocaleString("es-AR")}`
-  const estadoPago = d.paidOnline ? "pagado online" : "pago en el complejo"
 
-  return [
+  const lineas = [
     `¡Hola! Acabo de reservar en *${d.clubNombre}*.`,
     ``,
     `*Cancha:* ${d.canchaName} (${d.sport})`,
     `*Día:* ${fecha}`,
     `*Horario:* ${horaInicio} a ${horaFin} hs`,
-    `*Total:* ${precio} (${estadoPago})`,
+  ]
+
+  if (d.desglose && d.desglose.esSeña) {
+    lineas.push(
+      `*Total:* ${precio}`,
+      `*Seña pagada online:* $${d.desglose.online.toLocaleString("es-AR")} (${d.desglose.porcentajeSeña}%)`,
+      `*A pagar en el complejo:* $${d.desglose.enComplejo.toLocaleString("es-AR")}`,
+    )
+  } else {
+    const estadoPago = d.paidOnline ? "pagado online" : "pago en el complejo"
+    lineas.push(`*Total:* ${precio} (${estadoPago})`)
+  }
+
+  lineas.push(
     ``,
     `— ${d.clienteNombre}`,
     ``,
     `¿Me confirmás que llegó? ¡Gracias!`,
-  ].join("\n")
+  )
+
+  return lineas.join("\n")
 }
 
 /**

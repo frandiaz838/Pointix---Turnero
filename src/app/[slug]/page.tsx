@@ -7,6 +7,7 @@ import { ConfirmationToast } from "@/components/booking/confirmation-toast"
 import { BookingSuccessCard } from "@/components/booking/booking-success-card"
 import { generarSlots } from "@/lib/slots"
 import { buildMensajeReserva, buildWhatsappUrl } from "@/lib/whatsapp"
+import { calcularDesglose } from "@/lib/pricing"
 import { sportLabel } from "@/lib/sports"
 
 interface Props {
@@ -185,6 +186,10 @@ export default async function TenantPage({ params, searchParams }: Props) {
   // Armar datos para el success card si corresponde
   let successCardProps: React.ComponentProps<typeof BookingSuccessCard> | null = null
   if (bookingExitoso) {
+    const paidOnline = bookingExitoso.status === "CONFIRMED" && !!bookingExitoso.mpPaymentId
+    const desglose = calcularDesglose(Number(bookingExitoso.totalPrice), tenant.mpSenaPercentage)
+    const desgloseParaUi = paidOnline && desglose.esSeña ? desglose : null
+
     const mensaje = buildMensajeReserva({
       clienteNombre: bookingExitoso.guestName ?? "Cliente",
       clubNombre: tenant.name,
@@ -193,7 +198,8 @@ export default async function TenantPage({ params, searchParams }: Props) {
       startTime: bookingExitoso.startTime,
       endTime: bookingExitoso.endTime,
       precio: Number(bookingExitoso.totalPrice),
-      paidOnline: bookingExitoso.status === "CONFIRMED" && !!bookingExitoso.mpPaymentId,
+      paidOnline,
+      desglose: desgloseParaUi,
     })
     const whatsappUrl = tenant.whatsappNumber ? buildWhatsappUrl(tenant.whatsappNumber, mensaje) : null
     successCardProps = {
@@ -204,9 +210,10 @@ export default async function TenantPage({ params, searchParams }: Props) {
       horaInicio: formatHoraUtc(bookingExitoso.startTime),
       horaFin: formatHoraUtc(bookingExitoso.endTime),
       precio: Number(bookingExitoso.totalPrice),
-      paidOnline: bookingExitoso.status === "CONFIRMED" && !!bookingExitoso.mpPaymentId,
+      paidOnline,
       estadoConfirmado: bookingExitoso.status === "CONFIRMED",
       whatsappUrl,
+      desglose: desgloseParaUi,
     }
   }
 

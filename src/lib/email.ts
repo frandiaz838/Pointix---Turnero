@@ -1,4 +1,5 @@
 import { Resend } from "resend"
+import type { DesgloseSeña } from "@/lib/pricing"
 
 const resendApiKey = process.env.RESEND_API_KEY
 const fromAddress  = process.env.EMAIL_FROM ?? "Pointix <onboarding@resend.dev>"
@@ -23,6 +24,8 @@ interface ReservaConfirmadaData {
   precio: number
   paidOnline: boolean  // si pagó con MP
   whatsappUrl?: string | null  // link wa.me al complejo con mensaje prearmado
+  /** Si hay seña parcial (esSeña true), el bloque de precio muestra el desglose. */
+  desglose?: DesgloseSeña | null
 }
 
 const DIAS  = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"]
@@ -119,7 +122,27 @@ function buildConfirmacionHtml(d: ReservaConfirmadaData): string {
                 </tr>
               </table>
 
-              <!-- Precio destacado -->
+              ${d.desglose && d.desglose.esSeña ? `
+              <!-- Precio con desglose de seña -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:rgba(163,255,18,0.06);border:1px solid rgba(163,255,18,0.2);border-radius:12px;padding:16px 20px;">
+                <tr>
+                  <td>
+                    <p style="margin:0;color:rgba(163,255,18,0.7);font-size:11px;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;">Seña pagada online · MercadoPago</p>
+                    <p style="margin:4px 0 0;color:#A3FF12;font-size:32px;font-weight:900;letter-spacing:-0.02em;">$${d.desglose.online.toLocaleString("es-AR")} <span style="font-size:13px;color:rgba(163,255,18,0.6);font-weight:700;">(${d.desglose.porcentajeSeña}%)</span></p>
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 20px;">
+                <tr>
+                  <td>
+                    <p style="margin:0;color:rgba(255,255,255,0.5);font-size:11px;text-transform:uppercase;letter-spacing:0.15em;font-weight:700;">A pagar en el complejo</p>
+                    <p style="margin:4px 0 0;color:#FFFFFF;font-size:22px;font-weight:800;letter-spacing:-0.01em;">$${d.desglose.enComplejo.toLocaleString("es-AR")}</p>
+                    <p style="margin:6px 0 0;color:rgba(255,255,255,0.35);font-size:12px;">Total cancha: ${precioFmt}</p>
+                  </td>
+                </tr>
+              </table>
+              ` : `
+              <!-- Precio destacado (sin seña) -->
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:rgba(163,255,18,0.06);border:1px solid rgba(163,255,18,0.2);border-radius:12px;padding:16px 20px;">
                 <tr>
                   <td>
@@ -128,6 +151,7 @@ function buildConfirmacionHtml(d: ReservaConfirmadaData): string {
                   </td>
                 </tr>
               </table>
+              `}
 
               ${d.whatsappUrl ? `
               <!-- CTA WhatsApp al complejo -->

@@ -22,6 +22,7 @@ export default async function ConfiguracionPage({ params }: Props) {
       whatsappNumber: true,
       mpAccessToken: true,
       mpExpiryMinutes: true,
+      mpSenaPercentage: true,
     },
   })
   if (!tenant) notFound()
@@ -74,6 +75,7 @@ export default async function ConfiguracionPage({ params }: Props) {
               accessTokenConfigurado,
               accessTokenUltimos4,
               expiryMinutes: tenant.mpExpiryMinutes,
+              senaPercentage: tenant.mpSenaPercentage,
             }}
           />
         </div>

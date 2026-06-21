@@ -2,10 +2,15 @@
 
 import { MercadoPagoConfig, Preference } from "mercadopago"
 import { prisma } from "@/lib/prisma"
+import { calcularDesglose } from "@/lib/pricing"
 
 /**
  * Crea una Preference en MercadoPago para pagar una reserva.
  * Devuelve la URL del Checkout (init_point) a la que hay que redirigir al cliente.
+ *
+ * Si el tenant tiene `mpSenaPercentage` seteado, cobra solo ese porcentaje
+ * del precio total como seña (con piso de $5). El resto se paga en el
+ * complejo. Si no, cobra el 100%.
  *
  * No requiere auth: esta acción se llama desde la página /{slug}/pagar/{bookingId}
  * que es pública para el cliente que está pagando.
@@ -18,7 +23,7 @@ export async function crearPreferenciaParaReserva(
     where: { id: bookingId },
     include: {
       court: { select: { name: true } },
-      tenant: { select: { id: true, slug: true, name: true, mpAccessToken: true } },
+      tenant: { select: { id: true, slug: true, name: true, mpAccessToken: true, mpSenaPercentage: true } },
     },
   })
   if (!booking) throw new Error("Reserva no encontrada")
@@ -26,6 +31,8 @@ export async function crearPreferenciaParaReserva(
   if (!booking.tenant.mpAccessToken) {
     throw new Error("Este complejo no tiene MercadoPago conectado")
   }
+
+  const desglose = calcularDesglose(Number(booking.totalPrice), booking.tenant.mpSenaPercentage)
 
   // Si la reserva ya tiene una preference creada, reusala (evita generar
   // múltiples preferences si el cliente recarga la página de pago).
@@ -49,15 +56,22 @@ export async function crearPreferenciaParaReserva(
   const horaInicio = `${String(booking.startTime.getUTCHours()).padStart(2, "0")}:${String(booking.startTime.getUTCMinutes()).padStart(2, "0")}`
   const fechaIso = booking.startTime.toISOString().split("T")[0]
 
+  const tituloItem = desglose.esSeña
+    ? `Seña ${desglose.porcentajeSeña}% · ${booking.court.name} · ${fechaIso} ${horaInicio}hs`
+    : `${booking.court.name} · ${fechaIso} ${horaInicio}hs`
+  const descripcionItem = desglose.esSeña
+    ? `Seña de reserva en ${booking.tenant.name} — resto en el complejo: $${desglose.enComplejo.toLocaleString("es-AR")}`
+    : `Reserva en ${booking.tenant.name}`
+
   const resp = await prefClient.create({
     body: {
       items: [
         {
           id: booking.id,
-          title: `${booking.court.name} · ${fechaIso} ${horaInicio}hs`,
-          description: `Reserva en ${booking.tenant.name}`,
+          title: tituloItem,
+          description: descripcionItem,
           quantity: 1,
-          unit_price: Number(booking.totalPrice),
+          unit_price: desglose.online,
           currency_id: "ARS",
         },
       ],

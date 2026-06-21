@@ -19,6 +19,7 @@ interface Props {
     accessTokenConfigurado: boolean
     accessTokenUltimos4: string | null  // últimos 4 chars del token guardado
     expiryMinutes: number
+    senaPercentage: number | null  // null o 0 = cobra 100%
   }
 }
 
@@ -29,6 +30,9 @@ export function MpConfigForm({ tenantId, slug, configActual }: Props) {
   const [reemplazando, setReemplazando] = useState(!configActual.accessTokenConfigurado)
   const [accessToken, setAccessToken] = useState("")
   const [expiryMinutes, setExpiryMinutes] = useState(String(configActual.expiryMinutes))
+  const [senaPercentage, setSenaPercentage] = useState(
+    configActual.senaPercentage != null ? String(configActual.senaPercentage) : "",
+  )
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<{ nickname?: string } | null>(null)
   const [openDelete, setOpenDelete] = useState(false)
@@ -175,6 +179,31 @@ export function MpConfigForm({ tenantId, slug, configActual }: Props) {
         />
         <p className="text-xs text-white/35 leading-relaxed">
           Si el cliente no termina el pago en este tiempo, la reserva expira y el slot vuelve a estar disponible.
+        </p>
+      </div>
+
+      {/* % de seña */}
+      <div className="border-t border-white/[0.07] pt-5 space-y-2">
+        <label className="text-sm font-medium text-white/65">
+          Cobrar como seña (%)
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            name="senaPercentage"
+            type="number"
+            min={0}
+            max={100}
+            placeholder="0"
+            value={senaPercentage}
+            onChange={(e) => setSenaPercentage(e.target.value)}
+            className={inputBase}
+          />
+          <span className="text-white/40 text-sm font-bold">%</span>
+        </div>
+        <p className="text-xs text-white/35 leading-relaxed">
+          Vacío o <span className="text-white/55 font-semibold">0</span> = el cliente paga el <span className="text-white/55 font-semibold">total</span> online.
+          Ej. <span className="text-[#A3FF12]/80 font-semibold">20</span> = cobra solo el <span className="text-white/55 font-semibold">20%</span> como seña, el resto se paga en el complejo.
+          Mínimo $5 por reserva (límite de MP).
         </p>
       </div>
 

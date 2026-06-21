@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { sendBookingConfirmation } from "@/lib/email"
 import { buildMensajeReserva, buildWhatsappUrl } from "@/lib/whatsapp"
 import { sportLabel } from "@/lib/sports"
+import { calcularDesglose } from "@/lib/pricing"
 
 /**
  * Dispara el email de confirmación para una reserva (si tiene email del cliente).
@@ -18,7 +19,7 @@ export async function notificarReservaConfirmada(bookingId: string): Promise<voi
       where: { id: bookingId },
       include: {
         court: { select: { name: true, sport: true } },
-        tenant: { select: { name: true, slug: true, whatsappNumber: true } },
+        tenant: { select: { name: true, slug: true, whatsappNumber: true, mpSenaPercentage: true } },
         user: { select: { name: true, email: true } },
       },
     })
@@ -36,6 +37,7 @@ export async function notificarReservaConfirmada(bookingId: string): Promise<voi
     const clienteNombre = booking.guestName ?? booking.user?.name ?? "Cliente"
     const sportLbl      = sportLabel(booking.court.sport as string)
     const paidOnline    = booking.status === "CONFIRMED" && !!booking.mpPaymentId
+    const desglose      = calcularDesglose(Number(booking.totalPrice), booking.tenant.mpSenaPercentage)
 
     const mensajeWsp = buildMensajeReserva({
       clienteNombre,
@@ -46,6 +48,7 @@ export async function notificarReservaConfirmada(bookingId: string): Promise<voi
       endTime: booking.endTime,
       precio: Number(booking.totalPrice),
       paidOnline,
+      desglose: paidOnline && desglose.esSeña ? desglose : null,
     })
     const whatsappUrl = booking.tenant.whatsappNumber
       ? buildWhatsappUrl(booking.tenant.whatsappNumber, mensajeWsp)
@@ -63,6 +66,7 @@ export async function notificarReservaConfirmada(bookingId: string): Promise<voi
       precio:     Number(booking.totalPrice),
       paidOnline,
       whatsappUrl,
+      desglose:   paidOnline && desglose.esSeña ? desglose : null,
     })
 
     if (!res.ok) {

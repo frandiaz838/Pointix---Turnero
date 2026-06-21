@@ -40,20 +40,38 @@ export async function guardarConfigMp(tenantId: string, slug: string, formData: 
 
   const accessToken    = ((formData.get("accessToken")    as string | null) ?? "").trim()
   const expiryMinutes  = parseInt((formData.get("expiryMinutes") as string | null) ?? "30", 10)
+  const senaRaw        = ((formData.get("senaPercentage") as string | null) ?? "").trim()
 
   if (accessToken) {
     const validacion = await validarToken(accessToken)
     if (!validacion.ok) throw new Error(validacion.error ?? "Token inválido")
   }
 
+  // Seña: vacío o 0 → cobra el total. Entre 1 y 99 → cobra ese %. 100 o más → vacío (= 100%).
+  let mpSenaPercentage: number | null = null
+  if (senaRaw) {
+    const n = parseInt(senaRaw, 10)
+    if (!Number.isFinite(n)) throw new Error("El porcentaje de seña no es válido")
+    if (n < 0 || n > 100) throw new Error("El porcentaje de seña debe estar entre 0 y 100")
+    mpSenaPercentage = n > 0 && n < 100 ? n : null
+  }
+
+  const dataToUpdate: {
+    mpAccessToken: string | null
+    mpExpiryMinutes: number
+    mpSenaPercentage?: number | null
+  } = {
+    mpAccessToken: accessToken || null,
+    mpExpiryMinutes: Number.isFinite(expiryMinutes) && expiryMinutes > 0 ? expiryMinutes : 30,
+  }
+  if (senaRaw !== "") dataToUpdate.mpSenaPercentage = mpSenaPercentage
+
   await prisma.tenant.update({
     where: { id: tenantId },
-    data: {
-      mpAccessToken: accessToken || null,
-      mpExpiryMinutes: Number.isFinite(expiryMinutes) && expiryMinutes > 0 ? expiryMinutes : 30,
-    },
+    data: dataToUpdate,
   })
 
+  revalidatePath(`/dashboard/${slug}/configuracion`)
   revalidatePath(`/dashboard/${slug}/mp-config`)
 }
 
