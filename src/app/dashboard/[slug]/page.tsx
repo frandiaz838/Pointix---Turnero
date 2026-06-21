@@ -7,6 +7,7 @@ import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
 import { LogoutBtn } from "@/components/admin/logout-btn"
 import { AdminMobileMenu } from "@/components/admin/mobile-menu"
 import { CountUp } from "@/components/admin/count-up"
+import { HoraActual } from "@/components/admin/hora-actual"
 import { generarSlots } from "@/lib/slots"
 import { Clock, TrendingUp, CalendarDays, LayoutGrid, Inbox, LayoutDashboard } from "lucide-react"
 import { sportLabel } from "@/lib/sports"
@@ -130,9 +131,7 @@ export default async function AdminDashboardPage({ params }: Props) {
           <h1 className="font-display font-black uppercase text-white text-lg leading-none tracking-tight">
             {tenant.name}
           </h1>
-          <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mt-0.5">
-            Panel admin
-          </p>
+          <HoraActual />
         </div>
         <div className="flex items-center gap-2">
           <div className="hidden sm:flex items-center gap-2">

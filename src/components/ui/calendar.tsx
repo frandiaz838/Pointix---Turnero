@@ -119,7 +119,9 @@ function Calendar({
           defaultClassNames.range_end
         ),
         today: cn(
-          "rounded-(--cell-radius) bg-muted text-foreground data-[selected=true]:rounded-none",
+          // El día actual se resalta en lime para que el admin/cliente lo
+          // identifique al toque en cualquier calendario de la app.
+          "rounded-(--cell-radius) bg-[#A3FF12]/15 !text-[#A3FF12] font-bold ring-1 ring-[#A3FF12]/40 data-[selected=true]:rounded-none",
           defaultClassNames.today
         ),
         outside: cn(
