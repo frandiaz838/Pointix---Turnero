@@ -1,6 +1,7 @@
+import { Fragment } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, CreditCard, MessageCircle, Link2, Sparkles, Zap, ChevronRight } from "lucide-react"
+import { ArrowRight, CreditCard, MessageCircle, Link2, Sparkles, Zap, ChevronRight, Check, Clock } from "lucide-react"
 
 // Número del fundador para el botón "Hablar con un humano".
 // Formato wa.me: dígitos, sin "+" ni espacios, con "9" para móvil AR.
@@ -14,14 +15,14 @@ export default function Home() {
     <main className="min-h-screen bg-toxic-gradient text-white relative overflow-x-hidden">
 
       {/* Header */}
-      <header className="relative z-10 max-w-6xl mx-auto px-6 py-6 sm:py-8 flex items-center justify-between">
+      <header className="relative z-10 max-w-6xl mx-auto px-6 py-7 sm:py-9 flex items-center justify-between">
         <Link href="/" aria-label="Ir al inicio" className="block">
           <Image
             src="/logo-wordmark-white.svg"
             alt="Pointix"
-            width={180}
-            height={54}
-            className="h-10 sm:h-11 w-auto"
+            width={260}
+            height={78}
+            className="h-12 sm:h-16 w-auto"
             priority
           />
         </Link>
@@ -48,16 +49,21 @@ export default function Home() {
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-16 sm:pt-24 pb-20 text-center">
 
         <p
-          className="text-xs font-bold text-[#A3FF12]/80 uppercase tracking-[0.32em] mb-6"
-          style={{ animation: "fadeInUp 0.5s ease 0.1s both" }}
+          className="text-xs font-bold text-[#A3FF12]/80 uppercase mb-7"
+          style={{
+            letterSpacing: "0.4em",
+            animation: "fadeInUp 0.5s ease 0.1s both",
+          }}
         >
           Para complejos deportivos
         </p>
 
         <h1
-          className="font-display font-black uppercase text-white leading-[0.95] tracking-tight max-w-4xl mx-auto"
+          className="font-display font-black uppercase text-white max-w-4xl mx-auto"
           style={{
             fontSize: "clamp(2.5rem, 7vw, 5rem)",
+            lineHeight: "1.05",
+            letterSpacing: "0.005em",
             animation: "fadeInUp 0.5s ease 0.3s both",
           }}
         >
@@ -66,7 +72,7 @@ export default function Home() {
         </h1>
 
         <p
-          className="text-white/65 text-lg sm:text-xl mt-8 max-w-2xl mx-auto leading-relaxed"
+          className="text-white/65 text-lg sm:text-xl mt-9 max-w-2xl mx-auto leading-relaxed"
           style={{ animation: "fadeInUp 0.5s ease 0.4s both" }}
         >
           Le damos a tu complejo una grilla online de turnos, cobros por MercadoPago y
@@ -105,9 +111,9 @@ export default function Home() {
           ¿Buscás reservar como cliente? Pedile al complejo que te pase su link directo.
         </p>
 
-        {/* Mock visual del dashboard */}
+        {/* Mock — lista de reservas */}
         <div
-          className="relative mt-20 sm:mt-24 max-w-3xl mx-auto"
+          className="relative mt-20 sm:mt-24 max-w-2xl mx-auto"
           style={{ animation: "fadeInUp 0.7s ease 0.8s both" }}
         >
           <div
@@ -117,59 +123,81 @@ export default function Home() {
             }}
           />
 
-          <div className="relative glass-card rounded-2xl p-6 sm:p-8 text-left shadow-2xl">
+          <div className="relative glass-card rounded-2xl p-6 sm:p-7 text-left shadow-2xl">
+            {/* Header del mock */}
             <div className="flex items-center justify-between mb-5 pb-4 border-b border-white/[0.06]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-[#A3FF12] animate-pulse" />
-                <span className="text-xs font-bold text-white/50 uppercase tracking-wider">
-                  Reservas de hoy · Club Río
-                </span>
+              <div>
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                  Reservas de hoy
+                </p>
+                <p className="font-display font-black text-white text-lg leading-none mt-1.5 tracking-tight">
+                  Club Río
+                </p>
               </div>
-              <span className="text-xs font-mono text-white/35">14:32</span>
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                  Ingresos
+                </p>
+                <p className="font-display font-black text-[#A3FF12] text-xl leading-none mt-1.5 tracking-tight">
+                  $128.500
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-3">
+            {/* Lista de reservas */}
+            <div className="space-y-2.5">
               {[
-                { cancha: "Cancha 1 · Pádel", slots: ["d","d","o","c","c","c","c","o","o","d","d","d"] },
-                { cancha: "Cancha 2 · Pádel", slots: ["d","d","d","c","c","o","c","c","c","c","d","d"] },
-                { cancha: "Cancha 3 · Fútbol 5", slots: ["x","x","d","c","c","c","c","c","c","c","c","x"] },
-              ].map((row, i) => (
-                <div key={i} className="flex items-center gap-3 sm:gap-4">
-                  <span className="text-xs sm:text-sm font-semibold text-white/70 w-24 sm:w-36 shrink-0 truncate">
-                    {row.cancha}
-                  </span>
-                  <div className="flex-1 grid grid-cols-12 gap-1 sm:gap-1.5">
-                    {row.slots.map((s, j) => (
-                      <div
-                        key={j}
-                        className={`h-6 sm:h-7 rounded-md border ${
-                          s === "c"
-                            ? "bg-[#A3FF12]/15 border-[#A3FF12]/30"
-                            : s === "o"
-                            ? "bg-red-500/10 border-red-500/20"
-                            : s === "x"
-                            ? "bg-white/[0.02] border-white/[0.04]"
-                            : "bg-white/[0.04] border-white/[0.08]"
-                        }`}
-                      />
-                    ))}
+                { nombre: "Juan P.", cancha: "Cancha 1 · Pádel", hora: "18:00", monto: "$5.000", estado: "ok" },
+                { nombre: "María L.", cancha: "Cancha 2 · Pádel", hora: "19:00", monto: "$5.000", estado: "wait" },
+                { nombre: "Carlos R.", cancha: "Cancha 3 · Fútbol 5", hora: "20:00", monto: "$6.500", estado: "ok" },
+                { nombre: "Sofía M.", cancha: "Cancha 1 · Pádel", hora: "21:00", monto: "$5.500", estado: "ok" },
+              ].map((r, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 sm:gap-4 px-3 py-2.5 rounded-xl bg-white/[0.025] border border-white/[0.05]"
+                >
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-full bg-gradient-to-br from-[#A3FF12]/15 to-white/[0.04] border border-white/[0.08] flex items-center justify-center text-[#A3FF12] text-sm font-bold">
+                    {r.nombre[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">
+                      {r.nombre}
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-white/40 truncate">
+                      {r.cancha}
+                    </p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-white/55">
+                    <Clock className="w-3 h-3" />
+                    {r.hora}
+                  </div>
+                  <div className="text-sm font-bold text-white shrink-0 tabular-nums">
+                    {r.monto}
+                  </div>
+                  <div
+                    className={`w-6 h-6 shrink-0 rounded-full flex items-center justify-center ${
+                      r.estado === "ok"
+                        ? "bg-[#A3FF12]/15 border border-[#A3FF12]/30 text-[#A3FF12]"
+                        : "bg-yellow-400/10 border border-yellow-400/25 text-yellow-400"
+                    }`}
+                  >
+                    {r.estado === "ok" ? <Check className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                   </div>
                 </div>
               ))}
             </div>
 
+            {/* Footer */}
             <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between">
-              <div className="flex items-center gap-4 text-xs">
-                <span className="flex items-center gap-1.5 text-white/65">
-                  <span className="w-2 h-2 rounded-sm bg-[#A3FF12]/50" /> Confirmado
-                </span>
-                <span className="flex items-center gap-1.5 text-white/65">
-                  <span className="w-2 h-2 rounded-sm bg-red-500/50" /> Pendiente
-                </span>
-              </div>
-              <span className="text-sm font-bold text-[#A3FF12]">
-                $128.500 hoy
+              <span className="text-xs text-white/45">
+                4 reservas confirmadas
               </span>
+              <a
+                href="#"
+                className="text-xs font-semibold text-[#A3FF12]/80 hover:text-[#A3FF12] transition-colors flex items-center gap-1"
+              >
+                Ver todas <ChevronRight className="w-3 h-3" />
+              </a>
             </div>
           </div>
         </div>
@@ -179,19 +207,26 @@ export default function Home() {
       <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 sm:py-28">
 
         <div className="text-center mb-16 sm:mb-20">
-          <p className="text-xs font-bold text-[#A3FF12]/80 uppercase tracking-[0.32em] mb-4">
+          <p
+            className="text-xs font-bold text-[#A3FF12]/80 uppercase mb-5"
+            style={{ letterSpacing: "0.4em" }}
+          >
             Cómo funciona
           </p>
           <h2
-            className="font-display font-black uppercase text-white leading-[0.95] tracking-tight"
-            style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
+            className="font-display font-black uppercase text-white"
+            style={{
+              fontSize: "clamp(2rem, 5vw, 3.5rem)",
+              lineHeight: "1.08",
+              letterSpacing: "0.005em",
+            }}
           >
             En 3 pasos<br />
             <span className="text-white/30">estás cobrando.</span>
           </h2>
         </div>
 
-        <div className="flex flex-col md:flex-row md:items-stretch gap-6 md:gap-3">
+        <div className="flex flex-col md:flex-row md:items-stretch gap-5 md:gap-3">
           {[
             {
               num: "01",
@@ -214,20 +249,26 @@ export default function Home() {
           ].map((paso, i, arr) => {
             const Icon = paso.icon
             return (
-              <div key={i} className="flex md:flex-1 items-center gap-3 md:flex-col">
+              <Fragment key={i}>
                 <div
-                  className="glass-card flex-1 rounded-2xl p-7 sm:p-8 space-y-5 w-full"
+                  className="glass-card flex-1 rounded-2xl p-7 sm:p-8 space-y-5"
                   style={{ animation: `fadeInUp 0.5s ease ${0.1 + i * 0.1}s both` }}
                 >
                   <div className="flex items-center justify-between">
                     <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/30 flex items-center justify-center">
                       <Icon className="w-5 h-5 text-[#A3FF12]" />
                     </div>
-                    <span className="text-xs font-bold text-[#A3FF12]/60 uppercase tracking-[0.2em]">
+                    <span
+                      className="text-[10px] font-bold text-[#A3FF12]/70 uppercase"
+                      style={{ letterSpacing: "0.32em" }}
+                    >
                       Paso {paso.num}
                     </span>
                   </div>
-                  <h3 className="font-display font-black uppercase text-white text-xl sm:text-2xl leading-tight tracking-tight">
+                  <h3
+                    className="font-display font-black uppercase text-white text-xl sm:text-2xl"
+                    style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+                  >
                     {paso.titulo}
                   </h3>
                   <p className="text-base text-white/55 leading-relaxed">
@@ -237,11 +278,11 @@ export default function Home() {
 
                 {/* Chevron entre cards (no después del último) */}
                 {i < arr.length - 1 && (
-                  <ChevronRight
-                    className="w-6 h-6 text-[#A3FF12]/40 shrink-0 md:rotate-0 rotate-90"
-                  />
+                  <div className="flex items-center justify-center shrink-0 md:py-0 py-1">
+                    <ChevronRight className="w-7 h-7 text-[#A3FF12]/40 md:rotate-0 rotate-90" />
+                  </div>
                 )}
-              </div>
+              </Fragment>
             )
           })}
         </div>
@@ -258,7 +299,10 @@ export default function Home() {
             <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center">
               <Sparkles className="w-5 h-5 text-[#A3FF12]" />
             </div>
-            <h3 className="font-display font-black uppercase text-white text-xl leading-tight tracking-tight">
+            <h3
+              className="font-display font-black uppercase text-white text-xl"
+              style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+            >
               Grilla en tiempo real
             </h3>
             <p className="text-base text-white/55 leading-relaxed">
@@ -270,7 +314,10 @@ export default function Home() {
             <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center">
               <Zap className="w-5 h-5 text-[#A3FF12]" />
             </div>
-            <h3 className="font-display font-black uppercase text-white text-xl leading-tight tracking-tight">
+            <h3
+              className="font-display font-black uppercase text-white text-xl"
+              style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+            >
               Expira y libera solo
             </h3>
             <p className="text-base text-white/55 leading-relaxed">
@@ -282,7 +329,10 @@ export default function Home() {
             <div className="w-12 h-12 rounded-xl bg-[#A3FF12]/12 border border-[#A3FF12]/25 flex items-center justify-center">
               <MessageCircle className="w-5 h-5 text-[#A3FF12]" />
             </div>
-            <h3 className="font-display font-black uppercase text-white text-xl leading-tight tracking-tight">
+            <h3
+              className="font-display font-black uppercase text-white text-xl"
+              style={{ lineHeight: "1.1", letterSpacing: "0.005em" }}
+            >
               Mail + WhatsApp
             </h3>
             <p className="text-base text-white/55 leading-relaxed">
@@ -305,8 +355,12 @@ export default function Home() {
 
           <div className="relative">
             <h2
-              className="font-display font-black uppercase text-white leading-[0.95] tracking-tight"
-              style={{ fontSize: "clamp(1.75rem, 4vw, 2.75rem)" }}
+              className="font-display font-black uppercase text-white"
+              style={{
+                fontSize: "clamp(1.75rem, 4vw, 2.75rem)",
+                lineHeight: "1.08",
+                letterSpacing: "0.005em",
+              }}
             >
               Listo para dejar de<br />
               <span className="text-[#A3FF12]">anotar turnos en papel</span>?
@@ -341,12 +395,15 @@ export default function Home() {
           <Image
             src="/logo-wordmark-white.svg"
             alt="Pointix"
-            width={140}
-            height={42}
-            className="h-7 w-auto opacity-50 hover:opacity-80 transition-opacity"
+            width={160}
+            height={48}
+            className="h-8 w-auto opacity-50 hover:opacity-80 transition-opacity"
           />
         </Link>
-        <p className="text-white/25 text-xs tracking-widest uppercase mt-4">
+        <p
+          className="text-white/25 text-xs uppercase mt-4"
+          style={{ letterSpacing: "0.32em" }}
+        >
           Reservas deportivas · {new Date().getFullYear()}
         </p>
       </footer>
