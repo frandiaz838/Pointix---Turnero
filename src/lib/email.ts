@@ -35,7 +35,7 @@ function formatHora(d: Date): string {
 }
 
 function buildConfirmacionHtml(d: ReservaConfirmadaData): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pointix-turnero.vercel.app"
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pointix.com.ar"
   const verReservaUrl = `${appUrl}/${d.clubSlug}`
   const precioFmt = `$${d.precio.toLocaleString("es-AR")}`
   const horaInicio = formatHora(d.fecha)

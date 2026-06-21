@@ -223,7 +223,7 @@ export default async function AdminDashboardPage({ params }: Props) {
                 <>
                   Compartí tu link de reservas en Instagram o WhatsApp:{" "}
                   <code className="text-[#A3FF12]/80 bg-white/[0.05] px-1.5 py-0.5 rounded text-[10px]">
-                    pointix-turnero.vercel.app/{slug}
+                    pointix.com.ar/{slug}
                   </code>
                 </>
               }
