@@ -1,7 +1,8 @@
 import { Fragment } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { ArrowRight, CreditCard, MessageCircle, Link2, Sparkles, Zap, ChevronRight, Check, Clock, TrendingUp, CalendarDays, LayoutGrid, Settings } from "lucide-react"
+import { ArrowRight, CreditCard, MessageCircle, Link2, Sparkles, Zap, ChevronRight, Check } from "lucide-react"
+import { MacBookMockup, IPhoneMockup } from "@/components/landing/device-mockups"
 
 // Número del fundador para el botón "Hablar con un humano".
 // Formato wa.me: dígitos, sin "+" ni espacios, con "9" para móvil AR.
@@ -326,8 +327,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Panel de admin — mock con KPIs + gráfico */}
-      <section className="relative z-10 max-w-6xl mx-auto px-6 py-20 sm:py-28">
+      {/* Panel de admin — mockups iPhone + MacBook side-by-side */}
+      <section className="relative z-10 max-w-7xl mx-auto px-6 py-20 sm:py-28">
 
         <div className="text-center mb-14 sm:mb-16">
           <p
@@ -345,156 +346,34 @@ export default function Home() {
             }}
           >
             Mirá todo desde<br />
-            <span className="text-white/30">un solo lugar.</span>
+            <span className="text-white/30">cualquier dispositivo.</span>
           </h2>
           <p className="text-white/55 text-base sm:text-lg mt-6 max-w-2xl mx-auto leading-relaxed">
-            Ingresos del día, ocupación por cancha, próximas reservas, canchas activas — todo a un click. Sin planillas, sin Excel, sin perderte de nada.
+            Ingresos del día, ocupación por cancha, próximas reservas — todo a un click, desde tu compu o el celular. Sin planillas, sin Excel.
           </p>
         </div>
 
-        {/* Mock del dashboard admin */}
-        <div className="relative max-w-4xl mx-auto">
+        {/* Glow detrás */}
+        <div className="relative">
           <div
-            className="absolute inset-0 rounded-3xl blur-3xl opacity-30 pointer-events-none"
+            className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[80%] blur-3xl opacity-30 pointer-events-none"
             style={{
-              background: "radial-gradient(circle at 50% 30%, rgba(163,255,18,0.3) 0%, transparent 60%)",
+              background: "radial-gradient(ellipse at 50% 50%, rgba(163,255,18,0.35) 0%, transparent 65%)",
             }}
           />
 
-          <div className="relative glass-card rounded-2xl p-6 sm:p-8 shadow-2xl">
+          <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center">
 
-            {/* Header del dashboard */}
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/[0.06]">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-[#A3FF12] animate-pulse" />
-                <span
-                  className="font-display font-black text-white text-base sm:text-lg leading-none"
-                  style={{ letterSpacing: "0.035em" }}
-                >
-                  Club Río · Admin
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="p-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-colors">
-                  <Settings className="w-3.5 h-3.5 text-white/60" />
-                </button>
-              </div>
+            {/* MacBook (8 cols en desktop) */}
+            <div className="lg:col-span-8 lg:order-1 order-2">
+              <MacBookMockup />
             </div>
 
-            {/* KPI cards */}
-            <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
-              {[
-                { label: "Reservas hoy", value: "12", icon: CalendarDays, accent: "text-white" },
-                { label: "Ingresos hoy", value: "$48.500", icon: TrendingUp, accent: "text-[#A3FF12]" },
-                { label: "Ocupación", value: "73%", icon: LayoutGrid, accent: "text-white" },
-              ].map((kpi, i) => {
-                const Icon = kpi.icon
-                return (
-                  <div
-                    key={i}
-                    className="group/kpi rounded-xl bg-white/[0.025] border border-white/[0.05] p-3 sm:p-4 hover:bg-white/[0.04] hover:border-[#A3FF12]/25 transition-all duration-200 cursor-pointer"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[9px] sm:text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] group-hover/kpi:text-white/60 transition-colors">
-                        {kpi.label}
-                      </span>
-                      <Icon className="w-3.5 h-3.5 text-white/30 group-hover/kpi:text-[#A3FF12]/70 transition-colors" />
-                    </div>
-                    <p
-                      className={`font-display font-black ${kpi.accent} text-xl sm:text-3xl leading-none`}
-                      style={{ letterSpacing: "0.025em" }}
-                    >
-                      {kpi.value}
-                    </p>
-                  </div>
-                )
-              })}
+            {/* iPhone (4 cols en desktop) */}
+            <div className="lg:col-span-4 lg:order-2 order-1 flex justify-center">
+              <IPhoneMockup />
             </div>
 
-            {/* Gráfico de barras */}
-            <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] p-4 sm:p-5 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
-                  Ingresos esta semana
-                </span>
-                <span className="text-[10px] font-bold text-[#A3FF12]/70 uppercase tracking-wider">
-                  +18% vs semana pasada
-                </span>
-              </div>
-              {(() => {
-                const data = [
-                  { dia: "L", h: 35 },
-                  { dia: "M", h: 50 },
-                  { dia: "X", h: 42 },
-                  { dia: "J", h: 65 },
-                  { dia: "V", h: 78 },
-                  { dia: "S", h: 100 },
-                  { dia: "D", h: 88 },
-                ]
-                return (
-                  <>
-                    <div className="flex items-end justify-between gap-1.5 sm:gap-2 h-24 sm:h-28 mb-2">
-                      {data.map((d, i) => (
-                        <div
-                          key={i}
-                          className="flex-1 rounded-t-md transition-all"
-                          style={{
-                            height: `${d.h}%`,
-                            background:
-                              i === 5
-                                ? "linear-gradient(180deg, #A3FF12 0%, rgba(163,255,18,0.3) 100%)"
-                                : "linear-gradient(180deg, rgba(163,255,18,0.6) 0%, rgba(163,255,18,0.15) 100%)",
-                            boxShadow: i === 5 ? "0 0 16px rgba(163,255,18,0.5)" : "none",
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <div className="flex items-center justify-between gap-1.5 sm:gap-2">
-                      {data.map((d, i) => (
-                        <span
-                          key={i}
-                          className={`flex-1 text-center text-[10px] font-bold ${
-                            i === 5 ? "text-[#A3FF12]" : "text-white/30"
-                          }`}
-                        >
-                          {d.dia}
-                        </span>
-                      ))}
-                    </div>
-                  </>
-                )
-              })()}
-            </div>
-
-            {/* Canchas */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
-                  Canchas activas
-                </span>
-                <a href="#" className="text-[10px] font-semibold text-[#A3FF12]/70 hover:text-[#A3FF12] flex items-center gap-1">
-                  Gestionar <ChevronRight className="w-3 h-3" />
-                </a>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {[
-                  { name: "Cancha 1 · Pádel", ocupacion: "85%" },
-                  { name: "Cancha 2 · Pádel", ocupacion: "70%" },
-                  { name: "Cancha 3 · Fútbol 5", ocupacion: "62%" },
-                ].map((c, i) => (
-                  <div
-                    key={i}
-                    className="rounded-lg bg-white/[0.02] border border-white/[0.04] px-3 py-2.5 hover:bg-white/[0.05] hover:border-[#A3FF12]/20 transition-all duration-200 cursor-pointer"
-                  >
-                    <p className="text-xs font-semibold text-white truncate">{c.name}</p>
-                    <div className="flex items-center justify-between mt-1.5">
-                      <span className="text-[10px] text-white/40">Ocupación</span>
-                      <span className="text-[10px] font-bold text-[#A3FF12]">{c.ocupacion}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </section>
