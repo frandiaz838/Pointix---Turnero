@@ -190,8 +190,8 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/50" />
             </div>
             <p
-              className="font-display font-black text-[#A3FF12] tracking-tight text-glow-lime tabular-nums leading-none break-all"
-              style={{ fontSize: "clamp(1.5rem, 6.5vw, 3.5rem)" }}
+              className="font-display font-black text-[#A3FF12] tracking-tight text-glow-lime tabular-nums leading-tight break-all"
+              style={{ fontSize: "clamp(1.25rem, 5.5vw, 3.5rem)" }}
             >
               ${totalConfirmado.toLocaleString("es-AR")}
             </p>
@@ -206,8 +206,8 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <Receipt className="w-3.5 h-3.5 text-white/20" />
             </div>
             <p
-              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-none break-all"
-              style={{ fontSize: "clamp(1.5rem, 6.5vw, 3.5rem)" }}
+              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-tight break-all"
+              style={{ fontSize: "clamp(1.25rem, 5.5vw, 3.5rem)" }}
             >
               ${totalPendiente.toLocaleString("es-AR")}
             </p>

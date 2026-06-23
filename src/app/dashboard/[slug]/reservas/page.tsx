@@ -432,12 +432,14 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
       </div>
 
       {/* Precio y acciones */}
-      <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
-        <p className={`font-bold text-sm ${esPasada ? "text-white/60" : "text-white"}`}>
+      <div className="flex flex-col sm:items-end gap-2 shrink-0 w-full sm:w-auto">
+        <p
+          className={`font-bold text-base sm:text-sm tabular-nums break-all ${esPasada ? "text-white/60" : "text-white"}`}
+        >
           ${Number(r.totalPrice).toLocaleString("es-AR")}
         </p>
         {mostrarAcciones && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end w-full sm:w-auto">
             {r.status === "PENDING" && <ConfirmarReservaBtn bookingId={r.id} />}
             <Link
               href={`/dashboard/${slug}/reservas/${r.id}/editar`}
