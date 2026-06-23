@@ -7,6 +7,7 @@ import { HorariosForm } from "@/components/admin/horarios-form"
 import { BloqueoForm } from "@/components/admin/bloqueos-form"
 import { EliminarBloqueoBtn } from "@/components/admin/eliminar-bloqueo-btn"
 import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
+import { EliminarCanchaBtn } from "@/components/admin/eliminar-cancha-btn"
 import { sportLabel } from "@/lib/sports"
 import {
   ArrowLeft,
@@ -15,6 +16,7 @@ import {
   Ban,
   ShieldAlert,
   Calendar,
+  AlertCircle,
 } from "lucide-react"
 
 interface Props {
@@ -77,6 +79,21 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
         orderBy: { startTime: "asc" },
       })
     : []
+
+  // Conteo de reservas futuras pendientes/confirmadas — para advertir en
+  // zona peligro lo que se perderia al eliminar.
+  const reservasFuturas = tab === "peligro"
+    ? await prisma.booking.count({
+        where: {
+          courtId,
+          startTime: { gte: new Date() },
+          status: { in: ["PENDING", "CONFIRMED"] },
+        },
+      })
+    : 0
+  const totalReservas = tab === "peligro"
+    ? await prisma.booking.count({ where: { courtId } })
+    : 0
 
   return (
     <main className="min-h-screen bg-toxic-gradient relative">
@@ -258,15 +275,39 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
               </div>
             </div>
 
-            {/* Hint sobre eliminación definitiva */}
-            <div className="rounded-2xl border border-red-500/15 bg-red-500/[0.03] p-5 sm:p-6 space-y-2">
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-red-400/70 shrink-0" />
-                <p className="font-semibold text-red-300 text-sm">Eliminar la cancha</p>
+            {/* Eliminar definitivamente */}
+            <div className="rounded-2xl border border-red-500/20 bg-red-500/[0.04] p-5 sm:p-6 space-y-4">
+              <div className="flex items-start gap-2.5">
+                <ShieldAlert className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="font-semibold text-red-300 text-sm">Eliminar definitivamente</p>
+                  <p className="text-sm text-white/45 leading-relaxed">
+                    Borra la cancha, sus horarios, bloqueos y todas las reservas asociadas — pasadas y futuras. No se puede deshacer. Si solo querés que deje de aparecer, mejor desactivala arriba.
+                  </p>
+                </div>
               </div>
-              <p className="text-sm text-white/40 leading-relaxed">
-                Para borrarla permanentemente con sus horarios y bloqueos, contactá soporte. Recomendado: dejala <span className="text-white/65 font-medium">inactiva</span> — así no aparece en la grilla pero conservás el historial de reservas.
-              </p>
+
+              {reservasFuturas > 0 && (
+                <div className="rounded-lg bg-yellow-400/[0.08] border border-yellow-400/20 px-3 py-2 text-xs text-yellow-300/90 flex items-start gap-2">
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>
+                    Esta cancha tiene <span className="font-bold">{reservasFuturas} reserva{reservasFuturas === 1 ? "" : "s"} futura{reservasFuturas === 1 ? "" : "s"}</span> sin completarse. Si la eliminás, esa{reservasFuturas === 1 ? "" : "s"} reserva{reservasFuturas === 1 ? "" : "s"} también se borra{reservasFuturas === 1 ? "" : "n"}.
+                  </span>
+                </div>
+              )}
+
+              {totalReservas > 0 && (
+                <p className="text-xs text-white/30">
+                  Histórico total: {totalReservas} reserva{totalReservas === 1 ? "" : "s"}.
+                </p>
+              )}
+
+              <EliminarCanchaBtn
+                courtId={cancha.id}
+                tenantId={tenant.id}
+                slug={slug}
+                canchaName={cancha.name}
+              />
             </div>
           </div>
         )}

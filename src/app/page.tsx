@@ -113,7 +113,7 @@ export default function Home() {
 
         {/* Mock — lista de reservas */}
         <div
-          className="relative mt-20 sm:mt-24 max-w-2xl mx-auto"
+          className="relative mt-20 sm:mt-24 max-w-3xl mx-auto"
           style={{ animation: "fadeInUp 0.7s ease 0.8s both" }}
         >
           <div
@@ -124,33 +124,33 @@ export default function Home() {
           />
 
           {/* Preview de la grilla del cliente */}
-          <div className="relative glass-card rounded-2xl p-6 sm:p-7 text-left shadow-2xl">
+          <div className="relative glass-card rounded-2xl p-7 sm:p-9 text-left shadow-2xl">
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-7">
               <div>
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                <p className="text-[11px] font-bold text-white/45 uppercase tracking-[0.22em]">
                   Así reservan tus clientes
                 </p>
                 <p
-                  className="font-display font-black uppercase text-white text-xl sm:text-2xl leading-none mt-1.5"
+                  className="font-display font-black uppercase text-white text-2xl sm:text-3xl leading-none mt-2"
                   style={{ letterSpacing: "0.035em" }}
                 >
                   Club Río
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
+                <p className="text-[11px] font-bold text-white/45 uppercase tracking-[0.22em]">
                   Hoy
                 </p>
-                <p className="font-semibold text-white text-sm mt-1.5">
+                <p className="font-semibold text-white text-base mt-2">
                   Sáb 21 jun
                 </p>
               </div>
             </div>
 
             {/* Filtros deporte */}
-            <div className="flex items-center gap-2 mb-5">
+            <div className="flex items-center gap-2.5 mb-6">
               {[
                 { label: "Todos", active: true },
                 { label: "Pádel", active: false },
@@ -159,10 +159,10 @@ export default function Home() {
                 <button
                   key={i}
                   type="button"
-                  className={`text-[11px] font-semibold px-3 py-1.5 rounded-full border transition-all duration-200 hover:scale-105 ${
+                  className={`text-sm font-semibold px-4 py-2 rounded-full border transition-all duration-200 hover:scale-105 ${
                     tag.active
                       ? "bg-[#A3FF12] text-black border-[#A3FF12] shadow-[0_0_16px_rgba(163,255,18,0.3)]"
-                      : "bg-white/[0.03] text-white/50 border-white/[0.08] hover:bg-white/[0.08] hover:text-white/80 hover:border-white/[0.15]"
+                      : "bg-white/[0.03] text-white/55 border-white/[0.08] hover:bg-white/[0.08] hover:text-white/85 hover:border-white/[0.15]"
                   }`}
                 >
                   {tag.label}
@@ -171,32 +171,32 @@ export default function Home() {
             </div>
 
             {/* Grilla — header de horas */}
-            <div className="flex items-center gap-2 mb-2 pl-[88px] sm:pl-[120px]">
+            <div className="flex items-center gap-2 mb-2.5 pl-[96px] sm:pl-[140px]">
               {["17", "18", "19", "20", "21", "22"].map((h) => (
-                <div key={h} className="flex-1 text-center text-[10px] font-mono font-bold text-white/35">
+                <div key={h} className="flex-1 text-center text-xs font-mono font-bold text-white/40">
                   {h}:00
                 </div>
               ))}
             </div>
 
             {/* Grilla — filas de canchas */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {[
                 { cancha: "Cancha 1", sport: "Pádel", slots: ["c", "c", "o", "d", "d", "d"] },
                 { cancha: "Cancha 2", sport: "Pádel", slots: ["c", "o", "c", "c", "d", "d"] },
                 { cancha: "Cancha 3", sport: "Fútbol 5", slots: ["c", "c", "c", "d", "d", "d"] },
               ].map((row, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <div className="w-[80px] sm:w-[112px] shrink-0">
-                    <p className="text-xs font-semibold text-white truncate leading-tight">
+                  <div className="w-[88px] sm:w-[132px] shrink-0">
+                    <p className="text-sm font-semibold text-white truncate leading-tight">
                       {row.cancha}
                     </p>
-                    <p className="text-[10px] text-white/35 leading-tight">{row.sport}</p>
+                    <p className="text-[11px] text-white/40 leading-tight mt-0.5">{row.sport}</p>
                   </div>
                   {row.slots.map((s, j) => (
                     <div
                       key={j}
-                      className={`flex-1 h-9 sm:h-10 rounded-lg border flex items-center justify-center transition-all duration-200 ${
+                      className={`flex-1 h-12 sm:h-14 rounded-lg border flex items-center justify-center transition-all duration-200 ${
                         s === "c"
                           ? "bg-[#A3FF12]/10 border-[#A3FF12]/30 hover:bg-[#A3FF12]/25 hover:border-[#A3FF12]/60 hover:scale-110 cursor-pointer hover:shadow-[0_0_12px_rgba(163,255,18,0.4)]"
                           : s === "o"
@@ -204,8 +204,8 @@ export default function Home() {
                           : "bg-white/[0.025] border-white/[0.05]"
                       }`}
                     >
-                      {s === "c" && <Check className="w-3 h-3 text-[#A3FF12]" />}
-                      {s === "o" && <span className="text-[10px] font-bold text-red-400">×</span>}
+                      {s === "c" && <Check className="w-4 h-4 text-[#A3FF12]" />}
+                      {s === "o" && <span className="text-xs font-bold text-red-400">×</span>}
                     </div>
                   ))}
                 </div>
@@ -213,16 +213,16 @@ export default function Home() {
             </div>
 
             {/* Footer leyenda + CTA */}
-            <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between">
-              <div className="flex items-center gap-3 text-[10px] sm:text-xs text-white/55">
+            <div className="mt-6 pt-5 border-t border-white/[0.06] flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-4 text-xs sm:text-sm text-white/60">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-sm bg-[#A3FF12]/50" /> Disponible
+                  <span className="w-2.5 h-2.5 rounded-sm bg-[#A3FF12]/50" /> Disponible
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-sm bg-red-500/50" /> Ocupado
+                  <span className="w-2.5 h-2.5 rounded-sm bg-red-500/50" /> Ocupado
                 </span>
               </div>
-              <span className="text-xs font-semibold text-[#A3FF12]">
+              <span className="text-sm font-semibold text-[#A3FF12]">
                 Reservás en 30 segundos →
               </span>
             </div>

@@ -71,6 +71,50 @@ export async function toggleCanchaActiva(courtId: string, isActive: boolean, ten
   revalidatePath(`/dashboard/${slug}`)
 }
 
+/**
+ * Elimina una cancha en cascada: borra su Schedule, CourtBlock y Booking
+ * asociados, y después la cancha. Requiere que el cliente confirme tipeando
+ * el nombre exacto de la cancha (validado server-side).
+ *
+ * Devuelve un objeto con conteos de lo eliminado para mostrar feedback.
+ */
+export async function eliminarCancha(
+  courtId: string,
+  tenantId: string,
+  slug: string,
+  confirmName: string,
+) {
+  await verificarAdmin(tenantId)
+
+  const cancha = await prisma.court.findFirst({
+    where: { id: courtId, tenantId },
+    select: { id: true, name: true },
+  })
+  if (!cancha) throw new Error("Cancha no encontrada")
+
+  // Doble confirmación: nombre exacto tipeado (case-sensitive, sin espacios extra)
+  if (confirmName.trim() !== cancha.name) {
+    throw new Error("El nombre no coincide. Tipealo igual al de la cancha.")
+  }
+
+  const [reservas, bloqueos, horarios] = await prisma.$transaction([
+    prisma.booking.count({ where: { courtId } }),
+    prisma.courtBlock.count({ where: { courtId } }),
+    prisma.schedule.count({ where: { courtId } }),
+  ])
+
+  await prisma.$transaction([
+    prisma.booking.deleteMany({ where: { courtId } }),
+    prisma.courtBlock.deleteMany({ where: { courtId } }),
+    prisma.schedule.deleteMany({ where: { courtId } }),
+    prisma.court.delete({ where: { id: courtId } }),
+  ])
+
+  revalidatePath(`/dashboard/${slug}`)
+  revalidatePath(`/${slug}`)
+  return { reservas, bloqueos, horarios }
+}
+
 export async function guardarHorarios(courtId: string, tenantId: string, slug: string, formData: FormData) {
   await verificarAdmin(tenantId)
 
