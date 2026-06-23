@@ -181,12 +181,18 @@ export default async function AdminDashboardPage({ params }: Props) {
               <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/40" />
             </div>
             <p
-              className="font-display font-black text-[#A3FF12] leading-tight text-glow-lime tabular-nums break-all"
-              style={{ fontSize: "clamp(1.25rem,5.5vw,3rem)" }}
+              className="font-display font-black text-[#A3FF12] leading-tight text-glow-lime tabular-nums"
+              style={{
+                fontSize: "clamp(1.25rem,5vw,2.75rem)",
+                overflowWrap: "anywhere",
+              }}
             >
               $<CountUp value={ingresosHoy} />
             </p>
-            <p className="text-xs font-medium text-white/25 tabular-nums break-all">
+            <p
+              className="text-xs font-medium text-white/25 tabular-nums"
+              style={{ overflowWrap: "anywhere" }}
+            >
               Mes: $<CountUp value={ingresosMes} duration={1200} />
             </p>
           </Link>

@@ -190,8 +190,11 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/50" />
             </div>
             <p
-              className="font-display font-black text-[#A3FF12] tracking-tight text-glow-lime tabular-nums leading-tight break-all"
-              style={{ fontSize: "clamp(1.25rem, 5.5vw, 3.5rem)" }}
+              className="font-display font-black text-[#A3FF12] tracking-tight text-glow-lime tabular-nums leading-tight"
+              style={{
+                fontSize: "clamp(1.25rem, 5vw, 2.75rem)",
+                overflowWrap: "anywhere",
+              }}
             >
               ${totalConfirmado.toLocaleString("es-AR")}
             </p>
@@ -206,8 +209,11 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <Receipt className="w-3.5 h-3.5 text-white/20" />
             </div>
             <p
-              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-tight break-all"
-              style={{ fontSize: "clamp(1.25rem, 5.5vw, 3.5rem)" }}
+              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-tight"
+              style={{
+                fontSize: "clamp(1.25rem, 5vw, 2.75rem)",
+                overflowWrap: "anywhere",
+              }}
             >
               ${totalPendiente.toLocaleString("es-AR")}
             </p>
@@ -222,8 +228,11 @@ export default async function IngresosPage({ params, searchParams }: Props) {
               <Calculator className="w-3.5 h-3.5 text-white/20" />
             </div>
             <p
-              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-none break-all"
-              style={{ fontSize: "clamp(1.4rem, 5vw, 2.5rem)" }}
+              className="font-display font-black text-white/85 tracking-tight tabular-nums leading-tight"
+              style={{
+                fontSize: "clamp(1.25rem, 4vw, 2.25rem)",
+                overflowWrap: "anywhere",
+              }}
             >
               ${promedio.toLocaleString("es-AR")}
             </p>
