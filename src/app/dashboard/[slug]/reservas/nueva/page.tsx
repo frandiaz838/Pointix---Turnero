@@ -27,7 +27,7 @@ export default async function NuevaReservaAdminPage({ params, searchParams }: Pr
 
   const [canchas, reservasOcupando, bloqueos] = await Promise.all([
     prisma.court.findMany({
-      where: { tenantId: tenant.id, isActive: true },
+      where: { tenantId: tenant.id, isActive: true, archivedAt: null },
       include: { schedules: true },
       orderBy: [{ sport: "asc" }, { name: "asc" }],
     }),

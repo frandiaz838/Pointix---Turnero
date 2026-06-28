@@ -20,7 +20,7 @@ export default async function ReservarPage({ params, searchParams }: Props) {
   const isLoggedIn = !!session?.user
 
   const cancha = await prisma.court.findFirst({
-    where: { id: courtId, isActive: true, tenant: { slug } },
+    where: { id: courtId, isActive: true, archivedAt: null, tenant: { slug } },
     include: { tenant: true, schedules: true },
   })
   if (!cancha) notFound()

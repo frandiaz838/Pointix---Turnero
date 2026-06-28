@@ -6,6 +6,10 @@ import { IngresosCharts } from "@/components/admin/ingresos-charts"
 import { PeriodoSelector, type PeriodoIngresos } from "@/components/admin/periodo-selector"
 import { TrendingUp, Receipt, Calculator } from "lucide-react"
 import { sportLabel } from "@/lib/sports"
+import { todayInArIso } from "@/lib/timezone"
+import { expireStalePendings } from "@/lib/bookings"
+
+export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -35,10 +39,11 @@ function parsePeriodo(s: string | undefined): PeriodoIngresos {
   return "este-mes"
 }
 
-function calcRango(periodo: PeriodoIngresos, ahora: Date) {
-  const y = ahora.getUTCFullYear()
-  const m = ahora.getUTCMonth()
-  const d = ahora.getUTCDate()
+// `hoyAr` viene como YYYY-MM-DD ya en zona horaria de Argentina, así que
+// y/m/d acá representan el día real del club (no UTC del server).
+function calcRango(periodo: PeriodoIngresos, hoyAr: string) {
+  const [y, mHumano, d] = hoyAr.split("-").map(Number)
+  const m = mHumano - 1
   if (periodo === "hoy") {
     const inicio = new Date(Date.UTC(y, m, d, 0, 0, 0, 0))
     const fin    = new Date(Date.UTC(y, m, d, 23, 59, 59, 999))
@@ -76,9 +81,12 @@ export default async function IngresosPage({ params, searchParams }: Props) {
     redirect("/dashboard")
   }
 
+  // Limpiar PENDING vencidas para que no inflen el total "Pendiente" del período.
+  await expireStalePendings(tenant.id)
+
   const periodo = parsePeriodo(periodoParam)
-  const ahora = new Date()
-  const { inicio, fin, tipo, label } = calcRango(periodo, ahora)
+  const hoyAr = todayInArIso()
+  const { inicio, fin, tipo, label } = calcRango(periodo, hoyAr)
 
   const reservas = await prisma.booking.findMany({
     where: {
@@ -103,7 +111,7 @@ export default async function IngresosPage({ params, searchParams }: Props) {
 
   // Breakdown table — días si es mes, meses si es año
   type FilaBreakdown = { id: string; label: string; cantidad: number; total: number; barra: number; destacado: boolean }
-  const hoyStr = ahora.toISOString().split("T")[0]
+  const hoyStr = hoyAr
   let breakdown: FilaBreakdown[] = []
 
   if (tipo === "mes") {
@@ -137,8 +145,8 @@ export default async function IngresosPage({ params, searchParams }: Props) {
       counts[m] += 1
     })
     const max = Math.max(1, ...totales)
-    const mesActual = ahora.getUTCMonth()
-    const añoActual = ahora.getUTCFullYear()
+    const [añoActual, mesHumano] = hoyAr.split("-").map(Number)
+    const mesActual = mesHumano - 1
     breakdown = totales.map((total, i) => ({
       id: `mes-${i}`,
       label: MESES_CORTOS[i],

@@ -13,6 +13,12 @@ import { Clock, TrendingUp, CalendarDays, LayoutGrid, Inbox, LayoutDashboard } f
 import { sportLabel } from "@/lib/sports"
 import { SportIcon } from "@/components/ui/sport-icon"
 import { EmptyState } from "@/components/admin/empty-state"
+import { todayInArIso, todayInArDayOfWeek } from "@/lib/timezone"
+import { expireStalePendings } from "@/lib/bookings"
+
+// Nunca cachear: los KPIs (reservas hoy, ingresos, ocupación) deben reflejar
+// el estado real de la DB en cada visita, no un snapshot viejo.
+export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -43,17 +49,24 @@ export default async function AdminDashboardPage({ params }: Props) {
     redirect("/dashboard")
   }
 
-  const ahora = new Date()
-  const hoy = ahora.toISOString().split("T")[0]
+  // Expira PENDING vencidas antes de calcular KPIs: si nadie pasó por el sitio
+  // público, las reservas sin pagar seguían contando como "Pendiente".
+  await expireStalePendings(tenant.id)
+
+  // Trabajamos en zona horaria AR — el helper devuelve YYYY-MM-DD del día real
+  // del club (no del server UTC). Los startTime de la DB se guardan como
+  // "artificial UTC" (HH:00:00 UTC == HH:00 AR), así que las queries siguen
+  // funcionando con strings YYYY-MM-DD ancladas a 00:00Z / 23:59Z.
+  const hoy = todayInArIso()
+  const diaSemana = todayInArDayOfWeek()
+  const [yHoy, mHoy, dHoy] = hoy.split("-").map(Number)
   const inicio = new Date(`${hoy}T00:00:00.000Z`)
   const fin = new Date(`${hoy}T23:59:59.999Z`)
-  const inicioMes = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1))
-  const finMes = new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth() + 1, 0, 23, 59, 59, 999))
-  const diaSemana = ahora.getUTCDay()
+  const inicioMes = new Date(Date.UTC(yHoy, mHoy - 1, 1))
+  const finMes = new Date(Date.UTC(yHoy, mHoy, 0, 23, 59, 59, 999))
 
-  const ayer = new Date(ahora)
-  ayer.setUTCDate(ahora.getUTCDate() - 1)
-  const ayerStr = ayer.toISOString().split("T")[0]
+  const ayerDate = new Date(Date.UTC(yHoy, mHoy - 1, dHoy - 1))
+  const ayerStr = ayerDate.toISOString().split("T")[0]
   const inicioAyer = new Date(`${ayerStr}T00:00:00.000Z`)
   const finAyer = new Date(`${ayerStr}T23:59:59.999Z`)
 
@@ -79,7 +92,7 @@ export default async function AdminDashboardPage({ params }: Props) {
       _sum: { totalPrice: true },
     }),
     prisma.court.findMany({
-      where: { tenantId: tenant.id },
+      where: { tenantId: tenant.id, archivedAt: null },
       include: { schedules: true },
       orderBy: { createdAt: "asc" },
     }),

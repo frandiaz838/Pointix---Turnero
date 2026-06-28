@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { AlertCircle, CalendarDays, Clock, CheckCircle } from "lucide-react"
-import { crearBloqueo } from "@/actions/bloqueos"
+import { crearBloqueo, ERROR_BLOQUEO_CONFLICTO } from "@/actions/bloqueos"
 
 interface Props {
   slug: string
@@ -46,6 +46,10 @@ export function BloqueoForm({ slug, courtId }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [todoElDia, setTodoElDia] = useState(false)
+  // Cuando el server detecta reservas existentes en el rango, devuelve un
+  // error parseable y guardamos la cantidad para mostrar el diálogo de
+  // confirmación con un botón "Cancelar reservas y bloquear igual".
+  const [reservasConflicto, setReservasConflicto] = useState<number | null>(null)
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -63,8 +67,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
     return () => clearTimeout(t)
   }, [success])
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  function enviar(forzar: boolean) {
     setError(null)
     setSuccess(null)
 
@@ -84,6 +87,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
       formData.set("desde", desde)
       formData.set("hasta", hasta)
     }
+    if (forzar) formData.set("forzar", "on")
 
     startTransition(async () => {
       try {
@@ -91,15 +95,30 @@ export function BloqueoForm({ slug, courtId }: Props) {
         // Reset y feedback
         const fechaStr = capitalizar(formatFechaDisplay(fechaDate))
         const detalle  = todoElDia ? "todo el día" : `${desde} a ${hasta}`
-        setSuccess(`Bloqueo creado: ${fechaStr}, ${detalle}`)
+        const extra = forzar && reservasConflicto ? ` (${reservasConflicto} ${reservasConflicto === 1 ? "reserva cancelada" : "reservas canceladas"})` : ""
+        setSuccess(`Bloqueo creado: ${fechaStr}, ${detalle}${extra}`)
         setReason("")
         setTodoElDia(false)
+        setReservasConflicto(null)
       } catch (err) {
         if (err instanceof Error && !err.message.includes("NEXT_REDIRECT")) {
-          setError(err.message)
+          // El server nos avisa de reservas en conflicto con un mensaje
+          // estructurado "BLOQUEO_TIENE_RESERVAS:N" — lo parseamos para
+          // mostrar el diálogo de confirmación en vez de un error plano.
+          if (err.message.startsWith(`${ERROR_BLOQUEO_CONFLICTO}:`)) {
+            const n = Number(err.message.split(":")[1]) || 0
+            setReservasConflicto(n)
+          } else {
+            setError(err.message)
+          }
         }
       }
     })
+  }
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    enviar(false)
   }
 
   return (
@@ -198,6 +217,37 @@ export function BloqueoForm({ slug, courtId }: Props) {
         </div>
       )}
 
+      {reservasConflicto !== null && (
+        <div role="alert" className="space-y-2.5 bg-yellow-400/10 border border-yellow-400/25 text-yellow-300 text-sm rounded-xl px-4 py-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>
+              {reservasConflicto === 1
+                ? <>Hay <b>1 reserva</b> en ese horario. Si bloqueás igual, la reserva se cancela y vas a tener que avisarle al cliente.</>
+                : <>Hay <b>{reservasConflicto} reservas</b> en ese horario. Si bloqueás igual, se cancelan todas y vas a tener que avisarles a los clientes.</>}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button
+              type="button"
+              onClick={() => enviar(true)}
+              disabled={pending}
+              className="bg-red-500 hover:bg-red-400 text-white text-xs font-bold"
+            >
+              {pending ? "Cancelando…" : `Cancelar ${reservasConflicto === 1 ? "reserva" : "reservas"} y bloquear igual`}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setReservasConflicto(null)}
+              className="text-xs"
+            >
+              No, dejar las reservas
+            </Button>
+          </div>
+        </div>
+      )}
+
       {success && (
         <div role="status" className="flex items-center gap-2 bg-[#A3FF12]/10 border border-[#A3FF12]/25 text-[#A3FF12] text-sm rounded-xl px-4 py-3">
           <CheckCircle className="w-4 h-4 shrink-0" />
@@ -207,7 +257,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
 
       <Button
         type="submit"
-        disabled={pending}
+        disabled={pending || reservasConflicto !== null}
         className="btn-lime-glow w-full bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold"
       >
         {pending ? "Bloqueando…" : "Bloquear horario"}

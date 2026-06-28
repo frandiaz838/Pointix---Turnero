@@ -72,11 +72,20 @@ export async function toggleCanchaActiva(courtId: string, isActive: boolean, ten
 }
 
 /**
- * Elimina una cancha en cascada: borra su Schedule, CourtBlock y Booking
- * asociados, y después la cancha. Requiere que el cliente confirme tipeando
- * el nombre exacto de la cancha (validado server-side).
+ * Archiva una cancha (soft delete) marcando `archivedAt`. Requiere que el
+ * admin confirme tipeando el nombre exacto de la cancha (validado server-side).
  *
- * Devuelve un objeto con conteos de lo eliminado para mostrar feedback.
+ * Preserva el histórico:
+ *   - Las reservas COMPLETED/CANCELLED/CONFIRMED del pasado siguen existiendo
+ *     y siguen contando en los reportes de ingresos históricos.
+ *   - Los Schedule y CourtBlock asociados también se conservan.
+ *
+ * Limpia el futuro:
+ *   - Cancela las reservas PENDING/CONFIRMED futuras para que no queden
+ *     clientes esperando una cancha que ya no existe.
+ *
+ * La cancha queda excluida automáticamente de listados, selectors y del
+ * sitio público vía el filtro `archivedAt: null`.
  */
 export async function eliminarCancha(
   courtId: string,
@@ -97,22 +106,32 @@ export async function eliminarCancha(
     throw new Error("El nombre no coincide. Tipealo igual al de la cancha.")
   }
 
-  const [reservas, bloqueos, horarios] = await prisma.$transaction([
-    prisma.booking.count({ where: { courtId } }),
+  const ahora = new Date()
+  const [reservasFuturas, bloqueos, horarios] = await prisma.$transaction([
+    prisma.booking.count({
+      where: { courtId, startTime: { gte: ahora }, status: { in: ["PENDING", "CONFIRMED"] } },
+    }),
     prisma.courtBlock.count({ where: { courtId } }),
     prisma.schedule.count({ where: { courtId } }),
   ])
 
   await prisma.$transaction([
-    prisma.booking.deleteMany({ where: { courtId } }),
-    prisma.courtBlock.deleteMany({ where: { courtId } }),
-    prisma.schedule.deleteMany({ where: { courtId } }),
-    prisma.court.delete({ where: { id: courtId } }),
+    // Cancelar reservas futuras activas para liberar a los clientes.
+    prisma.booking.updateMany({
+      where: { courtId, startTime: { gte: ahora }, status: { in: ["PENDING", "CONFIRMED"] } },
+      data: { status: "CANCELLED", mpStatus: "CANCELLED_POR_ARCHIVAR_CANCHA" },
+    }),
+    // Soft delete: archivedAt + isActive=false. No borramos reservas históricas
+    // ni schedules/blocks, así los reportes de ingresos pasados quedan intactos.
+    prisma.court.update({
+      where: { id: courtId },
+      data: { archivedAt: ahora, isActive: false },
+    }),
   ])
 
   revalidatePath(`/dashboard/${slug}`)
   revalidatePath(`/${slug}`)
-  return { reservas, bloqueos, horarios }
+  return { reservas: reservasFuturas, bloqueos, horarios }
 }
 
 export async function guardarHorarios(courtId: string, tenantId: string, slug: string, formData: FormData) {

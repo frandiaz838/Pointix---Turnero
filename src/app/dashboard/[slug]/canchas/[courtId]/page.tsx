@@ -69,6 +69,9 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
     include: { schedules: true },
   })
   if (!cancha) notFound()
+  // Si la cancha fue archivada, la edición no tiene sentido — redirigimos
+  // al dashboard. El histórico queda intacto pero ya no se puede tocar.
+  if (cancha.archivedAt) redirect(`/dashboard/${slug}`)
 
   const tab = parseTab(tabParam)
 

@@ -16,6 +16,9 @@ import { Paginacion } from "@/components/admin/paginacion"
 import { AdminToast } from "@/components/admin/admin-toast"
 import { UndoConfirmacionToast } from "@/components/admin/undo-confirmacion-toast"
 import { nowInArAsArtificialUtc, todayInArIso } from "@/lib/timezone"
+import { expireStalePendings } from "@/lib/bookings"
+
+export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -106,11 +109,20 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
     redirect("/dashboard")
   }
 
+  await expireStalePendings(tenant.id)
+
   const queryBusqueda = q?.trim() ?? ""
   const enModoBusqueda = queryBusqueda.length > 0
 
-  const ahora = new Date()
-  const hoyStr = ahora.toISOString().split("T")[0]
+  // Fecha real del club (zona horaria AR), no UTC del server.
+  const hoyStr = todayInArIso()
+  const [yHoy, mHoy, dHoy] = hoyStr.split("-").map(Number)
+
+  // Sumar N días en calendar-time AR (sin saltos por horarios de verano), siempre
+  // sobre la base de hoyStr ya anclada a Argentina.
+  function fechaAr(offsetDias: number): string {
+    return new Date(Date.UTC(yHoy, mHoy - 1, dHoy + offsetDias)).toISOString().split("T")[0]
+  }
 
   let inicioRango: Date
   let finRango: Date
@@ -124,24 +136,18 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
     periodoActivo = "custom"
     fechaSeleccionada = fecha
   } else if (periodo === "manana") {
-    const d = new Date(ahora)
-    d.setUTCDate(ahora.getUTCDate() + 1)
-    const manStr = d.toISOString().split("T")[0]
+    const manStr = fechaAr(1)
     inicioRango = new Date(`${manStr}T00:00:00.000Z`)
     finRango = new Date(`${manStr}T23:59:59.999Z`)
     periodoActivo = "manana"
   } else if (periodo === "semana") {
-    const d = new Date(ahora)
-    d.setUTCDate(ahora.getUTCDate() + 6)
-    const finStr = d.toISOString().split("T")[0]
+    const finStr = fechaAr(6)
     inicioRango = new Date(`${hoyStr}T00:00:00.000Z`)
     finRango = new Date(`${finStr}T23:59:59.999Z`)
     esMultiple = true
     periodoActivo = "semana"
   } else if (periodo === "2semanas") {
-    const d = new Date(ahora)
-    d.setUTCDate(ahora.getUTCDate() + 13)
-    const finStr = d.toISOString().split("T")[0]
+    const finStr = fechaAr(13)
     inicioRango = new Date(`${hoyStr}T00:00:00.000Z`)
     finRango = new Date(`${finStr}T23:59:59.999Z`)
     esMultiple = true
@@ -166,8 +172,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
       }
     : null
 
-  const inicioBusqueda = new Date(ahora)
-  inicioBusqueda.setUTCMonth(inicioBusqueda.getUTCMonth() - 12)
+  const inicioBusqueda = new Date(Date.UTC(yHoy, mHoy - 1 - 12, dHoy))
 
   // Where común a count + findMany: filtros tenant + período/búsqueda + estado
   const filtroEstado = estadoFiltro !== "todos" ? { status: estadoFiltro } : {}
@@ -214,17 +219,13 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
     }
   }
 
-  // Para que "Hoy" / "Mañana" muestren también la fecha real al lado
-  const hoyArIso = todayInArIso()
-  const mañanaArIso = (() => {
-    const [y, m, d] = hoyArIso.split("-").map(Number)
-    const next = new Date(Date.UTC(y, m - 1, d + 1))
-    return next.toISOString().split("T")[0]
-  })()
+  // Para que "Hoy" / "Mañana" muestren también la fecha real al lado.
+  // Reutilizamos hoyStr y fechaAr declarados arriba para no recalcular.
+  const mañanaArIso = fechaAr(1)
 
   const tituloFecha =
     periodoActivo === "hoy"
-      ? `Hoy · ${formatFechaDia(hoyArIso)}`
+      ? `Hoy · ${formatFechaDia(hoyStr)}`
       : periodoActivo === "manana"
       ? `Mañana · ${formatFechaDia(mañanaArIso)}`
       : periodoActivo === "semana"

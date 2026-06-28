@@ -6,6 +6,10 @@ import { OcupacionChart } from "@/components/admin/ocupacion-chart"
 import { generarSlots } from "@/lib/slots"
 import { LayoutGrid } from "lucide-react"
 import { sportLabel } from "@/lib/sports"
+import { todayInArIso } from "@/lib/timezone"
+import { expireStalePendings } from "@/lib/bookings"
+
+export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -19,19 +23,20 @@ const estadoLabel: Record<string, string> = {
   COMPLETED: "Completada",
 }
 
-function getRango(periodo: string, ahora: Date) {
+// Recibe la fecha de hoy en AR como YYYY-MM-DD para que el rango refleje
+// el día real del club, no el UTC del server.
+function getRango(periodo: string, hoyAr: string) {
+  const [y, mHumano, d] = hoyAr.split("-").map(Number)
+  const m = mHumano - 1
   if (periodo === "hoy") {
-    const hoy = ahora.toISOString().split("T")[0]
     return {
-      inicio: new Date(`${hoy}T00:00:00.000Z`),
-      fin: new Date(`${hoy}T23:59:59.999Z`),
+      inicio: new Date(`${hoyAr}T00:00:00.000Z`),
+      fin: new Date(`${hoyAr}T23:59:59.999Z`),
     }
   }
   if (periodo === "semana") {
-    const dia = ahora.getUTCDay()
-    const lunes = new Date(ahora)
-    lunes.setUTCDate(ahora.getUTCDate() - ((dia + 6) % 7))
-    lunes.setUTCHours(0, 0, 0, 0)
+    const diaSemana = new Date(Date.UTC(y, m, d)).getUTCDay()
+    const lunes = new Date(Date.UTC(y, m, d - ((diaSemana + 6) % 7), 0, 0, 0, 0))
     const domingo = new Date(lunes)
     domingo.setUTCDate(lunes.getUTCDate() + 6)
     domingo.setUTCHours(23, 59, 59, 999)
@@ -39,13 +44,13 @@ function getRango(periodo: string, ahora: Date) {
   }
   if (periodo === "año") {
     return {
-      inicio: new Date(Date.UTC(ahora.getUTCFullYear(), 0, 1)),
-      fin: new Date(Date.UTC(ahora.getUTCFullYear(), 11, 31, 23, 59, 59, 999)),
+      inicio: new Date(Date.UTC(y, 0, 1)),
+      fin: new Date(Date.UTC(y, 11, 31, 23, 59, 59, 999)),
     }
   }
   return {
-    inicio: new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth(), 1)),
-    fin: new Date(Date.UTC(ahora.getUTCFullYear(), ahora.getUTCMonth() + 1, 0, 23, 59, 59, 999)),
+    inicio: new Date(Date.UTC(y, m, 1)),
+    fin: new Date(Date.UTC(y, m + 1, 0, 23, 59, 59, 999)),
   }
 }
 
@@ -77,11 +82,13 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
     redirect("/dashboard")
   }
 
-  const ahora = new Date()
-  const { inicio, fin } = getRango(periodo, ahora)
+  await expireStalePendings(tenant.id)
+
+  const hoyAr = todayInArIso()
+  const { inicio, fin } = getRango(periodo, hoyAr)
 
   const canchas = await prisma.court.findMany({
-    where: { tenantId: tenant.id, isActive: true },
+    where: { tenantId: tenant.id, isActive: true, archivedAt: null },
     include: {
       schedules: true,
       bookings: {

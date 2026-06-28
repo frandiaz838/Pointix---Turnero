@@ -14,6 +14,7 @@ import { generarSlots } from "@/lib/slots"
 import { buildMensajeReserva, buildWhatsappUrl } from "@/lib/whatsapp"
 import { calcularDesglose } from "@/lib/pricing"
 import { sportLabel } from "@/lib/sports"
+import { expireStalePendings } from "@/lib/bookings"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -54,7 +55,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
     where: { slug },
     include: {
       courts: {
-        where: { isActive: true },
+        where: { isActive: true, archivedAt: null },
         include: { schedules: true },
         orderBy: [{ sport: "asc" }, { name: "asc" }],
       },
@@ -74,14 +75,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
 
   // Marca como EXPIRED las reservas PENDING que pasaron su expiresAt sin pagar.
   // Esto libera los slots automáticamente sin necesidad de cron.
-  await prisma.booking.updateMany({
-    where: {
-      tenantId: tenant.id,
-      status: "PENDING",
-      expiresAt: { lt: new Date(), not: null },
-    },
-    data: { status: "EXPIRED" },
-  })
+  await expireStalePendings(tenant.id)
 
   const [reservas, bookingsHoy, bloqueos, bloqueosHoy] = await Promise.all([
     prisma.booking.findMany({
