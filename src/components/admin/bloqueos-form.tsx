@@ -17,7 +17,8 @@ import {
 } from "@/components/ui/popover"
 import { Calendar } from "@/components/ui/calendar"
 import { AlertCircle, CalendarDays, Clock, CheckCircle } from "lucide-react"
-import { crearBloqueo, ERROR_BLOQUEO_CONFLICTO } from "@/actions/bloqueos"
+import { crearBloqueo } from "@/actions/bloqueos"
+import { ERROR_BLOQUEO_CONFLICTO } from "@/lib/bloqueos-errors"
 
 interface Props {
   slug: string

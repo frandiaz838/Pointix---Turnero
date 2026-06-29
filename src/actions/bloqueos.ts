@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { nowInArAsArtificialUtc } from "@/lib/timezone"
-
-// Prefijo del mensaje de error cuando el bloqueo se solapa con reservas
-// activas. La UI lo parsea para mostrar un diálogo de confirmación con la
-// cantidad de reservas afectadas en vez de un error plano.
-export const ERROR_BLOQUEO_CONFLICTO = "BLOQUEO_TIENE_RESERVAS"
+import { ERROR_BLOQUEO_CONFLICTO } from "@/lib/bloqueos-errors"
 
 // Crear un bloqueo: rango de tiempo en el que la cancha no acepta reservas.
 // Si endTime <= startTime, se trata el día entero.
