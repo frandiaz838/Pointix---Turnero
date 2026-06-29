@@ -1,9 +1,10 @@
 "use server"
 
-import { MercadoPagoConfig, Preference } from "mercadopago"
+import { MercadoPagoConfig, Preference, Payment } from "mercadopago"
 import { prisma } from "@/lib/prisma"
 import { calcularDesglose } from "@/lib/pricing"
 import { decryptToken } from "@/lib/crypto"
+import { notificarReservaConfirmada } from "@/lib/booking-notifications"
 
 /**
  * Crea una Preference en MercadoPago para pagar una reserva.
@@ -103,4 +104,72 @@ export async function crearPreferenciaParaReserva(
   })
 
   return { initPoint: resp.init_point, preferenceId: resp.id }
+}
+
+/**
+ * Verifica sincrónicamente el estado de pago de una reserva contra MP.
+ *
+ * Es el fallback al webhook: si MP no nos avisó (o tardó), cuando el cliente
+ * vuelve a la URL de éxito le consultamos directo a MP qué pasó con el pago
+ * usando `external_reference` (que es nuestro bookingId).
+ *
+ * Comportamiento:
+ *   - Si la reserva no está PENDING, no hace nada.
+ *   - Si hay un pago `approved` para ese bookingId, la marca CONFIRMED y
+ *     dispara el email de confirmación (igual que haría el webhook).
+ *   - Errores se loguean pero no se propagan: la página de éxito tiene que
+ *     renderizar igual aunque MP esté caído.
+ *
+ * Devuelve true si la verificación cambió el estado.
+ */
+export async function verificarPagoReserva(bookingId: string): Promise<boolean> {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      select: {
+        id: true,
+        status: true,
+        tenant: { select: { mpAccessToken: true } },
+      },
+    })
+    if (!booking) return false
+    if (booking.status !== "PENDING") return false
+    if (!booking.tenant.mpAccessToken) return false
+
+    const accessTokenPlano = decryptToken(booking.tenant.mpAccessToken)
+    const config = new MercadoPagoConfig({ accessToken: accessTokenPlano })
+    const paymentClient = new Payment(config)
+
+    const search = await paymentClient.search({
+      options: {
+        external_reference: bookingId,
+        sort: "date_created",
+        criteria: "desc",
+      },
+    })
+
+    const results = search?.results ?? []
+    const approved = results.find(p => p.status === "approved")
+    if (!approved) return false
+
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        status: "CONFIRMED",
+        mpPaymentId: String(approved.id ?? ""),
+        mpStatus: "approved",
+      },
+    })
+
+    // Email de confirmación — el webhook hace lo mismo si llega.
+    // notificarReservaConfirmada es idempotente respecto a duplicados de envío:
+    // ya hubo "race conditions" en el pasado, pero no envía 2 mails seguidos
+    // si la reserva ya estaba CONFIRMED antes de este path.
+    await notificarReservaConfirmada(bookingId)
+
+    return true
+  } catch (e) {
+    console.error("[verificarPagoReserva] error:", e)
+    return false
+  }
 }

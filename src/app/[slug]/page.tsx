@@ -15,6 +15,7 @@ import { buildMensajeReserva, buildWhatsappUrl } from "@/lib/whatsapp"
 import { calcularDesglose } from "@/lib/pricing"
 import { sportLabel } from "@/lib/sports"
 import { expireStalePendings } from "@/lib/bookings"
+import { verificarPagoReserva } from "@/actions/mp"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -66,6 +67,17 @@ export default async function TenantPage({ params, searchParams }: Props) {
   // Si reservado es un bookingId (no "true"), buscar la reserva para mostrar
   // la tarjeta de éxito con CTA de WhatsApp.
   const esBookingIdValido = !!reservadoParam && reservadoParam !== "true" && reservadoParam.length > 10
+
+  // Fallback al webhook MP: si el cliente vuelve acá con la reserva en
+  // PENDING, le consultamos sincrónicamente a MP si el pago se aprobó.
+  // Esto resuelve el caso típico en que MP no llama al webhook a tiempo
+  // (o nunca) y el cliente veía la reserva como "no confirmada" aunque
+  // ya había pagado. verificarPagoReserva confirma la reserva y dispara
+  // el email — el mismo trabajo que haría el webhook si hubiera llegado.
+  if (esBookingIdValido && reservadoParam) {
+    await verificarPagoReserva(reservadoParam)
+  }
+
   const bookingExitoso = esBookingIdValido
     ? await prisma.booking.findFirst({
         where: { id: reservadoParam, tenantId: tenant.id },
