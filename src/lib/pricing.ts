@@ -3,10 +3,11 @@
 // - Si el tenant NO tiene seña configurada (null o 0), se cobra el 100% del
 //   precio total (comportamiento default).
 // - Si tiene seña configurada (1-100), se cobra ese porcentaje del total.
-// - El monto online tiene un piso de $5 ARS (mínimo razonable de MP). Si el %
-//   da menos de eso, se redondea hacia arriba a $5.
+// - El monto online tiene un piso de $1 ARS. Si el % calculado da menos,
+//   redondea hacia arriba al piso. $1 es el mínimo que acepta MP y nos
+//   permite hacer pruebas sin gastar plata.
 
-const MONTO_MINIMO_ONLINE = 5
+const MONTO_MINIMO_ONLINE = 1
 
 export interface DesgloseSeña {
   /** Monto total que sale alquilar la cancha (precio entero del slot). */
