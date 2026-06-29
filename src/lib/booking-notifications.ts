@@ -36,7 +36,12 @@ export async function notificarReservaConfirmada(bookingId: string): Promise<voi
 
     const clienteNombre = booking.guestName ?? booking.user?.name ?? "Cliente"
     const sportLbl      = sportLabel(booking.court.sport as string)
-    const paidOnline    = booking.status === "CONFIRMED" && !!booking.mpPaymentId
+    // paidOnline: la reserva pasó por el flujo de MP si tiene preferenceId
+    // (creada por crearPreferenciaParaReserva). Antes esto requería que el
+    // webhook hubiera seteado mpPaymentId, lo cual fallaba cuando el admin
+    // confirmaba a mano por demora del webhook → el email no mostraba el
+    // desglose de seña y aparecía como "pago en complejo" del total entero.
+    const paidOnline    = booking.status === "CONFIRMED" && (!!booking.mpPaymentId || !!booking.mpPreferenceId)
     const desglose      = calcularDesglose(Number(booking.totalPrice), booking.tenant.mpSenaPercentage)
 
     const mensajeWsp = buildMensajeReserva({
