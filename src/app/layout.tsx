@@ -18,9 +18,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// metadataBase es necesario para que Next.js resuelva og:image a URL absoluta
+// (WhatsApp y Twitter rechazan paths relativos). Se respeta también para
+// canonical, alternates, etc.
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://pointix.com.ar"
+
 export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
   title: "Pointix — Reservas deportivas",
   description: "Reservá tu cancha online las 24hs",
+  openGraph: {
+    type: "website",
+    siteName: "Pointix",
+    title: "Pointix — Reservas deportivas",
+    description: "Reservá tu cancha online las 24hs",
+    locale: "es_AR",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Pointix — Reservas deportivas",
+    description: "Reservá tu cancha online las 24hs",
+  },
 };
 
 export default function RootLayout({
