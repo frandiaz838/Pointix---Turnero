@@ -5,6 +5,8 @@ import { auth } from "@/lib/session"
 import { MpConfigForm } from "@/components/admin/mp-config-form"
 import { DatosClubForm } from "@/components/admin/datos-club-form"
 import { ShareLinkCard } from "@/components/admin/share-link-card"
+import { CerrarSesionTodosBtn } from "@/components/admin/cerrar-sesion-todos-btn"
+import { tokenSuffix } from "@/lib/crypto"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -35,7 +37,9 @@ export default async function ConfiguracionPage({ params }: Props) {
 
   const token = tenant.mpAccessToken
   const accessTokenConfigurado = !!token
-  const accessTokenUltimos4 = token ? token.slice(-4) : null
+  // El token puede estar cifrado en la DB — tokenSuffix lo descifra y
+  // devuelve los últimos 4 chars del valor plaintext real (fingerprint UI).
+  const accessTokenUltimos4 = tokenSuffix(token, 4)
 
   // URL publica de reservas del club. Fallback al dominio canonical
   // para que aunque NEXT_PUBLIC_APP_URL no este seteada en dev/preview,
@@ -94,6 +98,12 @@ export default async function ConfiguracionPage({ params }: Props) {
               senaPercentage: tenant.mpSenaPercentage,
             }}
           />
+        </div>
+
+        {/* Sección 3: Seguridad */}
+        <div className="space-y-3">
+          <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Seguridad</h2>
+          <CerrarSesionTodosBtn />
         </div>
 
       </section>

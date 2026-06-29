@@ -7,6 +7,7 @@ import { auth } from "@/lib/session"
 import { generarSlots } from "@/lib/slots"
 import { nowInArAsArtificialUtc } from "@/lib/timezone"
 import { notificarReservaConfirmada } from "@/lib/booking-notifications"
+import { checkRateLimit, getClientIp } from "@/lib/ratelimit"
 
 export async function cancelarReserva(bookingId: string) {
   const session = await auth()
@@ -192,6 +193,13 @@ export async function obtenerSlotsOcupados(courtId: string, fecha: string): Prom
   })
 }
 
+// Rate limit del flujo público: 5 reservas por IP cada 10 minutos. Esto
+// evita que un atacante o un cliente con bug en su lado spamée reservas
+// PENDING que bloquean slots hasta que expiren (~30 min cada una).
+// Admins logueados quedan exentos para no interferir con creación manual.
+const RL_RESERVAS_PUBLICAS_LIMIT = 5
+const RL_RESERVAS_PUBLICAS_WINDOW_MS = 10 * 60 * 1000
+
 export async function crearReserva(formData: FormData) {
   const session = await auth()
 
@@ -206,6 +214,23 @@ export async function crearReserva(formData: FormData) {
   // Si no hay sesión, nombre y teléfono son obligatorios
   if (!session?.user && (!guestName?.trim() || !guestPhone?.trim())) {
     throw new Error("Ingresá tu nombre y teléfono para reservar")
+  }
+
+  // Rate limit (skip si está logueado como admin — el panel admin tiene
+  // sus propios controles para crear muchas reservas).
+  if (!session?.user || session.user.role !== "ADMIN") {
+    const ip = await getClientIp()
+    const rl = checkRateLimit(
+      `reserva:${ip}`,
+      RL_RESERVAS_PUBLICAS_LIMIT,
+      RL_RESERVAS_PUBLICAS_WINDOW_MS,
+    )
+    if (!rl.ok) {
+      const min = Math.ceil(rl.retryAfterSec / 60)
+      throw new Error(
+        `Hiciste muchas reservas seguidas. Probá de nuevo en ${min} minuto${min === 1 ? "" : "s"}.`
+      )
+    }
   }
 
   const cancha = await prisma.court.findUnique({

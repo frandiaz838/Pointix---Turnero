@@ -100,6 +100,13 @@ model User {
   password      String?
   role          Role      @default(CLIENT)
 
+  // Marca de revocación de sesiones JWT. Cualquier JWT cuyo `iat` (issued at)
+  // sea anterior a este timestamp es rechazado por getSession(). Se actualiza
+  // en cada login (invalida sesiones previas) y en cada logout (invalida la
+  // actual en otros dispositivos). Resuelve la limitación natural de JWT:
+  // sin estado server-side no se podrían revocar tokens antes de su exp.
+  sessionsRevokedAt DateTime?
+
   tenantId String?
   tenant   Tenant? @relation(fields: [tenantId], references: [id])
 

@@ -13,7 +13,25 @@ export const dynamic = "force-dynamic"
 
 interface Props {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ periodo?: string }>
+  searchParams: Promise<{ periodo?: string; tramo?: string }>
+}
+
+// Tramos horarios para análisis de ocupación. "Pico" es 18-23 (rango típico
+// de demanda alta en complejos deportivos AR — después del trabajo). Sin esto,
+// un complejo que abre 8-23 con buena ocupación a la noche muestra un % global
+// muy bajo (porque los slots vacíos de 8-17 inflan el denominador).
+type Tramo = "todos" | "pico"
+const RANGOS_TRAMO: Record<Tramo, { inicio: number; fin: number } | null> = {
+  todos: null,
+  pico:  { inicio: 18, fin: 23 },
+}
+function parseTramo(s: string | undefined): Tramo {
+  return s === "pico" ? "pico" : "todos"
+}
+function hourMatchesTramo(hour: number, tramo: Tramo): boolean {
+  const r = RANGOS_TRAMO[tramo]
+  if (!r) return true
+  return hour >= r.inicio && hour < r.fin
 }
 
 const estadoLabel: Record<string, string> = {
@@ -57,13 +75,20 @@ function getRango(periodo: string, hoyAr: string) {
 function calcularSlotsTotal(
   schedules: { dayOfWeek: number; openTime: string; closeTime: string; slotMinutes: number }[],
   inicio: Date,
-  fin: Date
+  fin: Date,
+  tramo: Tramo,
 ) {
   let total = 0
   const cursor = new Date(inicio)
   while (cursor <= fin) {
     const s = schedules.find((s) => s.dayOfWeek === cursor.getUTCDay())
-    if (s) total += generarSlots(s.openTime, s.closeTime, s.slotMinutes).length
+    if (s) {
+      const slotsDelDia = generarSlots(s.openTime, s.closeTime, s.slotMinutes)
+      total += slotsDelDia.filter(slot => {
+        const h = parseInt(slot.split(":")[0], 10)
+        return hourMatchesTramo(h, tramo)
+      }).length
+    }
     cursor.setUTCDate(cursor.getUTCDate() + 1)
   }
   return total
@@ -71,8 +96,9 @@ function calcularSlotsTotal(
 
 export default async function OcupacionPage({ params, searchParams }: Props) {
   const { slug } = await params
-  const { periodo: periodoParam } = await searchParams
+  const { periodo: periodoParam, tramo: tramoParam } = await searchParams
   const periodo = periodoParam ?? "mes"
+  const tramo = parseTramo(tramoParam)
 
   const session = await auth()
   const tenant = await prisma.tenant.findUnique({ where: { slug } })
@@ -104,10 +130,13 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
   })
 
   const datosCanchas = canchas.map((c) => {
-    const slotsTotal = calcularSlotsTotal(c.schedules, inicio, fin)
-    const reservas = c.bookings.length
+    const slotsTotal = calcularSlotsTotal(c.schedules, inicio, fin, tramo)
+    // Filtramos las bookings por tramo para que el conteo y el listado de
+    // abajo respeten el filtro horario actual.
+    const bookingsTramo = c.bookings.filter(b => hourMatchesTramo(b.startTime.getUTCHours(), tramo))
+    const reservas = bookingsTramo.length
     const ocupacion = slotsTotal > 0 ? Math.round((reservas / slotsTotal) * 100) : 0
-    return { ...c, slotsTotal, reservas, ocupacion }
+    return { ...c, bookings: bookingsTramo, slotsTotal, reservas, ocupacion }
   })
 
   const chartData = datosCanchas.map((c) => ({ name: c.name, ocupacion: c.ocupacion }))
@@ -189,7 +218,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
           {(["hoy", "semana", "mes", "año"] as const).map((p) => (
             <Link
               key={p}
-              href={`/dashboard/${slug}/ocupacion?periodo=${p}`}
+              href={`/dashboard/${slug}/ocupacion?periodo=${p}${tramo === "pico" ? "&tramo=pico" : ""}`}
               className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-200 ${
                 periodo === p
                   ? "btn-lime-glow bg-[#A3FF12] text-black border-[#A3FF12]"
@@ -201,10 +230,32 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
           ))}
         </div>
 
+        {/* Selector de tramo horario: la métrica global castiga a los clubes
+            con horarios largos (los slots vacíos de la mañana inflan el
+            denominador). El tramo "Horarios pico" mira solo 18-23h, que es
+            cuando la demanda real define qué tan lleno está el complejo. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mr-1">Tramo:</span>
+          {(["todos", "pico"] as const).map((t) => (
+            <Link
+              key={t}
+              href={`/dashboard/${slug}/ocupacion?periodo=${periodo}${t === "pico" ? "&tramo=pico" : ""}`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-200 ${
+                tramo === t
+                  ? "bg-[#A3FF12]/15 text-[#A3FF12] border-[#A3FF12]/40"
+                  : "glass-nav text-white/55 hover:text-white"
+              }`}
+            >
+              {t === "todos" ? "Todo el día" : "Horarios pico (18–23h)"}
+            </Link>
+          ))}
+        </div>
+
         {/* Gráfico */}
         <div className="glass-card rounded-xl p-5">
           <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
             % Ocupación por cancha — {periodoLabel[periodo].toLowerCase()}
+            {tramo === "pico" && <span className="text-[#A3FF12]/70"> · horarios pico</span>}
           </p>
           <OcupacionChart data={chartData} maxDominio={maxDominio} />
         </div>

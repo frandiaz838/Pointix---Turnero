@@ -1,5 +1,7 @@
 import { jwtVerify } from "jose"
 import { cookies } from "next/headers"
+import { cache } from "react"
+import { prisma } from "@/lib/prisma"
 import type { Role } from "@/generated/prisma/client"
 
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET!)
@@ -17,7 +19,20 @@ type Session = {
   expires: string
 } | null
 
-export async function getSession(): Promise<Session> {
+/**
+ * Devuelve la sesión actual a partir de la cookie `pointix-session`.
+ *
+ * Hace dos validaciones:
+ *   1. JWT firmado válido y no expirado (`jwtVerify`).
+ *   2. Revocación server-side: el `iat` del JWT debe ser >= `User.sessionsRevokedAt`.
+ *      Esto permite que logout y password-change invaliden inmediatamente
+ *      todos los tokens activos del usuario, no solo el del browser actual.
+ *
+ * Wrapped en `React.cache` para que múltiples llamadas a `auth()` durante el
+ * mismo request server-component compartan el resultado (incluyendo la
+ * query a User para chequear sessionsRevokedAt). Una sola DB hit por request.
+ */
+async function getSessionRaw(): Promise<Session> {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get("pointix-session")?.value
@@ -25,9 +40,25 @@ export async function getSession(): Promise<Session> {
 
     const { payload } = await jwtVerify(token, secret)
 
+    const userId = payload.sub as string
+    const iatSec = payload.iat as number | undefined
+
+    if (iatSec) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { sessionsRevokedAt: true },
+      })
+      // Si el usuario no existe ya, no hay sesión válida.
+      if (!user) return null
+      if (user.sessionsRevokedAt) {
+        const iatMs = iatSec * 1000
+        if (iatMs < user.sessionsRevokedAt.getTime()) return null
+      }
+    }
+
     return {
       user: {
-        id: payload.sub as string,
+        id: userId,
         email: payload.email as string,
         name: (payload.name as string) ?? null,
         role: payload.role as Role,
@@ -40,4 +71,5 @@ export async function getSession(): Promise<Session> {
   }
 }
 
+export const getSession = cache(getSessionRaw)
 export const auth = getSession

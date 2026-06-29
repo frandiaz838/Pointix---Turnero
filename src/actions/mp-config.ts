@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
+import { encryptToken } from "@/lib/crypto"
 
 // Verifica que el usuario sea ADMIN del tenant
 async function verificarAdmin(tenantId: string) {
@@ -67,7 +68,7 @@ export async function guardarConfigMp(tenantId: string, slug: string, formData: 
   } = {
     mpExpiryMinutes: Number.isFinite(expiryMinutes) && expiryMinutes > 0 ? expiryMinutes : 30,
   }
-  if (accessToken) dataToUpdate.mpAccessToken = accessToken
+  if (accessToken) dataToUpdate.mpAccessToken = encryptToken(accessToken)
   if (senaRaw !== "") dataToUpdate.mpSenaPercentage = mpSenaPercentage
 
   await prisma.tenant.update({

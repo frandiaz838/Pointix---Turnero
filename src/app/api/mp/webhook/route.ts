@@ -3,6 +3,7 @@ import { MercadoPagoConfig, Payment } from "mercadopago"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { notificarReservaConfirmada } from "@/lib/booking-notifications"
+import { decryptToken } from "@/lib/crypto"
 
 // MercadoPago llama a este endpoint cuando hay novedades de pago.
 // Body típico:
@@ -46,7 +47,9 @@ export async function POST(req: NextRequest) {
     for (const tenant of tenantsConMp) {
       if (!tenant.mpAccessToken) continue
       try {
-        const config = new MercadoPagoConfig({ accessToken: tenant.mpAccessToken })
+        // Token cifrado en DB → descifrado solo para esta llamada al SDK.
+        const accessTokenPlano = decryptToken(tenant.mpAccessToken)
+        const config = new MercadoPagoConfig({ accessToken: accessTokenPlano })
         const payment = new Payment(config)
         const data = await payment.get({ id: String(paymentId) })
         if (data && data.external_reference) {

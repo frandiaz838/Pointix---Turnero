@@ -3,6 +3,7 @@
 import { MercadoPagoConfig, Preference } from "mercadopago"
 import { prisma } from "@/lib/prisma"
 import { calcularDesglose } from "@/lib/pricing"
+import { decryptToken } from "@/lib/crypto"
 
 /**
  * Crea una Preference en MercadoPago para pagar una reserva.
@@ -32,6 +33,9 @@ export async function crearPreferenciaParaReserva(
     throw new Error("Este complejo no tiene MercadoPago conectado")
   }
 
+  // El token se guarda cifrado en la DB — lo descifra una sola vez para
+  // pasárselo al SDK. Si era legacy plaintext, decryptToken lo deja pasar.
+  const accessTokenPlano = decryptToken(booking.tenant.mpAccessToken)
   const desglose = calcularDesglose(Number(booking.totalPrice), booking.tenant.mpSenaPercentage)
 
   // Si la reserva ya tiene una preference creada, reusala (evita generar
@@ -39,7 +43,7 @@ export async function crearPreferenciaParaReserva(
   if (booking.mpPreferenceId) {
     // Intentamos reutilizar; si MP la rechaza, generamos una nueva más abajo.
     try {
-      const config = new MercadoPagoConfig({ accessToken: booking.tenant.mpAccessToken })
+      const config = new MercadoPagoConfig({ accessToken: accessTokenPlano })
       const prefClient = new Preference(config)
       const existente = await prefClient.get({ preferenceId: booking.mpPreferenceId })
       if (existente && existente.init_point) {
@@ -50,7 +54,7 @@ export async function crearPreferenciaParaReserva(
     }
   }
 
-  const config = new MercadoPagoConfig({ accessToken: booking.tenant.mpAccessToken })
+  const config = new MercadoPagoConfig({ accessToken: accessTokenPlano })
   const prefClient = new Preference(config)
 
   const horaInicio = `${String(booking.startTime.getUTCHours()).padStart(2, "0")}:${String(booking.startTime.getUTCMinutes()).padStart(2, "0")}`

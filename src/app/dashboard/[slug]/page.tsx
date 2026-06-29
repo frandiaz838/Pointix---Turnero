@@ -70,7 +70,11 @@ export default async function AdminDashboardPage({ params }: Props) {
   const inicioAyer = new Date(`${ayerStr}T00:00:00.000Z`)
   const finAyer = new Date(`${ayerStr}T23:59:59.999Z`)
 
-  const [reservasHoy, reservasMes, canchas, countAyer] = await Promise.all([
+  const RESERVAS_HOY_LIMITE = 10
+
+  // KPIs van por separado para no cargar las N reservas del día solo para
+  // sumar el monto. La lista visible se limita a 10 (con "Ver todas" abajo).
+  const [reservasHoyVisibles, statsHoy, reservasMes, canchas, countAyer] = await Promise.all([
     prisma.booking.findMany({
       where: {
         tenantId: tenant.id,
@@ -82,6 +86,16 @@ export default async function AdminDashboardPage({ params }: Props) {
         user: { select: { name: true } },
       },
       orderBy: { startTime: "asc" },
+      take: RESERVAS_HOY_LIMITE,
+    }),
+    prisma.booking.aggregate({
+      where: {
+        tenantId: tenant.id,
+        startTime: { gte: inicio, lte: fin },
+        status: { in: ["PENDING", "CONFIRMED"] },
+      },
+      _sum: { totalPrice: true },
+      _count: { _all: true },
     }),
     prisma.booking.aggregate({
       where: {
@@ -105,8 +119,10 @@ export default async function AdminDashboardPage({ params }: Props) {
     }),
   ])
 
-  const ingresosHoy = reservasHoy.reduce((sum, r) => sum + Number(r.totalPrice), 0)
+  const totalReservasHoy = statsHoy._count._all
+  const ingresosHoy = Number(statsHoy._sum.totalPrice ?? 0)
   const ingresosMes = Number(reservasMes._sum.totalPrice ?? 0)
+  const reservasOcultas = Math.max(0, totalReservasHoy - reservasHoyVisibles.length)
 
   const totalSlotsHoy = canchas
     .filter(c => c.isActive)
@@ -114,9 +130,9 @@ export default async function AdminDashboardPage({ params }: Props) {
       const sch = c.schedules.find(s => s.dayOfWeek === diaSemana)
       return sch ? sum + generarSlots(sch.openTime, sch.closeTime, sch.slotMinutes).length : sum
     }, 0)
-  const ocupacion = totalSlotsHoy > 0 ? Math.round((reservasHoy.length / totalSlotsHoy) * 100) : null
+  const ocupacion = totalSlotsHoy > 0 ? Math.round((totalReservasHoy / totalSlotsHoy) * 100) : null
 
-  const diffAyer = reservasHoy.length - countAyer
+  const diffAyer = totalReservasHoy - countAyer
   const comparacionAyer =
     diffAyer > 0
       ? { text: `↑ ${diffAyer} más que ayer`, color: "text-[#A3FF12]" }
@@ -179,7 +195,7 @@ export default async function AdminDashboardPage({ params }: Props) {
             </div>
             <p className="font-display font-black text-white leading-none"
                style={{ fontSize: "clamp(2.5rem,6vw,3.5rem)" }}>
-              <CountUp value={reservasHoy.length} formatAR={false} />
+              <CountUp value={totalReservasHoy} formatAR={false} />
             </p>
             <p className={`text-xs font-medium ${comparacionAyer.color}`}>{comparacionAyer.text}</p>
           </div>
@@ -233,7 +249,7 @@ export default async function AdminDashboardPage({ params }: Props) {
         {/* Reservas del día */}
         <div className="space-y-3">
           <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Reservas de hoy</h2>
-          {reservasHoy.length === 0 ? (
+          {totalReservasHoy === 0 ? (
             <EmptyState
               icon={Inbox}
               titulo="No hay reservas para hoy"
@@ -250,28 +266,38 @@ export default async function AdminDashboardPage({ params }: Props) {
               ]}
             />
           ) : (
-            <div className="glass-card rounded-2xl divide-y divide-white/[0.05]">
-              {reservasHoy.map((r) => (
-                <div key={r.id} className="px-5 py-3.5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm font-bold text-white w-14 shrink-0 tabular-nums">
-                      {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
-                    </span>
-                    <span className="text-sm font-medium text-white/70 truncate">{r.court.name}</span>
-                    <span className="text-sm text-white/25 truncate hidden sm:block">
-                      {r.user?.name ?? r.guestName ?? "Invitado"}
-                    </span>
+            <div className="space-y-2">
+              <div className="glass-card rounded-2xl divide-y divide-white/[0.05]">
+                {reservasHoyVisibles.map((r) => (
+                  <div key={r.id} className="px-5 py-3.5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-sm font-bold text-white w-14 shrink-0 tabular-nums">
+                        {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
+                      </span>
+                      <span className="text-sm font-medium text-white/70 truncate">{r.court.name}</span>
+                      <span className="text-sm text-white/25 truncate hidden sm:block">
+                        {r.user?.name ?? r.guestName ?? "Invitado"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
+                        {estadoLabel[r.status] ?? r.status}
+                      </span>
+                      <span className="text-sm font-bold text-white tabular-nums">
+                        ${Number(r.totalPrice).toLocaleString("es-AR")}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
-                      {estadoLabel[r.status] ?? r.status}
-                    </span>
-                    <span className="text-sm font-bold text-white tabular-nums">
-                      ${Number(r.totalPrice).toLocaleString("es-AR")}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              {reservasOcultas > 0 && (
+                <Link
+                  href={`/dashboard/${slug}/reservas`}
+                  className="block text-center text-xs font-semibold text-[#A3FF12]/80 hover:text-[#A3FF12] glass-nav rounded-xl px-4 py-2.5 transition-colors"
+                >
+                  Ver las otras {reservasOcultas} reservas →
+                </Link>
+              )}
             </div>
           )}
         </div>
