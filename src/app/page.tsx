@@ -125,33 +125,33 @@ export default function Home() {
           />
 
           {/* Preview de la grilla del cliente */}
-          <div className="relative glass-card rounded-2xl p-7 sm:p-9 text-left shadow-2xl">
+          <div className="relative glass-card rounded-2xl p-4 sm:p-9 text-left shadow-2xl overflow-hidden">
 
             {/* Header */}
-            <div className="flex items-center justify-between mb-7">
+            <div className="flex items-center justify-between mb-5 sm:mb-7">
               <div>
-                <p className="text-[11px] font-bold text-white/45 uppercase tracking-[0.22em]">
+                <p className="text-[10px] sm:text-[11px] font-bold text-white/45 uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                   Así reservan tus clientes
                 </p>
                 <p
-                  className="font-display font-black uppercase text-white text-2xl sm:text-3xl leading-none mt-2"
+                  className="font-display font-black uppercase text-white text-xl sm:text-3xl leading-none mt-1.5 sm:mt-2"
                   style={{ letterSpacing: "0.035em" }}
                 >
                   Club Río
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-[11px] font-bold text-white/45 uppercase tracking-[0.22em]">
+                <p className="text-[10px] sm:text-[11px] font-bold text-white/45 uppercase tracking-[0.18em] sm:tracking-[0.22em]">
                   Hoy
                 </p>
-                <p className="font-semibold text-white text-base mt-2">
+                <p className="font-semibold text-white text-sm sm:text-base mt-1.5 sm:mt-2">
                   Sáb 21 jun
                 </p>
               </div>
             </div>
 
             {/* Filtros deporte */}
-            <div className="flex items-center gap-2.5 mb-6">
+            <div className="flex items-center gap-2 sm:gap-2.5 mb-5 sm:mb-6">
               {[
                 { label: "Todos", active: true },
                 { label: "Pádel", active: false },
@@ -160,7 +160,7 @@ export default function Home() {
                 <button
                   key={i}
                   type="button"
-                  className={`text-sm font-semibold px-4 py-2 rounded-full border transition-all duration-200 hover:scale-105 ${
+                  className={`text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-all duration-200 hover:scale-105 ${
                     tag.active
                       ? "bg-[#A3FF12] text-black border-[#A3FF12] shadow-[0_0_16px_rgba(163,255,18,0.3)]"
                       : "bg-white/[0.03] text-white/55 border-white/[0.08] hover:bg-white/[0.08] hover:text-white/85 hover:border-white/[0.15]"
@@ -171,33 +171,55 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Grilla — header de horas */}
-            <div className="flex items-center gap-2 mb-2.5 pl-[96px] sm:pl-[140px]">
-              {["17", "18", "19", "20", "21", "22"].map((h) => (
-                <div key={h} className="flex-1 text-center text-xs font-mono font-bold text-white/40">
+            {/* Grilla — header de horas. En mobile mostramos 4 horarios (cab en la pantalla),
+                en desktop mantenemos los 6 originales. */}
+            <div className="flex items-center gap-1 sm:gap-2 mb-2 sm:mb-2.5 pl-[68px] sm:pl-[140px]">
+              {["17", "18", "19", "20"].map((h) => (
+                <div key={h} className="flex-1 text-center text-[10px] sm:text-xs font-mono font-bold text-white/40">
+                  {h}:00
+                </div>
+              ))}
+              {["21", "22"].map((h) => (
+                <div key={h} className="hidden sm:block flex-1 text-center text-xs font-mono font-bold text-white/40">
                   {h}:00
                 </div>
               ))}
             </div>
 
             {/* Grilla — filas de canchas */}
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               {[
                 { cancha: "Cancha 1", sport: "Pádel", slots: ["c", "c", "o", "d", "d", "d"] },
                 { cancha: "Cancha 2", sport: "Pádel", slots: ["c", "o", "c", "c", "d", "d"] },
                 { cancha: "Cancha 3", sport: "Fútbol 5", slots: ["c", "c", "c", "d", "d", "d"] },
               ].map((row, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-[88px] sm:w-[132px] shrink-0">
-                    <p className="text-sm font-semibold text-white truncate leading-tight">
+                <div key={i} className="flex items-center gap-1 sm:gap-2">
+                  <div className="w-[60px] sm:w-[132px] shrink-0">
+                    <p className="text-[11px] sm:text-sm font-semibold text-white truncate leading-tight">
                       {row.cancha}
                     </p>
-                    <p className="text-[11px] text-white/40 leading-tight mt-0.5">{row.sport}</p>
+                    <p className="text-[9px] sm:text-[11px] text-white/40 leading-tight mt-0.5 truncate">{row.sport}</p>
                   </div>
-                  {row.slots.map((s, j) => (
+                  {row.slots.slice(0, 4).map((s, j) => (
                     <div
                       key={j}
-                      className={`flex-1 h-12 sm:h-14 rounded-lg border flex items-center justify-center transition-all duration-200 ${
+                      className={`flex-1 h-10 sm:h-14 rounded-md sm:rounded-lg border flex items-center justify-center transition-all duration-200 ${
+                        s === "c"
+                          ? "bg-[#A3FF12]/10 border-[#A3FF12]/30 hover:bg-[#A3FF12]/25 hover:border-[#A3FF12]/60 hover:scale-110 cursor-pointer hover:shadow-[0_0_12px_rgba(163,255,18,0.4)]"
+                          : s === "o"
+                          ? "bg-red-500/10 border-red-500/20"
+                          : "bg-white/[0.025] border-white/[0.05]"
+                      }`}
+                    >
+                      {s === "c" && <Check className="w-3 h-3 sm:w-4 sm:h-4 text-[#A3FF12]" />}
+                      {s === "o" && <span className="text-[10px] sm:text-xs font-bold text-red-400">×</span>}
+                    </div>
+                  ))}
+                  {/* slots 5 y 6 solo en desktop */}
+                  {row.slots.slice(4).map((s, j) => (
+                    <div
+                      key={`d-${j}`}
+                      className={`hidden sm:flex flex-1 h-14 rounded-lg border items-center justify-center transition-all duration-200 ${
                         s === "c"
                           ? "bg-[#A3FF12]/10 border-[#A3FF12]/30 hover:bg-[#A3FF12]/25 hover:border-[#A3FF12]/60 hover:scale-110 cursor-pointer hover:shadow-[0_0_12px_rgba(163,255,18,0.4)]"
                           : s === "o"

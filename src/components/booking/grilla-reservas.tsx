@@ -269,8 +269,23 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
         </div>
       ) : (
         <>
-          {/* ── MOBILE — cards con slots agrupados por momento ─── */}
-          <div className="block sm:hidden space-y-4">
+          {/* Leyenda — solo desktop (en mobile el contexto visual ya es claro) */}
+          <div className="hidden sm:flex justify-end gap-5 text-xs font-medium text-white/30">
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm slot-available inline-block" />Disponible
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm slot-occupied inline-block" />Ocupado
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="w-3 h-3 rounded-sm slot-past inline-block" />Pasado
+            </span>
+          </div>
+
+          {/* ── Cards por cancha. Misma UX en mobile y desktop: una card por
+              cancha con slots agrupados por momento del día. En desktop con
+              ≥2 canchas usamos grid 2 columnas para aprovechar el ancho. ─── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
             {canchasConSlots.map(cancha => {
               const slotsVisibles = cancha.slots.filter(s => s.estado !== "cerrado")
               const grupos = (["manana", "tarde", "noche"] as const).map(m => ({
@@ -279,14 +294,16 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
               })).filter(g => g.slots.length > 0)
 
               return (
-                <div key={cancha.id} className="glass-card rounded-2xl p-4 space-y-4">
+                <div key={cancha.id} className="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
+                  {/* Cabecera de la cancha: nombre + deporte + precio destacado */}
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-white">{cancha.name}</span>
+                    <span className="font-bold text-white text-base sm:text-lg">{cancha.name}</span>
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
                       {sportLabel(cancha.sport)}
                     </span>
-                    <span className="text-xs text-[#A3FF12]/60 font-display font-black ml-auto">
-                      ${cancha.pricePerHour.toLocaleString("es-AR")}/h
+                    <span className="ml-auto font-display font-black text-[#A3FF12] text-lg sm:text-xl tabular-nums text-glow-lime">
+                      ${cancha.pricePerHour.toLocaleString("es-AR")}
+                      <span className="text-white/35 font-sans font-medium text-xs ml-1">/h</span>
                     </span>
                   </div>
 
@@ -296,7 +313,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
                         <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mb-2">
                           {MOMENTO_LABEL[momento]}
                         </p>
-                        <div className="grid grid-cols-4 gap-2">
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
                           {slots.map(({ hora, estado }) => {
                             const isSel = selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
                             return (
@@ -321,66 +338,6 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
                 </div>
               )
             })}
-          </div>
-
-          {/* ── DESKTOP — tabla glass ─── */}
-          <div className="hidden sm:block space-y-3">
-            <div className="flex justify-end gap-5 text-xs font-medium text-white/25">
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-sm slot-available inline-block" />Disponible
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-sm slot-occupied inline-block" />Ocupado
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-sm slot-past inline-block" />Pasado
-              </span>
-            </div>
-            <div className="glass-card rounded-2xl overflow-x-auto" style={{ WebkitOverflowScrolling: "touch" }}>
-              <table className="text-sm w-full">
-                <thead>
-                  <tr className="border-b border-white/[0.06]">
-                    <th className="text-left px-4 py-3 font-semibold text-white/40 whitespace-nowrap min-w-[160px]">
-                      Cancha
-                    </th>
-                    {slotsUnion.map(hora => (
-                      <th key={hora} className="px-1 py-3 font-medium text-white/25 text-center min-w-[52px] whitespace-nowrap text-xs">
-                        {hora}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {canchasConSlots.map((cancha, idx) => (
-                    <tr key={cancha.id} className={idx < canchasConSlots.length - 1 ? "border-b border-white/[0.04]" : ""}>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <p className="font-semibold text-white">{cancha.name}</p>
-                        <p className="text-xs text-white/25">{sportLabel(cancha.sport)}</p>
-                      </td>
-                      {cancha.slots.map(({ hora, estado }) => {
-                        const isSel = selectedSlot?.courtId === cancha.id && selectedSlot?.hora === hora
-                        return (
-                          <td key={hora} className="px-1 py-2 text-center">
-                            <button
-                              disabled={estado !== "disponible"}
-                              onClick={() => handleSelectSlot(cancha, hora, estado)}
-                              className={`w-11 h-11 rounded-xl text-xs font-bold transition-all ${
-                                isSel ? "slot-selected" :
-                                estado === "disponible" ? "slot-available" :
-                                estado === "ocupado" ? "slot-occupied" :
-                                estado === "pasado" ? "slot-past" : "slot-closed"
-                              }`}
-                            >
-                              {estado === "cerrado" ? "" : estado === "disponible" ? "✓" : estado === "ocupado" ? "✗" : "–"}
-                            </button>
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
           </div>
         </>
       )}
