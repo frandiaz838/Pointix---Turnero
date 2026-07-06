@@ -386,13 +386,15 @@ export default function Home() {
 
           <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-6 items-center">
 
-            {/* MacBook (8 cols en desktop) */}
-            <div className="lg:col-span-8 lg:order-1 order-2">
+            {/* MacBook (8 cols en desktop). Oculto en mobile porque el
+                aspect-ratio 16/10 aplasta el contenido y los bloques se
+                pisan entre si. En mobile ya alcanza con el iPhone. */}
+            <div className="hidden lg:block lg:col-span-8 lg:order-1">
               <MacBookMockup />
             </div>
 
-            {/* iPhone (4 cols en desktop) */}
-            <div className="lg:col-span-4 lg:order-2 order-1 flex justify-center">
+            {/* iPhone (4 cols en desktop, unico en mobile) */}
+            <div className="lg:col-span-4 lg:order-2 flex justify-center">
               <IPhoneMockup />
             </div>
 
