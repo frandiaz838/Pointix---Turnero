@@ -24,22 +24,26 @@ export function RegisterForm() {
     const name = formData.get("name") as string
     const email = formData.get("email") as string
     const password = formData.get("password") as string
+    const clubName = formData.get("clubName") as string
+    const whatsapp = formData.get("whatsapp") as string
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, clubName, whatsapp }),
     })
 
-    setLoading(false)
-
     if (!res.ok) {
-      const data = await res.json()
+      setLoading(false)
+      const data = await res.json().catch(() => ({}))
       setError(data.error ?? "Ocurrió un error al registrarte.")
       return
     }
 
-    router.push("/login?registered=true")
+    // El registro ya deja la sesión iniciada: /dashboard muestra el estado
+    // "en revisión" hasta que aprobemos el complejo.
+    router.push("/dashboard")
+    router.refresh()
   }
 
   return (
@@ -56,15 +60,44 @@ export function RegisterForm() {
             priority
           />
         </Link>
-        <p className="text-white/40 text-sm mt-3">Creá tu cuenta</p>
+        <p className="text-white/40 text-sm mt-3">Sumá tu complejo a Pointix</p>
       </div>
 
       {/* Card */}
       <div className="glass-card rounded-2xl p-8 space-y-5">
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
+            <Label htmlFor="clubName" className="text-white/60 text-sm font-medium">
+              Nombre del complejo
+            </Label>
+            <Input
+              id="clubName"
+              name="clubName"
+              type="text"
+              autoComplete="organization"
+              placeholder="Complejo Los Álamos"
+              maxLength={60}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="whatsapp" className="text-white/60 text-sm font-medium">
+              WhatsApp del complejo
+            </Label>
+            <Input
+              id="whatsapp"
+              name="whatsapp"
+              type="tel"
+              autoComplete="tel"
+              placeholder="351 555-1234"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="name" className="text-white/60 text-sm font-medium">
-              Nombre
+              Tu nombre
             </Label>
             <Input
               id="name"
@@ -135,8 +168,11 @@ export function RegisterForm() {
             className="btn-lime-glow w-full h-11 bg-[#A3FF12] hover:bg-[#d4ff1a] active:scale-[0.98] text-black font-bold text-sm"
             disabled={loading}
           >
-            {loading ? "Creando cuenta..." : "Crear cuenta"}
+            {loading ? "Creando cuenta..." : "Sumar mi complejo"}
           </Button>
+          <p className="text-center text-xs text-white/30">
+            Revisamos cada alta a mano y te avisamos por mail. Después tenés 30 días de prueba gratis.
+          </p>
         </form>
 
         <p className="text-center text-sm text-white/30 pt-1">

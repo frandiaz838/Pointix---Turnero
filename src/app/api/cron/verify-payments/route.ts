@@ -5,7 +5,9 @@ import { verificarPagoReserva } from "@/actions/mp"
 // Cron de verificación de pagos pendientes — tercera capa de defensa después
 // del webhook MP y del fallback sincrónico en la URL de éxito.
 //
-// Corre periódicamente (configurado en vercel.json). Para cada reserva PENDING
+// Corre periódicamente vía cron-job.org (Vercel Hobby solo permite crons
+// diarios). Debe apuntar a https://www.pointix.com.ar/... — el apex redirige
+// a www con un 308 y en ese salto se pierde el header Authorization. Para cada reserva PENDING
 // que ya tiene un `mpPreferenceId` (= el cliente arrancó el checkout), consulta
 // a MP por external_reference para ver si se aprobó el pago. Si sí, confirma
 // la reserva y dispara el email — exactamente lo que haría el webhook.
@@ -14,8 +16,8 @@ import { verificarPagoReserva } from "@/actions/mp"
 // nada. Si no hay pago aprobado todavía, tampoco. La función es safe de correr
 // múltiples veces.
 //
-// Protegido por CRON_SECRET en producción. Vercel Cron lo manda en el header
-// `Authorization: Bearer <CRON_SECRET>` cuando lo configurás en su dashboard.
+// Protegido por CRON_SECRET en producción. El cron externo tiene que mandarlo
+// en el header `Authorization: Bearer <CRON_SECRET>`.
 
 export const dynamic = "force-dynamic"
 

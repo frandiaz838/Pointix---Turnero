@@ -15,6 +15,7 @@ import { SportIcon } from "@/components/ui/sport-icon"
 import { EmptyState } from "@/components/admin/empty-state"
 import { todayInArIso, todayInArDayOfWeek } from "@/lib/timezone"
 import { expireStalePendings } from "@/lib/bookings"
+import { OnboardingChecklist } from "@/components/admin/onboarding-checklist"
 
 // Nunca cachear: los KPIs (reservas hoy, ingresos, ocupación) deben reflejar
 // el estado real de la DB en cada visita, no un snapshot viejo.
@@ -183,6 +184,8 @@ export default async function AdminDashboardPage({ params }: Props) {
       </header>
 
       <main className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
+
+        <OnboardingChecklist tenantId={tenant.id} slug={slug} tieneMp={!!tenant.mpAccessToken} />
 
         {/* Stats — glassmorphism */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">

@@ -237,3 +237,110 @@ export async function sendBookingConfirmation(d: ReservaConfirmadaData): Promise
     return { ok: false, error: e instanceof Error ? e.message : "Error desconocido" }
   }
 }
+
+// ─── Emails de cuenta (onboarding de complejos) ─────────────────────────────
+
+interface EmailSimpleData {
+  to: string | string[]
+  subject: string
+  titulo: string
+  /** Párrafos de texto plano (se escapan). */
+  parrafos: string[]
+  cta?: { label: string; url: string }
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+}
+
+function buildSimpleHtml(d: EmailSimpleData): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pointix.com.ar"
+  const parrafos = d.parrafos
+    .map((p) => `<p style="margin:0 0 14px;font-size:15px;line-height:1.6;color:rgba(242,244,248,0.75);">${escapeHtml(p)}</p>`)
+    .join("")
+  const cta = d.cta
+    ? `<p style="margin:24px 0 0;"><a href="${escapeHtml(d.cta.url)}" style="display:inline-block;background:#A3FF12;color:#0C0E14;font-weight:700;font-size:15px;text-decoration:none;padding:12px 22px;border-radius:12px;">${escapeHtml(d.cta.label)}</a></p>`
+    : ""
+  return `<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>${escapeHtml(d.subject)}</title></head>
+<body style="margin:0;padding:0;background:#0C0E14;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#F2F4F8;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#0C0E14;padding:32px 16px;">
+    <tr><td align="center">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="max-width:560px;width:100%;">
+        <tr><td align="center" style="padding-bottom:24px;">
+          <img src="${appUrl}/logo-wordmark-white.png" alt="Pointix" width="140" height="42" style="display:inline-block;width:140px;height:auto;border:0;" />
+        </td></tr>
+        <tr><td style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:20px;padding:32px 24px;">
+          <h1 style="margin:0 0 18px;font-size:22px;line-height:1.3;color:#F2F4F8;">${escapeHtml(d.titulo)}</h1>
+          ${parrafos}
+          ${cta}
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`
+}
+
+async function sendSimpleEmail(d: EmailSimpleData): Promise<{ ok: boolean; error?: string }> {
+  const client = getResend()
+  if (!client) {
+    console.warn("[email] RESEND_API_KEY no seteada — email no enviado")
+    return { ok: false, error: "no api key" }
+  }
+  try {
+    const text = [d.titulo, "", ...d.parrafos, ...(d.cta ? ["", `${d.cta.label}: ${d.cta.url}`] : []), "", "— Pointix"].join("\n")
+    const { error } = await client.emails.send({ from: fromAddress, to: d.to, subject: d.subject, html: buildSimpleHtml(d), text })
+    if (error) {
+      console.error("[email] resend error:", error)
+      return { ok: false, error: error.message ?? "Error de Resend" }
+    }
+    return { ok: true }
+  } catch (e) {
+    console.error("[email] exception:", e)
+    return { ok: false, error: e instanceof Error ? e.message : "Error desconocido" }
+  }
+}
+
+/** Aviso a los super admins de que un complejo nuevo se registró y espera aprobación. */
+export async function sendNuevoComplejoPendiente(d: {
+  to: string[]
+  clubNombre: string
+  duenoNombre: string
+  duenoEmail: string
+  whatsapp: string | null
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pointix.com.ar"
+  return sendSimpleEmail({
+    to: d.to,
+    subject: `Nuevo complejo para aprobar · ${d.clubNombre}`,
+    titulo: `${d.clubNombre} quiere sumarse a Pointix`,
+    parrafos: [
+      `Dueño: ${d.duenoNombre} (${d.duenoEmail})`,
+      `WhatsApp: ${d.whatsapp ?? "no informado"}`,
+      "Revisalo y aprobalo desde el panel de super admin. La prueba de 30 días arranca cuando lo aprobás.",
+    ],
+    cta: { label: "Ir al panel", url: `${appUrl}/admin?estado=pendiente` },
+  })
+}
+
+/** Aviso al dueño de que su complejo fue aprobado. */
+export async function sendComplejoAprobado(d: {
+  to: string
+  duenoNombre: string
+  clubNombre: string
+  diasPrueba: number
+}) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pointix.com.ar"
+  return sendSimpleEmail({
+    to: d.to,
+    subject: `¡${d.clubNombre} ya está en Pointix!`,
+    titulo: `¡Listo, ${d.duenoNombre}! Tu complejo fue aprobado`,
+    parrafos: [
+      `Ya podés entrar a tu panel, cargar tus canchas y horarios y compartir el link de reservas con tus clientes.`,
+      `Tenés ${d.diasPrueba} días de prueba gratis para usarlo con reservas reales.`,
+    ],
+    cta: { label: "Entrar a mi panel", url: `${appUrl}/login` },
+  })
+}

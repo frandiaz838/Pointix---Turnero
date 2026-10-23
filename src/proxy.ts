@@ -18,7 +18,7 @@ export default async function middleware(request: NextRequest) {
     }
   }
 
-  if (pathname.startsWith("/dashboard") && !isLoggedIn) {
+  if ((pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) && !isLoggedIn) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 

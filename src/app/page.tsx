@@ -3,14 +3,12 @@ import Link from "next/link"
 import Image from "next/image"
 import { ArrowRight, CreditCard, MessageCircle, Link2, Sparkles, Zap, ChevronRight, Check } from "lucide-react"
 import { MacBookMockup, IPhoneMockup } from "@/components/landing/device-mockups"
+import { waFundadorUrl } from "@/lib/pointix"
 
-// Número del fundador para el botón "Hablar con un humano".
-// Formato wa.me: dígitos, sin "+" ni espacios, con "9" para móvil AR.
-const WHATSAPP_FUNDADOR = "5493543697964"
 const MENSAJE_WSP_FUNDADOR = "Hola! Quiero sumar mi complejo a Pointix."
 
 export default function Home() {
-  const waUrl = `https://wa.me/${WHATSAPP_FUNDADOR}?text=${encodeURIComponent(MENSAJE_WSP_FUNDADOR)}`
+  const waUrl = waFundadorUrl(MENSAJE_WSP_FUNDADOR)
 
   return (
     <main className="min-h-screen bg-toxic-gradient text-white relative overflow-x-hidden">

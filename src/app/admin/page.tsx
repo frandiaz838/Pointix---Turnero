@@ -1,0 +1,223 @@
+import { redirect } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
+import { ExternalLink, MessageCircle, Check, X } from "lucide-react"
+import { prisma } from "@/lib/prisma"
+import { getSuperAdminSession } from "@/lib/session"
+import { estadoTenant, ESTADO_LABEL, ESTADO_BADGE, type EstadoTenant } from "@/lib/tenant-status"
+import { LogoutBtn } from "@/components/admin/logout-btn"
+import { TenantActions } from "@/components/super-admin/tenant-actions"
+
+export const dynamic = "force-dynamic"
+
+interface Props {
+  searchParams: Promise<{ estado?: string; q?: string }>
+}
+
+const FILTROS: { key: EstadoTenant | "todos"; label: string }[] = [
+  { key: "todos",      label: "Todos" },
+  { key: "pendiente",  label: "Pendientes" },
+  { key: "prueba",     label: "En prueba" },
+  { key: "activo",     label: "Activos" },
+  { key: "vencido",    label: "Vencidos" },
+  { key: "suspendido", label: "Suspendidos" },
+]
+
+// Orden de la lista: lo que requiere acción primero.
+const PRIORIDAD: Record<EstadoTenant, number> = { pendiente: 0, vencido: 1, prueba: 2, activo: 3, suspendido: 4 }
+
+function haceDias(n: number): Date {
+  return new Date(Date.now() - n * 86_400_000)
+}
+
+function fechaCorta(d: Date): string {
+  return d.toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Argentina/Buenos_Aires" })
+}
+
+export default async function SuperAdminPage({ searchParams }: Props) {
+  const session = await getSuperAdminSession()
+  if (!session) redirect("/dashboard")
+  if (session.user.impersonating) redirect("/dashboard")
+
+  const { estado: filtroParam, q: qParam } = await searchParams
+  const filtro = FILTROS.some((f) => f.key === filtroParam) ? (filtroParam as EstadoTenant) : "todos"
+  const q = (qParam ?? "").trim().toLowerCase()
+
+  const hace30 = haceDias(30)
+
+  const [tenants, reservas30, nuevos30] = await Promise.all([
+    prisma.tenant.findMany({
+      select: {
+        id: true, name: true, slug: true, whatsappNumber: true, createdAt: true,
+        pendingApproval: true, subscriptionStatus: true, subscriptionEndsAt: true,
+        mpAccessToken: true, adminNotes: true,
+        users: { where: { role: "ADMIN" }, select: { name: true, email: true } },
+        _count: {
+          select: {
+            courts: { where: { archivedAt: null } },
+            bookings: { where: { createdAt: { gte: hace30 }, status: { in: ["CONFIRMED", "COMPLETED"] } } },
+          },
+        },
+      },
+    }),
+    prisma.booking.count({ where: { createdAt: { gte: hace30 }, status: { in: ["CONFIRMED", "COMPLETED"] } } }),
+    prisma.tenant.count({ where: { createdAt: { gte: hace30 } } }),
+  ])
+
+  const conEstado = tenants
+    .map((t) => ({ ...t, info: estadoTenant(t) }))
+    .sort((a, b) => PRIORIDAD[a.info.estado] - PRIORIDAD[b.info.estado] || b.createdAt.getTime() - a.createdAt.getTime())
+
+  const conteo = (e: EstadoTenant) => conEstado.filter((t) => t.info.estado === e).length
+
+  const visibles = conEstado.filter((t) => {
+    if (filtro !== "todos" && t.info.estado !== filtro) return false
+    if (!q) return true
+    return [t.name, t.slug, ...t.users.map((u) => u.email)].some((s) => s.toLowerCase().includes(q))
+  })
+
+  const kpis = [
+    { label: "Complejos",        valor: tenants.length },
+    { label: "Pendientes",       valor: conteo("pendiente"), destacar: conteo("pendiente") > 0 },
+    { label: "En prueba",        valor: conteo("prueba") },
+    { label: "Activos (pagan)",  valor: conteo("activo") },
+    { label: "Vencidos",         valor: conteo("vencido") },
+    { label: "Altas 30 días",    valor: nuevos30 },
+    { label: "Reservas 30 días", valor: reservas30 },
+  ]
+
+  return (
+    <div className="min-h-screen bg-toxic-gradient relative">
+      <header className="glass-header sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <Image src="/logo-wordmark-white.svg" alt="Pointix" width={110} height={32} className="h-6 w-auto" />
+          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-cyan-300 border border-cyan-400/30 rounded-full px-2 py-0.5">
+            Super admin
+          </span>
+        </div>
+        <LogoutBtn />
+      </header>
+
+      <main className="relative z-10 max-w-5xl mx-auto p-6 space-y-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          {kpis.map((k) => (
+            <div key={k.label} className={`glass-card rounded-2xl p-4 space-y-2 ${k.destacar ? "border border-yellow-400/40" : ""}`}>
+              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.14em] leading-tight">{k.label}</p>
+              <p className={`font-display font-black leading-none text-3xl ${k.destacar ? "text-yellow-400" : "text-white"}`}>
+                {k.valor.toLocaleString("es-AR")}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+          <nav className="flex flex-wrap gap-1.5">
+            {FILTROS.map((f) => {
+              const activo = filtro === f.key
+              const href = f.key === "todos" ? "/admin" : `/admin?estado=${f.key}`
+              const n = f.key === "todos" ? tenants.length : conteo(f.key)
+              return (
+                <Link
+                  key={f.key}
+                  href={href}
+                  className={`text-xs font-semibold rounded-full px-3 py-1.5 border transition-colors ${
+                    activo ? "bg-[#A3FF12] text-black border-transparent" : "border-white/10 text-white/60 hover:text-white"
+                  }`}
+                >
+                  {f.label} <span className={activo ? "text-black/60" : "text-white/30"}>{n}</span>
+                </Link>
+              )
+            })}
+          </nav>
+          <form className="sm:w-64">
+            {filtro !== "todos" && <input type="hidden" name="estado" value={filtro} />}
+            <input
+              name="q"
+              defaultValue={qParam ?? ""}
+              placeholder="Buscar club, slug o email…"
+              className="w-full text-sm bg-[#1A1E2A] border border-white/10 rounded-lg px-3 py-2 text-white/85 placeholder:text-white/25"
+            />
+          </form>
+        </div>
+
+        {visibles.length === 0 ? (
+          <div className="glass-card rounded-2xl px-6 py-10 text-center text-sm text-white/40">
+            No hay complejos para este filtro.
+          </div>
+        ) : (
+          <ul className="space-y-3">
+            {visibles.map((t) => {
+              const dueno = t.users[0]
+              const { estado, diasRestantes } = t.info
+              return (
+                <li key={t.id} className="glass-card rounded-2xl p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="font-display font-black uppercase text-white text-lg leading-none tracking-tight">{t.name}</h2>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider border rounded-full px-2 py-0.5 ${ESTADO_BADGE[estado]}`}>
+                          {ESTADO_LABEL[estado]}
+                        </span>
+                      </div>
+                      <p className="text-xs text-white/45 break-all">
+                        {dueno ? `${dueno.name ?? "—"} · ${dueno.email}` : "Sin dueño asignado"}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                        {estado !== "pendiente" && (
+                          <Link href={`/${t.slug}`} target="_blank" className="inline-flex items-center gap-1 text-white/55 hover:text-white">
+                            /{t.slug} <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        )}
+                        {t.whatsappNumber && (
+                          <a href={`https://wa.me/${t.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[#25D366] hover:underline">
+                            <MessageCircle className="w-3 h-3" /> WhatsApp
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <dl className="grid grid-cols-4 sm:grid-cols-4 gap-4 text-xs shrink-0">
+                      <div>
+                        <dt className="text-white/35">Vence</dt>
+                        <dd className="text-white/80 font-semibold whitespace-nowrap">
+                          {t.subscriptionEndsAt
+                            ? diasRestantes !== null && diasRestantes > 0
+                              ? `${diasRestantes} d`
+                              : fechaCorta(t.subscriptionEndsAt)
+                            : "—"}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-white/35">Canchas</dt>
+                        <dd className="text-white/80 font-semibold">{t._count.courts}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-white/35">Res. 30d</dt>
+                        <dd className="text-white/80 font-semibold">{t._count.bookings}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-white/35">MP</dt>
+                        <dd>{t.mpAccessToken ? <Check className="w-4 h-4 text-[#A3FF12]" /> : <X className="w-4 h-4 text-white/25" />}</dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  {t.adminNotes && (
+                    <p className="text-xs text-white/60 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 whitespace-pre-wrap">
+                      {t.adminNotes}
+                    </p>
+                  )}
+
+                  <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
+                    <TenantActions tenantId={t.id} estado={estado} notas={t.adminNotes} />
+                  </div>
+                  <p className="text-[11px] text-white/25">Alta: {fechaCorta(t.createdAt)}</p>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </main>
+    </div>
+  )
+}

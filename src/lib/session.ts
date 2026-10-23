@@ -1,4 +1,4 @@
-import { jwtVerify } from "jose"
+import { jwtVerify, SignJWT } from "jose"
 import { cookies } from "next/headers"
 import { cache } from "react"
 import { prisma } from "@/lib/prisma"
@@ -6,12 +6,64 @@ import type { Role } from "@/generated/prisma/client"
 
 const secret = new TextEncoder().encode(process.env.AUTH_SECRET!)
 
+export const SESSION_COOKIE = "pointix-session"
+
+// Exp 7d (antes 30d): si el JWT se filtra, la ventana de exposición se
+// reduce. Pointix es una herramienta admin de bajo volumen donde
+// re-loguearse una vez por semana no genera fricción real.
+const SESSION_MAX_AGE_SEC = 60 * 60 * 24 * 7
+
+export const SESSION_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "lax" as const,
+  path: "/",
+  maxAge: SESSION_MAX_AGE_SEC,
+}
+
 type SessionUser = {
   id: string
   email: string
   name: string | null
   role: Role
   tenantId: string | null
+  /**
+   * True cuando un SUPER_ADMIN entró al panel de un club desde /admin. En ese
+   * caso `role` es ADMIN y `tenantId` el del club, así todos los chequeos
+   * existentes ("ADMIN de este tenant") funcionan sin cambios.
+   */
+  impersonating: boolean
+}
+
+interface TokenData {
+  userId: string
+  email: string
+  name: string | null
+  role: Role
+  tenantId: string | null
+  impersonating?: boolean
+}
+
+/** Firma el JWT de sesión. iat lo usa getSession contra sessionsRevokedAt. */
+export async function signSessionToken(d: TokenData): Promise<string> {
+  return new SignJWT({
+    sub: d.userId,
+    email: d.email,
+    name: d.name,
+    role: d.role,
+    tenantId: d.tenantId,
+    ...(d.impersonating ? { imp: true } : {}),
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(`${SESSION_MAX_AGE_SEC}s`)
+    .sign(secret)
+}
+
+/** Firma y setea la cookie de sesión (para Server Actions / Route Handlers). */
+export async function setSessionCookie(d: TokenData): Promise<void> {
+  const cookieStore = await cookies()
+  cookieStore.set(SESSION_COOKIE, await signSessionToken(d), SESSION_COOKIE_OPTIONS)
 }
 
 type Session = {
@@ -35,7 +87,7 @@ type Session = {
 async function getSessionRaw(): Promise<Session> {
   try {
     const cookieStore = await cookies()
-    const token = cookieStore.get("pointix-session")?.value
+    const token = cookieStore.get(SESSION_COOKIE)?.value
     if (!token) return null
 
     const { payload } = await jwtVerify(token, secret)
@@ -63,6 +115,7 @@ async function getSessionRaw(): Promise<Session> {
         name: (payload.name as string) ?? null,
         role: payload.role as Role,
         tenantId: (payload.tenantId as string) ?? null,
+        impersonating: payload.imp === true,
       },
       expires: new Date((payload.exp as number) * 1000).toISOString(),
     }
@@ -73,3 +126,18 @@ async function getSessionRaw(): Promise<Session> {
 
 export const getSession = cache(getSessionRaw)
 export const auth = getSession
+
+/**
+ * Devuelve la sesión solo si el usuario es SUPER_ADMIN según la DB (no según
+ * el JWT: mientras está "dentro" de un club, el token dice ADMIN). Así una
+ * baja de rol tiene efecto inmediato aunque el token siga vigente.
+ */
+export const getSuperAdminSession = cache(async () => {
+  const session = await getSession()
+  if (!session) return null
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  })
+  return user?.role === "SUPER_ADMIN" ? session : null
+})

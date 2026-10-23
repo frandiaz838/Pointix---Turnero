@@ -8,6 +8,7 @@ import { generarSlots } from "@/lib/slots"
 import { nowInArAsArtificialUtc } from "@/lib/timezone"
 import { notificarReservaConfirmada } from "@/lib/booking-notifications"
 import { checkRateLimit, getClientIp } from "@/lib/ratelimit"
+import { estadoTenant } from "@/lib/tenant-status"
 
 export async function cancelarReserva(bookingId: string) {
   const session = await auth()
@@ -237,7 +238,8 @@ export async function crearReserva(formData: FormData) {
     where: { id: courtId },
     include: { tenant: true },
   })
-  if (!cancha || !cancha.isActive) throw new Error("Cancha no disponible")
+  if (!cancha || !cancha.isActive || cancha.archivedAt) throw new Error("Cancha no disponible")
+  if (!estadoTenant(cancha.tenant).publicoHabilitado) throw new Error("Este complejo no está recibiendo reservas")
 
   const slotMinutes = parseInt((formData.get("slotMinutes") as string) || "60")
   const startTime = new Date(`${fecha}T${hora}:00.000Z`)

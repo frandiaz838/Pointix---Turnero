@@ -6,6 +6,7 @@ import { obtenerSlotsOcupados } from "@/actions/reservas"
 import { generarSlots } from "@/lib/slots"
 import { ReservaForm } from "@/components/booking/reserva-form"
 import { sportLabel } from "@/lib/sports"
+import { estadoTenant } from "@/lib/tenant-status"
 
 interface Props {
   params: Promise<{ slug: string; courtId: string }>
@@ -23,7 +24,7 @@ export default async function ReservarPage({ params, searchParams }: Props) {
     where: { id: courtId, isActive: true, archivedAt: null, tenant: { slug } },
     include: { tenant: true, schedules: true },
   })
-  if (!cancha) notFound()
+  if (!cancha || !estadoTenant(cancha.tenant).publicoHabilitado) notFound()
 
   const fechaSeleccionada = fecha ?? new Date().toISOString().split("T")[0]
 

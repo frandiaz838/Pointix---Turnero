@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { SignJWT } from "jose"
 import { prisma } from "@/lib/prisma"
-
-const secret = new TextEncoder().encode(process.env.AUTH_SECRET!)
+import { signSessionToken, SESSION_COOKIE, SESSION_COOKIE_OPTIONS } from "@/lib/session"
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,35 +21,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Email o contraseña incorrectos." }, { status: 401 })
     }
 
-    // Exp 7d (antes 30d): si el JWT se filtra, la ventana de exposición se
-    // reduce. Pointix es una herramienta admin de bajo volumen donde
-    // re-loguearse una vez por semana no genera fricción real.
     // NO actualizamos sessionsRevokedAt en login: que el dueño se loguee
     // desde el celu no debe cerrar la sesión de la compu del complejo. La
     // revocación dura es una acción explícita ("cerrar sesión en todos
     // los dispositivos") que llama a cerrarSesionEnTodosLados().
-    const token = await new SignJWT({
-      sub: user.id,
+    const token = await signSessionToken({
+      userId: user.id,
       email: user.email,
       name: user.name,
       role: user.role,
       tenantId: user.tenantId,
-      // iat se setea con setIssuedAt() (lo usa getSession para comparar
-      // contra sessionsRevokedAt cuando hay una revocación dura activa).
     })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("7d")
-      .sign(secret)
 
     const res = NextResponse.json({ ok: true })
-    res.cookies.set("pointix-session", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7,
-    })
+    res.cookies.set(SESSION_COOKIE, token, SESSION_COOKIE_OPTIONS)
     return res
   } catch (e) {
     console.error("[login] error:", e)

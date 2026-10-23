@@ -56,8 +56,20 @@ model Tenant {
 
   stripeCustomerId     String?            @unique
   stripeSubscriptionId String?            @unique
+  // Ciclo de vida comercial (ver lib/tenant-status.ts):
+  //   TRIALING  → en prueba hasta subscriptionEndsAt
+  //   ACTIVE    → pagó hasta subscriptionEndsAt (cobro manual desde /admin)
+  //   CANCELLED → suspendido a mano por el super admin
+  // subscriptionEndsAt null = sin vencimiento (clubes previos al onboarding).
   subscriptionStatus   SubscriptionStatus @default(TRIALING)
   subscriptionEndsAt   DateTime?
+
+  // Alta self-serve: el club queda pendiente hasta que el super admin lo
+  // aprueba. Default false para que los clubes existentes sigan habilitados.
+  pendingApproval Boolean @default(false)
+
+  // Notas internas del super admin (no las ve el club).
+  adminNotes String?
 
   // Credenciales MercadoPago del club (cada club tiene su propia cuenta MP).
   // Si están seteadas, el cliente paga al checkout; si no, el flujo queda

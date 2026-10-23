@@ -16,6 +16,7 @@ import { calcularDesglose } from "@/lib/pricing"
 import { sportLabel } from "@/lib/sports"
 import { expireStalePendings } from "@/lib/bookings"
 import { verificarPagoReserva } from "@/actions/mp"
+import { estadoTenant } from "@/lib/tenant-status"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -62,7 +63,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
       },
     },
   })
-  if (!tenant) notFound()
+  if (!tenant || !estadoTenant(tenant).publicoHabilitado) notFound()
 
   // Si reservado es un bookingId (no "true"), buscar la reserva para mostrar
   // la tarjeta de éxito con CTA de WhatsApp.
