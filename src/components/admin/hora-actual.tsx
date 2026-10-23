@@ -60,21 +60,18 @@ export function HoraActual() {
     return () => clearInterval(t)
   }, [])
 
+  // Dos líneas (fecha / hora) para que entre en el ancho del menú lateral
+  // aunque sea "Miércoles 30 de septiembre".
   if (!now) {
-    return (
-      <p className="text-xs font-bold text-white/50 uppercase tracking-[0.2em] mt-0.5">
-        Panel admin
-      </p>
-    )
+    return <p className="mt-1 text-sm text-white/55 leading-snug">Panel del club</p>
   }
 
   const p = partesAr(now)
 
   return (
-    <p className="text-xs font-bold text-white/55 uppercase tracking-[0.18em] mt-0.5 tabular-nums">
+    <p className="mt-1 text-sm text-white/60 leading-snug">
       {formatFecha(p)}
-      <span className="text-white/35 mx-1.5">·</span>
-      <span className="text-[#A3FF12]/80">{formatHora(p)}</span>
+      <span className="block text-[#A3FF12] font-bold tabular-nums">{formatHora(p)} hs</span>
     </p>
   )
 }

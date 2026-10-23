@@ -10,6 +10,7 @@ import { todayInArIso, todayInArDayOfWeek } from "@/lib/timezone"
 import { expireStalePendings } from "@/lib/bookings"
 import { OnboardingChecklist } from "@/components/admin/onboarding-checklist"
 import { CopyLinkBtn } from "@/components/admin/copy-link-btn"
+import { CanchasHoy } from "@/components/admin/canchas-hoy"
 import { PageHeader, PageBody, SectionTitle, btnPrimario, btnSecundario } from "@/components/admin/page-header"
 
 // Nunca cachear: los KPIs (reservas hoy, ingresos, ocupación) deben reflejar
@@ -272,6 +273,8 @@ export default async function AdminDashboardPage({ params }: Props) {
           </div>
         )}
       </section>
+
+      <CanchasHoy tenantId={tenant.id} slug={slug} />
     </PageBody>
   )
 }
