@@ -21,12 +21,12 @@ export function EmptyState({ icon: Icon, titulo, descripcion, acciones }: Props)
   return (
     <div className="glass-card rounded-2xl px-6 py-10 flex flex-col items-center gap-4 text-center">
       <div className="w-12 h-12 rounded-full bg-white/[0.03] border border-white/[0.06] flex items-center justify-center">
-        <Icon className="w-5 h-5 text-white/35" />
+        <Icon className="w-5 h-5 text-white/50" />
       </div>
       <div className="space-y-1.5 max-w-sm">
         <p className="text-sm font-semibold text-white/75">{titulo}</p>
         {descripcion && (
-          <p className="text-xs text-white/40 leading-relaxed">{descripcion}</p>
+          <p className="text-xs text-white/55 leading-relaxed">{descripcion}</p>
         )}
       </div>
       {acciones && acciones.length > 0 && (

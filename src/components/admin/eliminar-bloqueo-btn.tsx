@@ -17,7 +17,7 @@ export function EliminarBloqueoBtn({ bloqueoId, slug, courtId }: { bloqueoId: st
       onClick={handleClick}
       disabled={pending}
       aria-label="Eliminar bloqueo"
-      className="p-1.5 rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+      className="p-1.5 rounded-lg text-white/55 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
     >
       <Trash2 className="w-3.5 h-3.5" />
     </button>

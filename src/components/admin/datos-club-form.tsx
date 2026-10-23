@@ -15,7 +15,7 @@ interface Props {
   }
 }
 
-const inputBase = "w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#A3FF12]/40 transition-colors"
+const inputBase = "w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-[#A3FF12]/40 transition-colors"
 
 export function DatosClubForm({ tenantId, slug, inicial }: Props) {
   const [pending, startTransition] = useTransition()
@@ -47,7 +47,7 @@ export function DatosClubForm({ tenantId, slug, inicial }: Props) {
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-          <FileText className="w-3.5 h-3.5 text-white/40" />
+          <FileText className="w-3.5 h-3.5 text-white/55" />
           Descripción
         </label>
         <textarea
@@ -59,12 +59,12 @@ export function DatosClubForm({ tenantId, slug, inicial }: Props) {
           maxLength={200}
           className={inputBase + " resize-none"}
         />
-        <p className="text-xs text-white/35">Aparece debajo del nombre del club en la página del cliente.</p>
+        <p className="text-xs text-white/50">Aparece debajo del nombre del club en la página del cliente.</p>
       </div>
 
       <div className="space-y-2">
         <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-          <MapPin className="w-3.5 h-3.5 text-white/40" />
+          <MapPin className="w-3.5 h-3.5 text-white/55" />
           Dirección
         </label>
         <input
@@ -75,7 +75,7 @@ export function DatosClubForm({ tenantId, slug, inicial }: Props) {
           placeholder="Av. Siempre Viva 123, CABA"
           className={inputBase}
         />
-        <p className="text-xs text-white/35">Se incluye en el mail de confirmación para que el cliente sepa cómo llegar.</p>
+        <p className="text-xs text-white/50">Se incluye en el mail de confirmación para que el cliente sepa cómo llegar.</p>
       </div>
 
       <div className="space-y-2">
@@ -92,7 +92,7 @@ export function DatosClubForm({ tenantId, slug, inicial }: Props) {
           placeholder="11 1234-5678"
           className={inputBase}
         />
-        <p className="text-xs text-white/35 leading-relaxed">
+        <p className="text-xs text-white/50 leading-relaxed">
           Después de que el cliente reserve y pague, va a ver un botón <span className="text-[#25D366]">&ldquo;Confirmar por WhatsApp&rdquo;</span> que abre WhatsApp con un mensaje prearmado con los datos de la reserva, listo para enviarte.
         </p>
       </div>

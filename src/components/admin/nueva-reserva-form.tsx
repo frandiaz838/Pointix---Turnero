@@ -87,7 +87,7 @@ function capitalizar(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-const inputBase = "w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#A3FF12]/40 transition-colors"
+const inputBase = "w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-[#A3FF12]/40 transition-colors"
 
 export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Props) {
   const [pending, startTransition] = useTransition()
@@ -218,7 +218,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
           <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-            <CalendarDays className="w-3.5 h-3.5 text-white/40" />
+            <CalendarDays className="w-3.5 h-3.5 text-white/55" />
             Fecha
           </label>
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
@@ -227,7 +227,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
               className={`${inputBase} text-left flex items-center justify-between gap-2 cursor-pointer hover:bg-white/[0.08]`}
             >
               <span className="truncate">{capitalizar(formatFechaDisplay(fechaDate))}</span>
-              <CalendarDays className="w-4 h-4 text-white/40 shrink-0" />
+              <CalendarDays className="w-4 h-4 text-white/55 shrink-0" />
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" side="bottom" align="start">
               <Calendar
@@ -252,7 +252,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5 text-white/40" />
+            <Clock className="w-3.5 h-3.5 text-white/55" />
             Hora
           </label>
           <Select value={hora} onValueChange={(v) => setHora(v ?? "")} disabled={horasDisponibles.length === 0}>
@@ -271,7 +271,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
                   <SelectItem key={h} value={h} disabled={ocupada}>
                     <span className="flex items-center gap-2">
                       {h}
-                      {ocupada && <span className="text-white/35 text-xs">— ocupado</span>}
+                      {ocupada && <span className="text-white/50 text-xs">— ocupado</span>}
                     </span>
                   </SelectItem>
                 )
@@ -283,7 +283,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
 
       {/* Hint cuando la cancha está cerrada el día elegido */}
       {canchaSeleccionada && !scheduleDelDia && (
-        <div className="flex items-center gap-2 text-xs text-white/40 bg-white/[0.03] border border-white/[0.07] rounded-xl px-3 py-2">
+        <div className="flex items-center gap-2 text-xs text-white/55 bg-white/[0.03] border border-white/[0.07] rounded-xl px-3 py-2">
           <Info className="w-3.5 h-3.5 shrink-0" />
           <span>
             {canchaSeleccionada.name} no abre los {DIAS_LARGOS[fechaDate.getDay()]}.
@@ -293,12 +293,12 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
       )}
 
       <div className="border-t border-white/[0.07] pt-5 space-y-5">
-        <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">Datos del cliente</p>
+        <p className="text-xs font-bold text-white/50 uppercase tracking-[0.18em]">Datos del cliente</p>
 
         {/* Nombre */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-white/40" />
+            <User className="w-3.5 h-3.5 text-white/55" />
             Nombre <span className="text-red-400">*</span>
           </label>
           <input
@@ -315,7 +315,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-              <Phone className="w-3.5 h-3.5 text-white/40" />
+              <Phone className="w-3.5 h-3.5 text-white/55" />
               Teléfono
             </label>
             <input
@@ -329,7 +329,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-              <Mail className="w-3.5 h-3.5 text-white/40" />
+              <Mail className="w-3.5 h-3.5 text-white/55" />
               Email
             </label>
             <input
@@ -339,7 +339,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
               autoComplete="off"
               className={inputBase}
             />
-            <p className="text-[11px] text-white/30 leading-relaxed">
+            <p className="text-[11px] text-white/50 leading-relaxed">
               Si cargás email, le llega la confirmación al cliente.
             </p>
           </div>
@@ -353,7 +353,7 @@ export function NuevaReservaForm({ slug, canchas, fechaInicial, ocupacion }: Pro
         </div>
       )}
 
-      <p className="text-xs text-white/30 leading-relaxed">
+      <p className="text-xs text-white/50 leading-relaxed">
         La reserva se crea como <span className="text-[#A3FF12]/80 font-semibold">confirmada</span> directamente.
         Si después necesitás cancelarla, podés hacerlo desde el listado.
       </p>

@@ -9,8 +9,8 @@ import { EliminarBloqueoBtn } from "@/components/admin/eliminar-bloqueo-btn"
 import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
 import { EliminarCanchaBtn } from "@/components/admin/eliminar-cancha-btn"
 import { sportLabel } from "@/lib/sports"
+import { PageHeader, PageBody } from "@/components/admin/page-header"
 import {
-  ArrowLeft,
   Sliders,
   Clock,
   Ban,
@@ -71,7 +71,7 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
   if (!cancha) notFound()
   // Si la cancha fue archivada, la edición no tiene sentido — redirigimos
   // al dashboard. El histórico queda intacto pero ya no se puede tocar.
-  if (cancha.archivedAt) redirect(`/dashboard/${slug}`)
+  if (cancha.archivedAt) redirect(`/dashboard/${slug}/canchas`)
 
   const tab = parseTab(tabParam)
 
@@ -99,35 +99,25 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
     : 0
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
-
-      {/* Header sticky con nombre + estado */}
-      <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link
-          href={`/dashboard/${slug}`}
-          className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors inline-flex items-center gap-1"
-        >
-          <ArrowLeft className="w-3 h-3" />
-          Volver al panel
-        </Link>
-        <div className="flex items-center gap-3 flex-wrap mt-1">
-          <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight">
+    <PageBody angosto>
+      <PageHeader
+        volver={{ href: `/dashboard/${slug}/canchas`, label: "Canchas" }}
+        titulo={
+          <span className="inline-flex items-center gap-3 flex-wrap">
             {cancha.name}
-          </h1>
-          <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-            cancha.isActive
-              ? "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25"
-              : "bg-white/[0.04] text-white/30 border-white/[0.06]"
-          }`}>
-            {cancha.isActive ? "Activa" : "Inactiva"}
+            <span className={`font-sans normal-case tracking-normal text-xs font-bold px-2.5 py-1 rounded-full border ${
+              cancha.isActive
+                ? "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25"
+                : "bg-white/[0.04] text-white/50 border-white/[0.1]"
+            }`}>
+              {cancha.isActive ? "Activa" : "Inactiva"}
+            </span>
           </span>
-          <span className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">
-            {sportLabel(cancha.sport as string)}
-          </span>
-        </div>
-      </header>
+        }
+        descripcion={sportLabel(cancha.sport as string)}
+      />
 
-      <section className="relative z-10 max-w-2xl mx-auto p-6 space-y-6">
+      <div className="space-y-6">
 
         {/* Tabs nav */}
         <nav className="flex gap-1.5 overflow-x-auto -mx-1 px-1 pb-1 scrollbar-none">
@@ -141,7 +131,7 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
                   ? `/dashboard/${slug}/canchas/${courtId}`
                   : `/dashboard/${slug}/canchas/${courtId}?tab=${key}`
                 }
-                className={`flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 shrink-0 ${
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 shrink-0 ${
                   active
                     ? danger
                       ? "bg-red-500/15 text-red-300 border border-red-500/30"
@@ -151,7 +141,7 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
                       : "glass-nav text-white/55 hover:text-white"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="w-4 h-4" />
                 {label}
               </Link>
             )
@@ -200,15 +190,15 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
             <BloqueoForm slug={slug} courtId={courtId} />
 
             <div className="space-y-3">
-              <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">
+              <h2 className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">
                 Bloqueos activos ({bloqueos.length})
               </h2>
 
               {bloqueos.length === 0 ? (
                 <div className="glass-card rounded-xl px-6 py-8 flex flex-col items-center gap-2 text-center">
                   <Ban className="w-6 h-6 text-white/15" />
-                  <p className="text-sm text-white/35">No hay bloqueos activos</p>
-                  <p className="text-xs text-white/25">
+                  <p className="text-sm text-white/50">No hay bloqueos activos</p>
+                  <p className="text-xs text-white/45">
                     Los bloqueos pasados se ocultan automáticamente.
                   </p>
                 </div>
@@ -231,13 +221,13 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
                             )}
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5 text-white/30 shrink-0" />
+                            <Calendar className="w-3.5 h-3.5 text-white/50 shrink-0" />
                             <span className="text-sm font-medium text-white/80">
                               {formatFechaCompleta(b.startTime)}
                             </span>
                           </div>
                           {b.reason && (
-                            <p className="text-xs text-white/40 truncate">{b.reason}</p>
+                            <p className="text-xs text-white/55 truncate">{b.reason}</p>
                           )}
                         </div>
                         <EliminarBloqueoBtn bloqueoId={b.id} slug={slug} courtId={courtId} />
@@ -300,7 +290,7 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
               )}
 
               {totalReservas > 0 && (
-                <p className="text-xs text-white/30">
+                <p className="text-xs text-white/50">
                   Histórico total: {totalReservas} reserva{totalReservas === 1 ? "" : "s"}.
                 </p>
               )}
@@ -315,7 +305,7 @@ export default async function EditarCanchaPage({ params, searchParams }: Props) 
           </div>
         )}
 
-      </section>
-    </main>
+      </div>
+    </PageBody>
   )
 }

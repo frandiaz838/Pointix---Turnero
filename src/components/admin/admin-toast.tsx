@@ -72,7 +72,7 @@ export function AdminToast({ param, mensaje }: Props) {
         type="button"
         onClick={dismissNow}
         aria-label="Cerrar"
-        className="text-white/35 hover:text-white/80 transition-colors -mr-1 p-1"
+        className="text-white/50 hover:text-white/80 transition-colors -mr-1 p-1"
       >
         <X className="w-3.5 h-3.5" />
       </button>

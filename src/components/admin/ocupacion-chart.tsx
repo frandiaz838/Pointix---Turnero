@@ -19,7 +19,7 @@ const tickStyle = { fontSize: 11, fill: "rgba(255,255,255,0.55)" }
 
 export function OcupacionChart({ data, maxDominio = 100 }: { data: DataItem[]; maxDominio?: number }) {
   if (data.length === 0) {
-    return <p className="text-sm text-white/25 text-center py-10">Sin datos para el período.</p>
+    return <p className="text-sm text-white/45 text-center py-10">Sin datos para el período.</p>
   }
 
   return (

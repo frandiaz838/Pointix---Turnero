@@ -17,6 +17,7 @@ import { AdminToast } from "@/components/admin/admin-toast"
 import { UndoConfirmacionToast } from "@/components/admin/undo-confirmacion-toast"
 import { nowInArAsArtificialUtc, todayInArIso } from "@/lib/timezone"
 import { expireStalePendings } from "@/lib/bookings"
+import { PageHeader, PageBody, btnPrimario } from "@/components/admin/page-header"
 
 export const dynamic = "force-dynamic"
 
@@ -57,7 +58,7 @@ const estadoBadge: Record<string, string> = {
   PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
   CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
-  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+  COMPLETED: "bg-white/[0.05] text-white/55 border-white/[0.1]",
   NO_SHOW:   "bg-orange-500/10 text-orange-400 border-orange-500/20",
 }
 
@@ -72,10 +73,10 @@ const estadoLabel: Record<string, string> = {
 // Para reservas que ya pasaron (endTime < now), reinterpretamos el estado
 // visualmente: una CONFIRMED en el pasado = "Cumplida", una PENDING = "Expirada".
 const estadoBadgePasado: Record<string, string> = {
-  PENDING:   "bg-white/[0.05] text-white/35 border-white/[0.08]",
+  PENDING:   "bg-white/[0.05] text-white/50 border-white/[0.08]",
   CONFIRMED: "bg-white/[0.05] text-white/45 border-white/[0.1]",
   CANCELLED: "bg-red-500/[0.05] text-red-400/50 border-red-500/[0.12]",
-  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+  COMPLETED: "bg-white/[0.05] text-white/55 border-white/[0.1]",
   NO_SHOW:   "bg-orange-500/[0.05] text-orange-400/55 border-orange-500/[0.15]",
 }
 
@@ -239,26 +240,17 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
   const nowAr = nowInArAsArtificialUtc()
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
+    <PageBody>
       <AdminToast param="creada" mensaje="Reserva creada" />
       <AdminToast param="editada" mensaje="Reserva editada" />
       <UndoConfirmacionToast />
-      <header className="glass-header sticky top-0 z-50 px-6 py-4 flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-            ← Volver al panel
-          </Link>
-          <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Reservas</h1>
-        </div>
-        <Link
-          href={`/dashboard/${slug}/reservas/nueva`}
-          className="btn-lime-glow shrink-0 flex items-center gap-1.5 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3 py-2 rounded-lg"
-        >
-          + Nueva
-        </Link>
-      </header>
+      <PageHeader
+        titulo="Reservas"
+        descripcion="Confirmá, editá o cancelá reservas, y buscá clientes."
+        acciones={<Link href={`/dashboard/${slug}/reservas/nueva`} className={btnPrimario}>+ Nueva reserva</Link>}
+      />
 
-      <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-5">
+      <div className="space-y-5">
         <ReservasSearch initial={queryBusqueda} />
 
         {!enModoBusqueda && (
@@ -272,7 +264,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
         <ReservasEstadoFilter activo={estadoFiltro} />
 
         {enModoBusqueda && (
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-white/55">
             {totalReservas === 0
               ? <>Sin resultados para <span className="text-white/70 font-semibold">&ldquo;{queryBusqueda}&rdquo;</span></>
               : <>{totalReservas} {totalReservas === 1 ? "resultado" : "resultados"} para <span className="text-white/70 font-semibold">&ldquo;{queryBusqueda}&rdquo;</span> (últimos 12 meses)</>
@@ -283,7 +275,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
         {!esMultiple && (
           <div className="space-y-3">
             {tituloFecha && (
-              <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
+              <h2 className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">
                 {tituloFecha}
               </h2>
             )}
@@ -313,7 +305,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
         {esMultiple && (
           <div className="space-y-6">
             {!enModoBusqueda && tituloFecha && (
-              <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
+              <h2 className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">
                 {tituloFecha}
               </h2>
             )}
@@ -330,7 +322,7 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
             ) : (
               gruposFecha.map(({ label, reservas: lista }) => (
                 <div key={label} className="space-y-3">
-                  <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] border-b border-white/[0.06] pb-2">
+                  <h2 className="text-sm font-bold text-white/60 uppercase tracking-[0.14em] border-b border-white/[0.06] pb-2">
                     {label}
                   </h2>
                   {lista.map((r) => <ReservaCard key={r.id} reserva={r} nowAr={nowAr} slug={slug} />)}
@@ -348,8 +340,8 @@ export default async function ReservasAdminPage({ params, searchParams }: Props)
             itemsPorPagina={ITEMS_POR_PAGINA}
           />
         )}
-      </section>
-    </main>
+      </div>
+    </PageBody>
   )
 }
 
@@ -395,14 +387,14 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
   const mostrarNoShow = esPasada && (r.status === "CONFIRMED" || r.status === "PENDING")
 
   return (
-    <div className={`card-float glass-card rounded-xl p-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 transition-opacity ${esPasada ? "opacity-55" : ""}`}>
-      <div className="space-y-1.5 min-w-0">
+    <div className={`card-float glass-card rounded-2xl p-5 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 transition-opacity ${esPasada ? "opacity-60" : ""}`}>
+      <div className="space-y-2 min-w-0">
         {/* Hora y estado */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-bold text-sm text-white tabular-nums">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="font-display font-black text-xl text-white tabular-nums leading-none">
             {horaInicio} — {horaFin}
-            <span className="text-white/30 font-normal ml-1.5">({duracionMin} min)</span>
           </span>
+          <span className="text-sm text-white/50">{duracionMin} min</span>
           <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${badgeClasses}`}>
             {badgeLabel}
           </span>
@@ -411,21 +403,21 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
         {/* Cancha + deporte */}
         <div className="flex items-center gap-1.5 flex-wrap">
           <SportIcon sport={r.court.sport} size={14} />
-          <span className="text-sm font-medium text-white/80">{r.court.name}</span>
+          <span className="text-base font-semibold text-white/90">{r.court.name}</span>
           <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
             {sportLabel(r.court.sport)}
           </span>
         </div>
 
         {/* Cliente y teléfono */}
-        <div className="flex items-center gap-3 flex-wrap text-sm text-white/40">
-          <span className="flex items-center gap-1">
-            <User className="w-3 h-3 text-white/20" />
+        <div className="flex items-center gap-4 flex-wrap text-sm text-white/70">
+          <span className="flex items-center gap-1.5">
+            <User className="w-4 h-4 text-white/55" />
             {nombreCliente}
           </span>
           {telefono && (
-            <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3 text-white/20" />
+            <span className="flex items-center gap-1.5">
+              <Phone className="w-4 h-4 text-white/55" />
               {telefono}
             </span>
           )}
@@ -435,7 +427,7 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
       {/* Precio y acciones */}
       <div className="flex flex-col sm:items-end gap-2 shrink-0 w-full sm:w-auto">
         <p
-          className={`font-bold text-base sm:text-sm tabular-nums break-all ${esPasada ? "text-white/60" : "text-white"}`}
+          className={`font-display font-black text-xl tabular-nums break-all ${esPasada ? "text-white/60" : "text-white"}`}
         >
           ${Number(r.totalPrice).toLocaleString("es-AR")}
         </p>
@@ -444,10 +436,10 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
             {r.status === "PENDING" && <ConfirmarReservaBtn bookingId={r.id} />}
             <Link
               href={`/dashboard/${slug}/reservas/${r.id}/editar`}
-              className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1.5 rounded-md glass-nav text-white/65 hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold px-3.5 py-2 rounded-xl border border-white/12 text-white/80 hover:text-white hover:border-white/30 transition-colors"
               title="Editar reserva"
             >
-              <Pencil className="w-3 h-3" />
+              <Pencil className="w-3.5 h-3.5" />
               Editar
             </Link>
             <CancelarReservaBtn bookingId={r.id} />

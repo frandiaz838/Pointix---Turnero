@@ -27,8 +27,8 @@ export async function crearCancha(tenantId: string, slug: string, formData: Form
     },
   })
 
-  revalidatePath(`/dashboard/${slug}`)
-  redirect(`/dashboard/${slug}`)
+  revalidatePath(`/dashboard/${slug}`, "layout")
+  redirect(`/dashboard/${slug}/canchas`)
 }
 
 export async function editarCancha(courtId: string, tenantId: string, slug: string, formData: FormData) {
@@ -43,8 +43,8 @@ export async function editarCancha(courtId: string, tenantId: string, slug: stri
     },
   })
 
-  revalidatePath(`/dashboard/${slug}`)
-  redirect(`/dashboard/${slug}`)
+  revalidatePath(`/dashboard/${slug}`, "layout")
+  redirect(`/dashboard/${slug}/canchas`)
 }
 
 // Devuelve cuántas reservas futuras (PENDING/CONFIRMED) tiene una cancha.
@@ -68,7 +68,7 @@ export async function toggleCanchaActiva(courtId: string, isActive: boolean, ten
     data: { isActive: !isActive },
   })
 
-  revalidatePath(`/dashboard/${slug}`)
+  revalidatePath(`/dashboard/${slug}`, "layout")
 }
 
 /**
@@ -129,7 +129,7 @@ export async function eliminarCancha(
     }),
   ])
 
-  revalidatePath(`/dashboard/${slug}`)
+  revalidatePath(`/dashboard/${slug}`, "layout")
   revalidatePath(`/${slug}`)
   return { reservas: reservasFuturas, bloqueos, horarios }
 }
@@ -156,6 +156,6 @@ export async function guardarHorarios(courtId: string, tenantId: string, slug: s
     }
   })
 
-  revalidatePath(`/dashboard/${slug}`)
-  redirect(`/dashboard/${slug}`)
+  revalidatePath(`/dashboard/${slug}`, "layout")
+  redirect(`/dashboard/${slug}/canchas`)
 }

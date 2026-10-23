@@ -33,11 +33,11 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
 
       {/* Barras horizontales por cancha */}
       <div className="glass-card rounded-xl p-4">
-        <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
+        <p className="text-xs font-bold text-white/50 uppercase tracking-[0.15em] mb-4">
           Por cancha
         </p>
         {porCancha.length === 0 ? (
-          <p className="text-sm text-white/25 text-center py-8">Sin datos</p>
+          <p className="text-sm text-white/45 text-center py-8">Sin datos</p>
         ) : (
           <ResponsiveContainer width="100%" height={Math.max(porCancha.length * 48, 80)}>
             <BarChart
@@ -76,11 +76,11 @@ export function IngresosCharts({ porCancha, porDeporte }: Props) {
 
       {/* Donut por deporte */}
       <div className="glass-card rounded-xl p-4">
-        <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
+        <p className="text-xs font-bold text-white/50 uppercase tracking-[0.15em] mb-4">
           Por deporte
         </p>
         {porDeporte.length === 0 ? (
-          <p className="text-sm text-white/25 text-center py-8">Sin datos</p>
+          <p className="text-sm text-white/45 text-center py-8">Sin datos</p>
         ) : (
           <ResponsiveContainer width="100%" height={isMobile ? 180 : 220}>
             <PieChart>

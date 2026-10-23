@@ -88,7 +88,7 @@ export function UndoConfirmacionToast() {
         type="button"
         onClick={dismiss}
         aria-label="Cerrar"
-        className="text-white/35 hover:text-white/80 transition-colors -mr-1 p-1"
+        className="text-white/50 hover:text-white/80 transition-colors -mr-1 p-1"
       >
         ✕
       </button>

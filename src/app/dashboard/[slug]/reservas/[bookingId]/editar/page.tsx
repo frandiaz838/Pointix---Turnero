@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation"
-import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
+import { PageHeader, PageBody } from "@/components/admin/page-header"
 import { EditarReservaForm } from "@/components/admin/editar-reserva-form"
 
 interface Props {
@@ -74,20 +74,13 @@ export default async function EditarReservaPage({ params }: Props) {
   const horaInicial  = `${String(reserva.startTime.getUTCHours()).padStart(2, "0")}:00`
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
-      <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link href={`/dashboard/${slug}/reservas`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-          ← Volver a reservas
-        </Link>
-        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">
-          Editar reserva
-        </h1>
-        <p className="text-xs text-white/40 mt-0.5">
-          Cambiá cancha, fecha, hora o datos del cliente.
-        </p>
-      </header>
+    <PageBody angosto>
+      <PageHeader
+        titulo="Editar reserva"
+        descripcion="Cambiá cancha, fecha, hora o datos del cliente."
+        volver={{ href: `/dashboard/${slug}/reservas`, label: "Reservas" }}
+      />
 
-      <section className="relative z-10 max-w-lg mx-auto p-6">
         <EditarReservaForm
           slug={slug}
           canchas={canchas.map(c => ({
@@ -113,7 +106,6 @@ export default async function EditarReservaPage({ params }: Props) {
             guestEmail: reserva.guestEmail ?? "",
           }}
         />
-      </section>
-    </main>
+      </PageBody>
   )
 }

@@ -8,6 +8,7 @@ import { LayoutGrid } from "lucide-react"
 import { sportLabel } from "@/lib/sports"
 import { todayInArIso } from "@/lib/timezone"
 import { expireStalePendings } from "@/lib/bookings"
+import { PageHeader, PageBody } from "@/components/admin/page-header"
 
 export const dynamic = "force-dynamic"
 
@@ -165,36 +166,31 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
-      <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-          ← Volver al panel
-        </Link>
-        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Ocupación</h1>
-      </header>
+    <PageBody>
+      <PageHeader titulo="Ocupación" descripcion="Qué tan llenas están tus canchas y cuáles se reservan más." />
 
-      <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
+      <div className="space-y-8">
 
         {/* Cards resumen */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="glass-card rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Canchas activas</p>
-              <LayoutGrid className="w-3.5 h-3.5 text-white/20" />
+              <p className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">Canchas activas</p>
+              <LayoutGrid className="w-3.5 h-3.5 text-white/35" />
             </div>
             <p className="font-display text-3xl font-black text-white">{datosCanchas.length}</p>
           </div>
 
           <div className="glass-card border-lime-gradient rounded-xl p-5 space-y-2">
-            <p className="text-[10px] font-bold text-[#A3FF12]/50 uppercase tracking-[0.15em]">Ocup. promedio</p>
+            <p className="text-xs font-bold text-[#A3FF12]/50 uppercase tracking-[0.15em]">Ocup. promedio</p>
             <div className="flex items-baseline gap-2">
               <p className="font-display text-3xl font-black text-[#A3FF12] text-glow-lime">{ocupacionPromedio}%</p>
-              <p className="text-xs text-white/25">{periodoLabel[periodo].toLowerCase()}</p>
+              <p className="text-xs text-white/45">{periodoLabel[periodo].toLowerCase()}</p>
             </div>
           </div>
 
           <div className="col-span-2 sm:col-span-1 glass-card rounded-xl p-5 space-y-2">
-            <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Más reservada</p>
+            <p className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">Más reservada</p>
             {cachaMasReservada ? (
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -203,12 +199,12 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
                     {sportLabel(cachaMasReservada.sport)}
                   </span>
                 </div>
-                <p className="text-xs text-white/30">
+                <p className="text-xs text-white/50">
                   {cachaMasReservada.reservas === 1 ? "1 reserva" : `${cachaMasReservada.reservas} reservas`}
                 </p>
               </div>
             ) : (
-              <p className="font-display text-2xl font-black text-white/20">—</p>
+              <p className="font-display text-2xl font-black text-white/35">—</p>
             )}
           </div>
         </div>
@@ -235,7 +231,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
             denominador). El tramo "Horarios pico" mira solo 18-23h, que es
             cuando la demanda real define qué tan lleno está el complejo. */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mr-1">Tramo:</span>
+          <span className="text-sm font-bold text-white/60 uppercase tracking-[0.14em] mr-1">Tramo:</span>
           {(["todos", "pico"] as const).map((t) => (
             <Link
               key={t}
@@ -253,7 +249,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
 
         {/* Gráfico */}
         <div className="glass-card rounded-xl p-5">
-          <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] mb-4">
+          <p className="text-sm font-bold text-white/60 uppercase tracking-[0.14em] mb-4">
             % Ocupación por cancha — {periodoLabel[periodo].toLowerCase()}
             {tramo === "pico" && <span className="text-[#A3FF12]/70"> · horarios pico</span>}
           </p>
@@ -263,21 +259,21 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
         {/* Detalle por cancha — agrupado por deporte */}
         {gruposDeporte.filter(g => g.canchas.length > 0).map(grupo => (
           <div key={grupo.label} className="space-y-4">
-            <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em] border-b border-white/[0.06] pb-2">
+            <h2 className="text-sm font-bold text-white/60 uppercase tracking-[0.14em] border-b border-white/[0.06] pb-2">
               {grupo.label}
             </h2>
             {grupo.canchas.map((cancha) => (
               <div key={cancha.id} className="space-y-3">
                 <div className="flex items-center gap-3">
                   <h2 className="text-base font-semibold text-white">{cancha.name}</h2>
-                  <span className="text-sm text-white/35">
+                  <span className="text-sm text-white/50">
                     {cancha.reservas === 1 ? "1 reserva" : `${cancha.reservas} reservas`}
                     {" · "}{cancha.ocupacion}% ocupación
                   </span>
                 </div>
 
                 {cancha.bookings.length === 0 ? (
-                  <p className="text-sm text-white/25 glass-card rounded-xl px-4 py-3">
+                  <p className="text-sm text-white/45 glass-card rounded-xl px-4 py-3">
                     Sin reservas en este período.
                   </p>
                 ) : (
@@ -285,10 +281,10 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
                     <table className="w-full text-sm min-w-[360px]">
                       <thead className="border-b border-white/[0.07]">
                         <tr>
-                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Fecha</th>
-                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Hora</th>
-                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cliente</th>
-                          <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Estado</th>
+                          <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Fecha</th>
+                          <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Hora</th>
+                          <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Cliente</th>
+                          <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Estado</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-white/[0.05]">
@@ -309,7 +305,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
                                 r.status === "CONFIRMED" ? "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25"
                                 : r.status === "CANCELLED" ? "bg-red-500/10 text-red-400 border-red-500/20"
                                 : r.status === "PENDING"   ? "bg-yellow-400/10 text-yellow-400 border-yellow-400/20"
-                                : "bg-white/[0.05] text-white/40 border-white/[0.1]"
+                                : "bg-white/[0.05] text-white/55 border-white/[0.1]"
                               }`}>
                                 {estadoLabel[r.status]}
                               </span>
@@ -324,7 +320,7 @@ export default async function OcupacionPage({ params, searchParams }: Props) {
             ))}
           </div>
         ))}
-      </section>
-    </main>
+      </div>
+    </PageBody>
   )
 }

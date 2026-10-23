@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation"
-import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { CanchaForm } from "@/components/admin/cancha-form"
+import { PageHeader, PageBody } from "@/components/admin/page-header"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -20,17 +20,13 @@ export default async function NuevaCanchaPage({ params }: Props) {
   }
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
-            <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-          ← Volver al panel
-        </Link>
-        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">Nueva cancha</h1>
-      </header>
-
-      <section className="relative z-10 max-w-lg mx-auto p-6">
-        <CanchaForm tenantId={tenant.id} slug={slug} />
-      </section>
-    </main>
+    <PageBody angosto>
+      <PageHeader
+        titulo="Nueva cancha"
+        descripcion="Después de crearla vas a poder cargar sus horarios."
+        volver={{ href: `/dashboard/${slug}/canchas`, label: "Canchas" }}
+      />
+      <CanchaForm tenantId={tenant.id} slug={slug} />
+    </PageBody>
   )
 }

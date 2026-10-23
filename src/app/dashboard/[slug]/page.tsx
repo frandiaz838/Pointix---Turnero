@@ -2,20 +2,15 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
-import { buttonVariants } from "@/components/ui/button"
-import { ToggleActivaBtn } from "@/components/admin/toggle-activa-btn"
-import { LogoutBtn } from "@/components/admin/logout-btn"
-import { AdminMobileMenu } from "@/components/admin/mobile-menu"
 import { CountUp } from "@/components/admin/count-up"
-import { HoraActual } from "@/components/admin/hora-actual"
 import { generarSlots } from "@/lib/slots"
-import { Clock, TrendingUp, CalendarDays, LayoutGrid, Inbox, LayoutDashboard } from "lucide-react"
-import { sportLabel } from "@/lib/sports"
-import { SportIcon } from "@/components/ui/sport-icon"
+import { TrendingUp, CalendarDays, BarChart3, Inbox, ArrowRight } from "lucide-react"
 import { EmptyState } from "@/components/admin/empty-state"
 import { todayInArIso, todayInArDayOfWeek } from "@/lib/timezone"
 import { expireStalePendings } from "@/lib/bookings"
 import { OnboardingChecklist } from "@/components/admin/onboarding-checklist"
+import { CopyLinkBtn } from "@/components/admin/copy-link-btn"
+import { PageHeader, PageBody, SectionTitle, btnPrimario, btnSecundario } from "@/components/admin/page-header"
 
 // Nunca cachear: los KPIs (reservas hoy, ingresos, ocupación) deben reflejar
 // el estado real de la DB en cada visita, no un snapshot viejo.
@@ -29,7 +24,7 @@ const estadoBadge: Record<string, string> = {
   PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
   CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
-  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+  COMPLETED: "bg-white/[0.05] text-white/55 border-white/[0.1]",
 }
 
 const estadoLabel: Record<string, string> = {
@@ -139,248 +134,141 @@ export default async function AdminDashboardPage({ params }: Props) {
       ? { text: `↑ ${diffAyer} más que ayer`, color: "text-[#A3FF12]" }
       : diffAyer < 0
       ? { text: `↓ ${Math.abs(diffAyer)} menos que ayer`, color: "text-red-400" }
-      : { text: "Igual que ayer", color: "text-white/30" }
+      : { text: "Igual que ayer", color: "text-white/50" }
 
-  const sportMap = new Map<string, typeof canchas>()
-  for (const c of canchas) {
-    const arr = sportMap.get(c.sport) ?? []
-    arr.push(c)
-    sportMap.set(c.sport, arr)
-  }
-  const gruposCanchas = [...sportMap.entries()].map(([sport, lista]) => ({
-    sport,
-    canchas: [...lista.filter(c => c.isActive), ...lista.filter(c => !c.isActive)],
-  }))
+  const primerNombre = session.user.name?.trim().split(/\s+/)[0]
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://pointix.com.ar"
+
+  const kpis = [
+    {
+      label: "Reservas hoy",
+      icon: CalendarDays,
+      valor: <CountUp value={totalReservasHoy} formatAR={false} />,
+      detalle: <span className={comparacionAyer.color}>{comparacionAyer.text}</span>,
+      href: `/dashboard/${slug}/reservas`,
+      cta: "Ver reservas",
+      destacado: false,
+    },
+    {
+      label: "Ingresos hoy",
+      icon: TrendingUp,
+      valor: <>$<CountUp value={ingresosHoy} /></>,
+      detalle: <>En el mes: $<CountUp value={ingresosMes} duration={1200} /></>,
+      href: `/dashboard/${slug}/ingresos`,
+      cta: "Ver ingresos",
+      destacado: true,
+    },
+    {
+      label: "Ocupación hoy",
+      icon: BarChart3,
+      valor: ocupacion !== null ? <CountUp value={ocupacion} suffix="%" formatAR={false} /> : <span className="text-white/50">—</span>,
+      detalle: ocupacion !== null ? `${totalReservasHoy} de ${totalSlotsHoy} turnos reservados` : "Sin horarios cargados para hoy",
+      href: `/dashboard/${slug}/ocupacion`,
+      cta: "Ver ocupación",
+      destacado: false,
+    },
+  ]
 
   return (
-    <div className="min-h-screen bg-toxic-gradient relative">
+    <PageBody>
+      <PageHeader
+        titulo={primerNombre ? `Hola, ${primerNombre}` : "Hola"}
+        descripcion="Así viene el día en tu complejo."
+        acciones={
+          <>
+            <CopyLinkBtn url={`${appUrl}/${slug}`} className={btnSecundario} />
+            <Link href={`/dashboard/${slug}/reservas/nueva`} className={btnPrimario}>+ Nueva reserva</Link>
+          </>
+        }
+      />
 
-      {/* Header sticky glass */}
-      <header className="glass-header sticky top-0 z-50 px-6 py-3.5 flex items-center justify-between">
-        <div className="min-w-0">
-          <h1 className="font-display font-black uppercase text-white text-lg leading-none tracking-tight">
-            {tenant.name}
-          </h1>
-          <HoraActual />
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="hidden sm:flex items-center gap-2">
-            <Link href={`/dashboard/${slug}/configuracion`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-              Configuración
-            </Link>
-            <Link href={`/dashboard/${slug}/reservas`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-              Ver reservas
-            </Link>
-            <Link
-              href={`/dashboard/${slug}/canchas/nueva`}
-              className="btn-lime-glow flex items-center gap-1.5 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3 py-2 rounded-lg"
-            >
-              + Nueva cancha
-            </Link>
-            <LogoutBtn />
-          </div>
-          <AdminMobileMenu slug={slug} />
-        </div>
-      </header>
+      <OnboardingChecklist tenantId={tenant.id} slug={slug} tieneMp={!!tenant.mpAccessToken} />
 
-      <main className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
-
-        <OnboardingChecklist tenantId={tenant.id} slug={slug} tieneMp={!!tenant.mpAccessToken} />
-
-        {/* Stats — glassmorphism */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-
-          {/* Reservas hoy */}
-          <div className="glass-card rounded-2xl p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">Reservas hoy</p>
-              <CalendarDays className="w-3.5 h-3.5 text-white/20" />
-            </div>
-            <p className="font-display font-black text-white leading-none"
-               style={{ fontSize: "clamp(2.5rem,6vw,3.5rem)" }}>
-              <CountUp value={totalReservasHoy} formatAR={false} />
-            </p>
-            <p className={`text-xs font-medium ${comparacionAyer.color}`}>{comparacionAyer.text}</p>
-          </div>
-
-          {/* Ingresos — con borde lime gradient */}
+      {/* Números del día: cada tarjeta lleva a su detalle */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {kpis.map(({ label, icon: Icon, valor, detalle, href, cta, destacado }) => (
           <Link
-            href={`/dashboard/${slug}/ingresos`}
-            className="glass-card border-lime-gradient rounded-2xl p-5 space-y-3 block transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_40px_rgba(163,255,18,0.08)]"
+            key={label}
+            href={href}
+            className={`group glass-card rounded-2xl p-6 flex flex-col gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/[0.06] ${destacado ? "border-lime-gradient" : ""}`}
           >
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-[#A3FF12]/50 uppercase tracking-[0.18em]">Ingresos hoy</p>
-              <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/40" />
+              <p className={`text-sm font-semibold ${destacado ? "text-[#A3FF12]" : "text-white/65"}`}>{label}</p>
+              <Icon className={`w-5 h-5 ${destacado ? "text-[#A3FF12]/70" : "text-white/50"}`} />
             </div>
             <p
-              className="font-display font-black text-[#A3FF12] leading-tight text-glow-lime tabular-nums"
-              style={{
-                fontSize: "clamp(1.25rem,5vw,2.75rem)",
-                overflowWrap: "anywhere",
-              }}
+              className={`font-display font-black leading-none tabular-nums ${destacado ? "text-[#A3FF12] text-glow-lime" : "text-white"}`}
+              style={{ fontSize: "clamp(2.5rem,5vw,3.5rem)", overflowWrap: "anywhere" }}
             >
-              $<CountUp value={ingresosHoy} />
+              {valor}
             </p>
-            <p
-              className="text-xs font-medium text-white/25 tabular-nums"
-              style={{ overflowWrap: "anywhere" }}
-            >
-              Mes: $<CountUp value={ingresosMes} duration={1200} />
-            </p>
+            <p className="text-sm text-white/55" style={{ overflowWrap: "anywhere" }}>{detalle}</p>
+            <span className="mt-auto pt-3 border-t border-white/[0.07] text-sm font-semibold text-white/60 group-hover:text-white inline-flex items-center gap-1.5 transition-colors">
+              {cta}
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            </span>
           </Link>
+        ))}
+      </div>
 
-          {/* Ocupación */}
-          <Link
-            href={`/dashboard/${slug}/ocupacion`}
-            className="col-span-2 sm:col-span-1 glass-card rounded-2xl p-5 space-y-3 block transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_16px_48px_rgba(0,0,0,0.5)]"
-          >
-            <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">Ocupación</p>
-              <LayoutGrid className="w-3.5 h-3.5 text-white/20" />
-            </div>
-            <p className="font-display font-black text-white leading-none"
-               style={{ fontSize: "clamp(2.5rem,6vw,3.5rem)" }}>
-              {ocupacion !== null
-                ? <CountUp value={ocupacion} suffix="%" formatAR={false} />
-                : <span className="text-white/20">—</span>
-              }
-            </p>
-            <p className="text-xs font-medium text-white/25">Ver detalle por cancha</p>
-          </Link>
-        </div>
-
-        {/* Reservas del día */}
-        <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Reservas de hoy</h2>
-          {totalReservasHoy === 0 ? (
-            <EmptyState
-              icon={Inbox}
-              titulo="No hay reservas para hoy"
-              descripcion={
-                <>
-                  Compartí tu link de reservas en Instagram o WhatsApp:{" "}
-                  <code className="text-[#A3FF12]/80 bg-white/[0.05] px-1.5 py-0.5 rounded text-[10px]">
-                    pointix.com.ar/{slug}
-                  </code>
-                </>
-              }
-              acciones={[
-                { label: "+ Crear reserva manual", href: `/dashboard/${slug}/reservas/nueva`, variant: "primary" },
-              ]}
-            />
-          ) : (
-            <div className="space-y-2">
-              <div className="glass-card rounded-2xl divide-y divide-white/[0.05]">
-                {reservasHoyVisibles.map((r) => (
-                  <div key={r.id} className="px-5 py-3.5 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-sm font-bold text-white w-14 shrink-0 tabular-nums">
-                        {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
-                      </span>
-                      <span className="text-sm font-medium text-white/70 truncate">{r.court.name}</span>
-                      <span className="text-sm text-white/25 truncate hidden sm:block">
-                        {r.user?.name ?? r.guestName ?? "Invitado"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
-                        {estadoLabel[r.status] ?? r.status}
-                      </span>
-                      <span className="text-sm font-bold text-white tabular-nums">
-                        ${Number(r.totalPrice).toLocaleString("es-AR")}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              {reservasOcultas > 0 && (
-                <Link
-                  href={`/dashboard/${slug}/reservas`}
-                  className="block text-center text-xs font-semibold text-[#A3FF12]/80 hover:text-[#A3FF12] glass-nav rounded-xl px-4 py-2.5 transition-colors"
-                >
-                  Ver las otras {reservasOcultas} reservas →
-                </Link>
-              )}
-            </div>
+      {/* Agenda del día */}
+      <section className="space-y-4">
+        <SectionTitle
+          accion={totalReservasHoy > 0 && (
+            <Link href={`/dashboard/${slug}/reservas`} className="text-sm font-semibold text-[#A3FF12] hover:underline">
+              Ver todas →
+            </Link>
           )}
-        </div>
+        >
+          Agenda de hoy
+        </SectionTitle>
 
-        {/* Canchas */}
-        <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Canchas</h2>
-
-          {canchas.length === 0 ? (
-            <EmptyState
-              icon={LayoutDashboard}
-              titulo="Todavía no tenés canchas"
-              descripcion="Creá la primera cancha para empezar a recibir reservas."
-              acciones={[
-                { label: "+ Crear primera cancha", href: `/dashboard/${slug}/canchas/nueva`, variant: "primary" },
-              ]}
-            />
-          ) : (
-            <div className="space-y-6">
-              {gruposCanchas.map(({ sport, canchas: lista }) => (
-                <div key={sport} className="space-y-2">
-                  <div className="flex items-center gap-2 pb-2">
-                    <div className="separator-subtle flex-1" />
-                    <SportIcon sport={sport} size={14} />
-                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full border bg-white/[0.06] text-white/55 border-white/[0.1]">
-                      {sportLabel(sport)}
-                    </span>
-                    <div className="separator-subtle flex-1" />
+        {totalReservasHoy === 0 ? (
+          <EmptyState
+            icon={Inbox}
+            titulo="Todavía no hay reservas para hoy"
+            descripcion={
+              <>
+                Compartí tu link en Instagram o WhatsApp para que te reserven:{" "}
+                <code className="text-[#A3FF12] bg-white/[0.05] px-1.5 py-0.5 rounded text-xs">pointix.com.ar/{slug}</code>
+              </>
+            }
+            acciones={[
+              { label: "+ Cargar una reserva", href: `/dashboard/${slug}/reservas/nueva`, variant: "primary" },
+            ]}
+          />
+        ) : (
+          <div className="space-y-3">
+            <ul className="glass-card rounded-2xl divide-y divide-white/[0.06]">
+              {reservasHoyVisibles.map((r) => (
+                <li key={r.id} className="px-5 py-4 flex items-center gap-4">
+                  <span className="font-display font-black text-2xl text-white tabular-nums w-20 shrink-0 leading-none">
+                    {r.startTime.getUTCHours().toString().padStart(2, "0")}:{r.startTime.getUTCMinutes().toString().padStart(2, "0")}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-base font-semibold text-white truncate">{r.court.name}</p>
+                    <p className="text-sm text-white/55 truncate">{r.user?.name ?? r.guestName ?? "Invitado"}</p>
                   </div>
-
-                  {lista.map((cancha) => {
-                    const sch = cancha.schedules.find(s => s.dayOfWeek === diaSemana) ?? cancha.schedules[0]
-                    return (
-                      <div
-                        key={cancha.id}
-                        className={`card-float glass-card rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${
-                          cancha.isActive ? "" : "opacity-40"
-                        }`}
-                      >
-                        <div className="space-y-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-semibold text-white truncate">{cancha.name}</p>
-                            <span className={`shrink-0 text-xs font-bold px-2 py-0.5 rounded-full border ${
-                              cancha.isActive
-                                ? "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25"
-                                : "bg-white/[0.04] text-white/20 border-white/[0.06]"
-                            }`}>
-                              {cancha.isActive ? "Activa" : "Inactiva"}
-                            </span>
-                          </div>
-                          <p className="text-sm text-white/35 font-display font-black text-glow-lime" style={{ textShadow: "none" }}>
-                            ${Number(cancha.pricePerHour).toLocaleString("es-AR")}
-                            <span className="text-white/25 font-sans font-normal text-xs ml-1">/ hora</span>
-                          </p>
-                          {sch && (
-                            <p className="text-xs text-white/20 flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {sch.openTime} — {sch.closeTime}
-                            </p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <ToggleActivaBtn courtId={cancha.id} isActive={cancha.isActive} tenantId={tenant.id} slug={slug} />
-                          <Link
-                            href={`/dashboard/${slug}/canchas/${cancha.id}`}
-                            className="btn-lime-glow inline-flex items-center gap-1.5 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black font-bold text-sm px-3.5 py-2 rounded-lg transition-all"
-                          >
-                            Editar
-                          </Link>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
+                  <span className={`hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
+                    {estadoLabel[r.status] ?? r.status}
+                  </span>
+                  <span className="text-base font-bold text-white tabular-nums shrink-0">
+                    ${Number(r.totalPrice).toLocaleString("es-AR")}
+                  </span>
+                </li>
               ))}
-            </div>
-          )}
-        </div>
-
-      </main>
-    </div>
+            </ul>
+            {reservasOcultas > 0 && (
+              <Link
+                href={`/dashboard/${slug}/reservas`}
+                className="block text-center text-sm font-semibold text-[#A3FF12] hover:underline py-2"
+              >
+                Ver las otras {reservasOcultas} reservas de hoy →
+              </Link>
+            )}
+          </div>
+        )}
+      </section>
+    </PageBody>
   )
 }

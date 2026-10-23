@@ -46,10 +46,10 @@ export function ToggleActivaBtn({ courtId, isActive, tenantId, slug }: Props) {
   return (
     <>
       <Button
-        variant={isActive ? "destructive" : "outline"}
-        size="sm"
+        variant={isActive ? "ghost" : "outline"}
         onClick={handleClick}
         disabled={pending}
+        className={`h-10 px-4 text-sm rounded-xl ${isActive ? "text-white/55 hover:text-red-400 hover:bg-red-500/10" : ""}`}
       >
         {pending && !open ? "..." : isActive ? "Desactivar" : "Activar"}
       </Button>
@@ -76,7 +76,7 @@ export function ToggleActivaBtn({ courtId, isActive, tenantId, slug }: Props) {
                     <>
                       Tiene <span className="text-yellow-400 font-semibold">{reservasFuturas} {reservasFuturas === 1 ? "reserva futura" : "reservas futuras"}</span> que NO se van a cancelar — los clientes con esas reservas las mantienen.
                       <br />
-                      <span className="text-white/40">A partir de ahora, nadie nuevo va a poder reservar esta cancha.</span>
+                      <span className="text-white/55">A partir de ahora, nadie nuevo va a poder reservar esta cancha.</span>
                     </>
                   )}
               </DialogDescription>

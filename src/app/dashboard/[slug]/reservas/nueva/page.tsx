@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
+import { PageHeader, PageBody } from "@/components/admin/page-header"
 import { NuevaReservaForm } from "@/components/admin/nueva-reserva-form"
 
 interface Props {
@@ -71,21 +72,13 @@ export default async function NuevaReservaAdminPage({ params, searchParams }: Pr
   }).format(new Date())
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
+    <PageBody angosto>
+      <PageHeader
+        titulo="Nueva reserva"
+        descripcion="Cargá la reserva que te confirmaron por teléfono o WhatsApp."
+        volver={{ href: `/dashboard/${slug}/reservas`, label: "Reservas" }}
+      />
 
-      <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link href={`/dashboard/${slug}/reservas`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-          ← Volver a reservas
-        </Link>
-        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">
-          Nueva reserva
-        </h1>
-        <p className="text-xs text-white/40 mt-0.5">
-          Cargá la reserva que te confirmaron por teléfono o WhatsApp.
-        </p>
-      </header>
-
-      <section className="relative z-10 max-w-lg mx-auto p-6">
         {canchas.length === 0 ? (
           <div className="glass-card rounded-2xl p-8 text-center space-y-3">
             <p className="text-white/55">No hay canchas activas todavía.</p>
@@ -115,7 +108,6 @@ export default async function NuevaReservaAdminPage({ params, searchParams }: Pr
             ocupacion={ocupacion}
           />
         )}
-      </section>
-    </main>
+      </PageBody>
   )
 }

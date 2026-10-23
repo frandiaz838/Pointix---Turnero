@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation"
-import Link from "next/link"
 import { prisma } from "@/lib/prisma"
+import { PageHeader, PageBody } from "@/components/admin/page-header"
 import { auth } from "@/lib/session"
 import { IngresosCharts } from "@/components/admin/ingresos-charts"
 import { PeriodoSelector, type PeriodoIngresos } from "@/components/admin/periodo-selector"
@@ -24,7 +24,7 @@ const estadoBadge: Record<string, string> = {
   CONFIRMED: "bg-[#A3FF12]/10 text-[#A3FF12] border-[#A3FF12]/25",
   PENDING:   "bg-yellow-400/10 text-yellow-400 border-yellow-400/20",
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
-  COMPLETED: "bg-white/[0.05] text-white/40 border-white/[0.1]",
+  COMPLETED: "bg-white/[0.05] text-white/55 border-white/[0.1]",
 }
 
 const estadoLabel: Record<string, string> = {
@@ -175,17 +175,10 @@ export default async function IngresosPage({ params, searchParams }: Props) {
   ).sort((a, b) => b.total - a.total)
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
-      <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-          ← Volver al panel
-        </Link>
-        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">
-          Ingresos — {label}
-        </h1>
-      </header>
+    <PageBody>
+      <PageHeader titulo="Ingresos" descripcion={`Cuánto facturaste · ${label}`} />
 
-      <section className="relative z-10 max-w-4xl mx-auto p-6 space-y-8">
+      <div className="space-y-8">
 
         {/* Period selector */}
         <PeriodoSelector slug={slug} activo={periodo} />
@@ -194,7 +187,7 @@ export default async function IngresosPage({ params, searchParams }: Props) {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           <div className="glass-card border-lime-gradient rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-[#A3FF12]/60 uppercase tracking-[0.15em]">Confirmado</p>
+              <p className="text-xs font-bold text-[#A3FF12]/60 uppercase tracking-[0.15em]">Confirmado</p>
               <TrendingUp className="w-3.5 h-3.5 text-[#A3FF12]/50" />
             </div>
             <p
@@ -206,15 +199,15 @@ export default async function IngresosPage({ params, searchParams }: Props) {
             >
               ${totalConfirmado.toLocaleString("es-AR")}
             </p>
-            <p className="text-xs text-white/30">
+            <p className="text-xs text-white/50">
               {confirmadas.length} {confirmadas.length === 1 ? "reserva" : "reservas"}
             </p>
           </div>
 
           <div className="glass-card rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Pendiente</p>
-              <Receipt className="w-3.5 h-3.5 text-white/20" />
+              <p className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">Pendiente</p>
+              <Receipt className="w-3.5 h-3.5 text-white/35" />
             </div>
             <p
               className="font-display font-black text-white/85 tracking-tight tabular-nums leading-tight"
@@ -225,15 +218,15 @@ export default async function IngresosPage({ params, searchParams }: Props) {
             >
               ${totalPendiente.toLocaleString("es-AR")}
             </p>
-            <p className="text-xs text-white/30">
+            <p className="text-xs text-white/50">
               {pendientes.length} {pendientes.length === 1 ? "reserva" : "reservas"} sin confirmar
             </p>
           </div>
 
           <div className="col-span-2 sm:col-span-1 glass-card rounded-xl p-5 space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">Promedio por reserva</p>
-              <Calculator className="w-3.5 h-3.5 text-white/20" />
+              <p className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">Promedio por reserva</p>
+              <Calculator className="w-3.5 h-3.5 text-white/35" />
             </div>
             <p
               className="font-display font-black text-white/85 tracking-tight tabular-nums leading-tight"
@@ -244,7 +237,7 @@ export default async function IngresosPage({ params, searchParams }: Props) {
             >
               ${promedio.toLocaleString("es-AR")}
             </p>
-            <p className="text-xs text-white/30">
+            <p className="text-xs text-white/50">
               Total: ${totalGeneral.toLocaleString("es-AR")}
             </p>
           </div>
@@ -253,16 +246,16 @@ export default async function IngresosPage({ params, searchParams }: Props) {
         {/* Breakdown table — solo para mes o año. Para "hoy" no aplica. */}
         {tipo !== "dia" && (
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
+          <h2 className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">
             {tipo === "mes" ? `Desglose diario — ${label}` : `Desglose mensual — ${label}`}
           </h2>
           <div className="overflow-x-auto glass-card rounded-xl">
             <table className="w-full text-sm">
               <thead className="border-b border-white/[0.07]">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">{tipo === "mes" ? "Día" : "Mes"}</th>
-                  <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Reservas</th>
-                  <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Ingresos</th>
+                  <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">{tipo === "mes" ? "Día" : "Mes"}</th>
+                  <th className="text-right px-4 py-3 font-medium text-white/55 whitespace-nowrap">Reservas</th>
+                  <th className="text-right px-4 py-3 font-medium text-white/55 whitespace-nowrap">Ingresos</th>
                   <th className="px-4 py-3 w-36 hidden sm:table-cell"></th>
                 </tr>
               </thead>
@@ -272,15 +265,15 @@ export default async function IngresosPage({ params, searchParams }: Props) {
                     <td className={`px-4 py-3 ${fila.destacado ? "font-bold text-white" : "text-white/70"}`}>
                       {fila.label}
                       {fila.destacado && (
-                        <span className="ml-2 text-[10px] text-[#A3FF12] font-bold uppercase tracking-wide">
+                        <span className="ml-2 text-xs text-[#A3FF12] font-bold uppercase tracking-wide">
                           {tipo === "mes" ? "hoy" : "ahora"}
                         </span>
                       )}
                     </td>
-                    <td className={`px-4 py-3 text-right ${fila.destacado ? "font-bold text-white" : "text-white/40"}`}>
+                    <td className={`px-4 py-3 text-right ${fila.destacado ? "font-bold text-white" : "text-white/55"}`}>
                       {fila.cantidad || "—"}
                     </td>
-                    <td className={`px-4 py-3 text-right font-semibold ${fila.destacado ? "text-[#A3FF12]" : fila.total > 0 ? "text-white" : "text-white/20"}`}>
+                    <td className={`px-4 py-3 text-right font-semibold ${fila.destacado ? "text-[#A3FF12]" : fila.total > 0 ? "text-white" : "text-white/35"}`}>
                       {fila.total > 0 ? `$${fila.total.toLocaleString("es-AR")}` : "—"}
                     </td>
                     <td className="px-4 py-3 hidden sm:table-cell">
@@ -306,12 +299,12 @@ export default async function IngresosPage({ params, searchParams }: Props) {
 
         {/* Listado completo del período */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/35 uppercase tracking-[0.15em]">
+          <h2 className="text-sm font-bold text-white/60 uppercase tracking-[0.14em]">
             Reservas del período ({reservas.length})
           </h2>
 
           {reservas.length === 0 ? (
-            <div className="glass-card rounded-xl p-6 text-white/25 text-center text-sm">
+            <div className="glass-card rounded-xl p-6 text-white/45 text-center text-sm">
               Sin reservas este período
             </div>
           ) : (
@@ -332,7 +325,7 @@ export default async function IngresosPage({ params, searchParams }: Props) {
                           {r.user ? (r.user.name ?? r.user.email) : (r.guestName ?? "Invitado")}
                         </p>
                       </div>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${estadoBadge[r.status]}`}>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full border shrink-0 ${estadoBadge[r.status]}`}>
                         {estadoLabel[r.status]}
                       </span>
                     </div>
@@ -340,7 +333,7 @@ export default async function IngresosPage({ params, searchParams }: Props) {
                       <div className="text-xs text-white/50 tabular-nums">
                         {r.startTime.getUTCDate().toString().padStart(2, "0")}/
                         {(r.startTime.getUTCMonth() + 1).toString().padStart(2, "0")}
-                        <span className="mx-1.5 text-white/25">·</span>
+                        <span className="mx-1.5 text-white/45">·</span>
                         {r.startTime.getUTCHours().toString().padStart(2, "0")}:00
                       </div>
                       <span className="text-sm font-bold text-white tabular-nums">
@@ -356,12 +349,12 @@ export default async function IngresosPage({ params, searchParams }: Props) {
                 <table className="w-full text-sm">
                   <thead className="border-b border-white/[0.07]">
                     <tr>
-                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Fecha</th>
-                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Hora</th>
-                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cancha</th>
-                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Cliente</th>
-                      <th className="text-left px-4 py-3 font-medium text-white/40 whitespace-nowrap">Estado</th>
-                      <th className="text-right px-4 py-3 font-medium text-white/40 whitespace-nowrap">Monto</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Fecha</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Hora</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Cancha</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Cliente</th>
+                      <th className="text-left px-4 py-3 font-medium text-white/55 whitespace-nowrap">Estado</th>
+                      <th className="text-right px-4 py-3 font-medium text-white/55 whitespace-nowrap">Monto</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/[0.05]">
@@ -395,7 +388,7 @@ export default async function IngresosPage({ params, searchParams }: Props) {
           )}
         </div>
 
-      </section>
-    </main>
+      </div>
+    </PageBody>
   )
 }

@@ -156,7 +156,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
                   <>
                     <div className="flex items-center gap-3 flex-wrap flex-1">
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-white/35">Apertura</span>
+                        <span className="text-xs text-white/50">Apertura</span>
                         <input
                           type="time"
                           value={d.apertura}
@@ -165,7 +165,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
                         />
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-white/35">Cierre</span>
+                        <span className="text-xs text-white/50">Cierre</span>
                         <input
                           type="time"
                           value={d.cierre}
@@ -174,7 +174,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
                         />
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-xs text-white/35">Turno</span>
+                        <span className="text-xs text-white/50">Turno</span>
                         <select
                           value={d.slots}
                           onChange={(e) => updateDia(dia, { slots: parseInt(e.target.value) })}
@@ -197,14 +197,14 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
                     </button>
                   </>
                 ) : (
-                  <span className="text-sm text-white/25">Cerrado</span>
+                  <span className="text-sm text-white/45">Cerrado</span>
                 )}
               </div>
 
               {/* Popover de "Copiar a…" inline debajo del día */}
               {popoverAbierto && (
                 <div className="mt-3 ml-32 p-3 rounded-lg bg-[#0F1218] border border-white/[0.08] space-y-2.5 animate-in fade-in slide-in-from-top-1 duration-150">
-                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                  <p className="text-xs font-bold text-white/55 uppercase tracking-wider">
                     Aplicar el horario de {nombre} a:
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -240,7 +240,7 @@ export function HorariosForm({ courtId, tenantId, slug, horariosActuales }: Prop
                     <button
                       type="button"
                       onClick={cerrarCopia}
-                      className="text-xs text-white/40 hover:text-white/70 px-2 py-1 transition-colors"
+                      className="text-xs text-white/55 hover:text-white/70 px-2 py-1 transition-colors"
                     >
                       Cancelar
                     </button>

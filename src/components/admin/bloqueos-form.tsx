@@ -40,7 +40,7 @@ function capitalizar(s: string): string {
 
 const HORAS = Array.from({ length: 17 }, (_, i) => `${String(i + 7).padStart(2, "0")}:00`)
 
-const inputBase = "w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/30 outline-none focus:border-[#A3FF12]/40 transition-colors"
+const inputBase = "w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/50 outline-none focus:border-[#A3FF12]/40 transition-colors"
 
 export function BloqueoForm({ slug, courtId }: Props) {
   const [pending, startTransition] = useTransition()
@@ -124,12 +124,12 @@ export function BloqueoForm({ slug, courtId }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-5 space-y-4">
-      <p className="text-[10px] font-bold text-white/35 uppercase tracking-[0.18em]">Nuevo bloqueo</p>
+      <p className="text-xs font-bold text-white/50 uppercase tracking-[0.18em]">Nuevo bloqueo</p>
 
       {/* Fecha — Popover + Calendar */}
       <div className="space-y-2">
         <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-          <CalendarDays className="w-3.5 h-3.5 text-white/40" /> Fecha
+          <CalendarDays className="w-3.5 h-3.5 text-white/55" /> Fecha
         </label>
         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
           <PopoverTrigger
@@ -137,7 +137,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
             className={`${inputBase} text-left flex items-center justify-between gap-2 cursor-pointer hover:bg-white/[0.08]`}
           >
             <span className="truncate">{capitalizar(formatFechaDisplay(fechaDate))}</span>
-            <CalendarDays className="w-4 h-4 text-white/40 shrink-0" />
+            <CalendarDays className="w-4 h-4 text-white/55 shrink-0" />
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" side="bottom" align="start">
             <Calendar
@@ -172,7 +172,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-white/40" /> Desde
+              <Clock className="w-3.5 h-3.5 text-white/55" /> Desde
             </label>
             <Select value={desde} onValueChange={(v) => setDesde(v ?? "")}>
               <SelectTrigger className="w-full">
@@ -185,7 +185,7 @@ export function BloqueoForm({ slug, courtId }: Props) {
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium text-white/65 flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-white/40" /> Hasta
+              <Clock className="w-3.5 h-3.5 text-white/55" /> Hasta
             </label>
             <Select value={hasta} onValueChange={(v) => setHasta(v ?? "")}>
               <SelectTrigger className="w-full">

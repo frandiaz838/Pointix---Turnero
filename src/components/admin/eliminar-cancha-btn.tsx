@@ -36,7 +36,7 @@ export function EliminarCanchaBtn({ courtId, tenantId, slug, canchaName }: Props
       try {
         await eliminarCancha(courtId, tenantId, slug, confirmText)
         setOpen(false)
-        router.push(`/dashboard/${slug}`)
+        router.push(`/dashboard/${slug}/canchas`)
         router.refresh()
       } catch (err) {
         setError(err instanceof Error ? err.message : "Error al eliminar")
@@ -91,7 +91,7 @@ export function EliminarCanchaBtn({ courtId, tenantId, slug, canchaName }: Props
               value={confirmText}
               onChange={(e) => setConfirmText(e.target.value)}
               placeholder={canchaName}
-              className="w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-red-500/40 transition-colors"
+              className="w-full glass-nav rounded-xl px-3.5 py-2.5 text-sm text-white placeholder:text-white/45 outline-none focus:border-red-500/40 transition-colors"
               disabled={pending}
             />
             {matches && (

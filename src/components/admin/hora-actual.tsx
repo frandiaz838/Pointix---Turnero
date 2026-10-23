@@ -62,7 +62,7 @@ export function HoraActual() {
 
   if (!now) {
     return (
-      <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em] mt-0.5">
+      <p className="text-xs font-bold text-white/50 uppercase tracking-[0.2em] mt-0.5">
         Panel admin
       </p>
     )
@@ -71,9 +71,9 @@ export function HoraActual() {
   const p = partesAr(now)
 
   return (
-    <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.18em] mt-0.5 tabular-nums">
+    <p className="text-xs font-bold text-white/55 uppercase tracking-[0.18em] mt-0.5 tabular-nums">
       {formatFecha(p)}
-      <span className="text-white/20 mx-1.5">·</span>
+      <span className="text-white/35 mx-1.5">·</span>
       <span className="text-[#A3FF12]/80">{formatHora(p)}</span>
     </p>
   )

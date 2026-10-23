@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation"
-import Link from "next/link"
+import { PageHeader, PageBody, SectionTitle } from "@/components/admin/page-header"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { MpConfigForm } from "@/components/admin/mp-config-form"
@@ -48,32 +48,20 @@ export default async function ConfiguracionPage({ params }: Props) {
   const linkPublico = `${appUrl}/${slug}`
 
   return (
-    <main className="min-h-screen bg-toxic-gradient relative">
-      <header className="glass-header sticky top-0 z-50 px-6 py-4">
-        <Link href={`/dashboard/${slug}`} className="text-xs font-medium text-white/30 hover:text-white/70 transition-colors">
-          ← Volver al panel
-        </Link>
-        <h1 className="font-display font-black uppercase text-white text-xl leading-none tracking-tight mt-1">
-          Configuración
-        </h1>
-        <p className="text-xs text-white/40 mt-0.5">
-          Datos del club, WhatsApp y MercadoPago.
-        </p>
-      </header>
+    <PageBody angosto>
+      <PageHeader titulo="Configuración" descripcion="Datos del club, link de reservas, cobros con MercadoPago y seguridad." />
 
-      <section className="relative z-10 max-w-lg mx-auto p-6 space-y-8">
+      <div className="space-y-10">
 
         {/* Sección: link público de reservas */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">
-            Link para compartir
-          </h2>
+          <SectionTitle>Link para compartir</SectionTitle>
           <ShareLinkCard url={linkPublico} clubName={tenant.name} />
         </div>
 
         {/* Sección 1: Datos del club */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Datos del club</h2>
+          <SectionTitle>Datos del club</SectionTitle>
           <DatosClubForm
             tenantId={tenant.id}
             slug={slug}
@@ -87,7 +75,7 @@ export default async function ConfiguracionPage({ params }: Props) {
 
         {/* Sección 2: MercadoPago */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Cobros online</h2>
+          <SectionTitle>Cobros online</SectionTitle>
           <MpConfigForm
             tenantId={tenant.id}
             slug={slug}
@@ -102,11 +90,11 @@ export default async function ConfiguracionPage({ params }: Props) {
 
         {/* Sección 3: Seguridad */}
         <div className="space-y-3">
-          <h2 className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Seguridad</h2>
+          <SectionTitle>Seguridad</SectionTitle>
           <CerrarSesionTodosBtn />
         </div>
 
-      </section>
-    </main>
+      </div>
+    </PageBody>
   )
 }

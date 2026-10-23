@@ -34,7 +34,7 @@ export function Paginacion({ pagina, totalPaginas, totalItems, itemsPorPagina }:
 
   return (
     <div className="flex items-center justify-between gap-3 pt-2">
-      <p className="text-xs text-white/40">
+      <p className="text-xs text-white/55">
         <span className="font-semibold text-white/70 tabular-nums">{desde}–{hasta}</span>
         <span className="mx-1">de</span>
         <span className="font-semibold text-white/70 tabular-nums">{totalItems}</span>

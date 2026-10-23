@@ -62,12 +62,12 @@ export async function OnboardingChecklist({ tenantId, slug, tieneMp }: Props) {
     <section className="glass-card rounded-2xl p-5 space-y-4 border border-[#A3FF12]/20">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[10px] font-bold text-[#A3FF12] uppercase tracking-[0.18em]">Primeros pasos</p>
+          <p className="text-xs font-bold text-[#A3FF12] uppercase tracking-[0.18em]">Primeros pasos</p>
           <h2 className="font-display font-black uppercase text-white text-xl leading-tight tracking-tight">
             Dejá tu complejo listo para reservar
           </h2>
         </div>
-        <span className="text-xs font-semibold text-white/40 whitespace-nowrap">{hechos} de {pasos.length}</span>
+        <span className="text-xs font-semibold text-white/55 whitespace-nowrap">{hechos} de {pasos.length}</span>
       </div>
 
       <ol className="space-y-2">
@@ -88,9 +88,9 @@ export async function OnboardingChecklist({ tenantId, slug, tieneMp }: Props) {
               </span>
               <span className="min-w-0 flex-1">
                 <span className={`block text-sm font-semibold ${p.hecho ? "text-white/60 line-through" : "text-white"}`}>{p.titulo}</span>
-                {!p.hecho && <span className="block text-xs text-white/40">{p.desc}</span>}
+                {!p.hecho && <span className="block text-xs text-white/55">{p.desc}</span>}
               </span>
-              {!p.hecho && <ChevronRight className="w-4 h-4 text-white/25 shrink-0" />}
+              {!p.hecho && <ChevronRight className="w-4 h-4 text-white/45 shrink-0" />}
             </Link>
           </li>
         ))}
