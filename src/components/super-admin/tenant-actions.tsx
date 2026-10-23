@@ -23,11 +23,13 @@ interface Props {
 
 type Panel = "pago" | "prueba" | "notas" | "rechazar" | "suspender" | null
 
-const btn = "text-xs font-semibold rounded-lg px-3 py-1.5 border transition-colors disabled:opacity-40"
-const btnOutline = `${btn} border-white/10 text-white/70 hover:text-white hover:border-white/25`
+const btn = "text-sm font-semibold rounded-xl px-4 py-2.5 border transition-colors disabled:opacity-40"
+const btnOutline = `${btn} border-white/12 text-white/80 hover:text-white hover:border-white/30 hover:bg-white/[0.04]`
+const btnOutlineOn = `${btn} border-[#A3FF12]/60 text-[#A3FF12] bg-[#A3FF12]/[0.06]`
 const btnLime = `${btn} border-transparent bg-[#A3FF12] text-black hover:bg-[#d4ff1a]`
 const btnDanger = `${btn} border-red-500/30 text-red-400 hover:bg-red-500/10`
-const chip = "text-xs font-semibold rounded-lg px-3 py-1.5 border transition-colors"
+const btnGhostDanger = `${btn} border-transparent text-red-400/80 hover:text-red-400 hover:bg-red-500/10`
+const chip = "text-sm font-semibold rounded-xl px-4 py-2 border transition-colors"
 
 const OPCIONES_MESES = [1, 3, 6, 12]
 const OPCIONES_DIAS = [7, 15, 30]
@@ -76,46 +78,54 @@ export function TenantActions({ tenantId, estado, venceIso, notas }: Props) {
 
   return (
     <div className="space-y-3 w-full">
+      {/* Orden por importancia: acción principal → gestión → (separado) destructiva */}
       <div className="flex flex-wrap items-center gap-2">
         {estado === "pendiente" ? (
           <>
             <button className={btnLime} disabled={pending} onClick={() => run(() => aprobarComplejo(tenantId))}>
               Aprobar y empezar prueba
             </button>
-            <button className={btnDanger} disabled={pending} onClick={() => abrir("rechazar")}>
-              Rechazar
+            <button className={btnOutline} disabled={pending} onClick={() => run(() => entrarComoComplejo(tenantId))}>
+              Ver su panel
             </button>
           </>
         ) : (
           <>
-            <button className={panel === "pago" ? btnLime : btnOutline} disabled={pending} onClick={() => abrir("pago")}>
+            <button className={btnLime} disabled={pending} onClick={() => run(() => entrarComoComplejo(tenantId))}>
+              Entrar al panel →
+            </button>
+            <button className={panel === "pago" ? btnOutlineOn : btnOutline} disabled={pending} onClick={() => abrir("pago")}>
               Registrar pago
             </button>
-            <button className={panel === "prueba" ? btnLime : btnOutline} disabled={pending} onClick={() => abrir("prueba")}>
+            <button className={panel === "prueba" ? btnOutlineOn : btnOutline} disabled={pending} onClick={() => abrir("prueba")}>
               Extender prueba
             </button>
-            {estado === "suspendido" ? (
-              <button className={btnOutline} disabled={pending} onClick={() => run(() => reactivarComplejo(tenantId))}>
-                Reactivar
-              </button>
-            ) : (
-              <button className={btnDanger} disabled={pending} onClick={() => abrir("suspender")}>
-                Suspender
-              </button>
-            )}
           </>
         )}
-        <button className={btnOutline} disabled={pending} onClick={() => run(() => entrarComoComplejo(tenantId))}>
-          Entrar al panel →
-        </button>
-        <button className={btnOutline} disabled={pending} onClick={() => abrir("notas")}>
+        <button className={panel === "notas" ? btnOutlineOn : btnOutline} disabled={pending} onClick={() => abrir("notas")}>
           {notas ? "Editar nota" : "Agregar nota"}
         </button>
+
+        <span className="sm:ml-auto">
+          {estado === "pendiente" ? (
+            <button className={btnGhostDanger} disabled={pending} onClick={() => abrir("rechazar")}>
+              Rechazar
+            </button>
+          ) : estado === "suspendido" ? (
+            <button className={btnOutline} disabled={pending} onClick={() => run(() => reactivarComplejo(tenantId))}>
+              Reactivar
+            </button>
+          ) : (
+            <button className={btnGhostDanger} disabled={pending} onClick={() => abrir("suspender")}>
+              Suspender
+            </button>
+          )}
+        </span>
       </div>
 
       {panel === "pago" && (
         <PanelBox>
-          <p className="text-sm text-white/80 font-semibold">¿Cuántos meses te pagó?</p>
+          <p className="text-base text-white/85 font-semibold">¿Cuántos meses te pagó?</p>
           <div className="flex flex-wrap gap-1.5">
             {OPCIONES_MESES.map((m) => (
               <button
@@ -127,7 +137,7 @@ export function TenantActions({ tenantId, estado, venceIso, notas }: Props) {
               </button>
             ))}
           </div>
-          <p className="text-xs text-white/50">
+          <p className="text-sm text-white/55">
             El club pasa a <span className="text-[#A3FF12] font-semibold">Activo</span> hasta el{" "}
             <span className="text-white font-semibold">{nuevaFecha(venceIso, meses * 30)}</span>
             {yaVencio || !venceIso ? " (contando desde hoy)." : " (se suma a lo que le quedaba)."}
@@ -136,14 +146,14 @@ export function TenantActions({ tenantId, estado, venceIso, notas }: Props) {
             <button className={btnLime} disabled={pending} onClick={() => run(() => registrarPago(tenantId, meses))}>
               Confirmar pago
             </button>
-            <button className="text-xs text-white/40 hover:text-white" onClick={() => setPanel(null)}>Cancelar</button>
+            <button className="text-sm text-white/45 hover:text-white px-2" onClick={() => setPanel(null)}>Cancelar</button>
           </div>
         </PanelBox>
       )}
 
       {panel === "prueba" && (
         <PanelBox>
-          <p className="text-sm text-white/80 font-semibold">¿Cuántos días más de prueba gratis?</p>
+          <p className="text-base text-white/85 font-semibold">¿Cuántos días más de prueba gratis?</p>
           <div className="flex flex-wrap gap-1.5">
             {OPCIONES_DIAS.map((d) => (
               <button
@@ -155,7 +165,7 @@ export function TenantActions({ tenantId, estado, venceIso, notas }: Props) {
               </button>
             ))}
           </div>
-          <p className="text-xs text-white/50">
+          <p className="text-sm text-white/55">
             Queda <span className="text-cyan-300 font-semibold">En prueba</span> hasta el{" "}
             <span className="text-white font-semibold">{nuevaFecha(venceIso, dias)}</span>. Útil si necesita más tiempo para decidir.
           </p>
@@ -163,35 +173,35 @@ export function TenantActions({ tenantId, estado, venceIso, notas }: Props) {
             <button className={btnLime} disabled={pending} onClick={() => run(() => extenderPrueba(tenantId, dias))}>
               Confirmar
             </button>
-            <button className="text-xs text-white/40 hover:text-white" onClick={() => setPanel(null)}>Cancelar</button>
+            <button className="text-sm text-white/45 hover:text-white px-2" onClick={() => setPanel(null)}>Cancelar</button>
           </div>
         </PanelBox>
       )}
 
       {panel === "suspender" && (
         <PanelBox>
-          <p className="text-sm text-white/80">
+          <p className="text-base text-white/80">
             Se bloquea el panel del club <strong>y su página pública</strong> (no puede recibir reservas). Las reservas ya hechas no se tocan. Se puede reactivar cuando quieras.
           </p>
           <div className="flex gap-2">
             <button className={btnDanger} disabled={pending} onClick={() => run(() => suspenderComplejo(tenantId))}>
               Sí, suspender
             </button>
-            <button className="text-xs text-white/40 hover:text-white" onClick={() => setPanel(null)}>Cancelar</button>
+            <button className="text-sm text-white/45 hover:text-white px-2" onClick={() => setPanel(null)}>Cancelar</button>
           </div>
         </PanelBox>
       )}
 
       {panel === "rechazar" && (
         <PanelBox>
-          <p className="text-sm text-white/80">
+          <p className="text-base text-white/80">
             Se <strong>borran</strong> el club y la cuenta del dueño. No se puede deshacer.
           </p>
           <div className="flex gap-2">
             <button className={btnDanger} disabled={pending} onClick={() => run(() => rechazarComplejo(tenantId))}>
               Sí, rechazar y borrar
             </button>
-            <button className="text-xs text-white/40 hover:text-white" onClick={() => setPanel(null)}>Cancelar</button>
+            <button className="text-sm text-white/45 hover:text-white px-2" onClick={() => setPanel(null)}>Cancelar</button>
           </div>
         </PanelBox>
       )}
@@ -210,19 +220,19 @@ export function TenantActions({ tenantId, estado, venceIso, notas }: Props) {
             <button className={btnLime} disabled={pending} onClick={() => run(() => guardarNotasAdmin(tenantId, textoNotas))}>
               Guardar nota
             </button>
-            <button className="text-xs text-white/40 hover:text-white" onClick={() => setPanel(null)}>Cancelar</button>
+            <button className="text-sm text-white/45 hover:text-white px-2" onClick={() => setPanel(null)}>Cancelar</button>
           </div>
         </PanelBox>
       )}
 
-      {error && <p role="alert" className="text-xs text-red-400">{error}</p>}
+      {error && <p role="alert" className="text-sm text-red-400">{error}</p>}
     </div>
   )
 }
 
 function PanelBox({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-4 space-y-3 max-w-lg">
+    <div className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5 space-y-4 max-w-xl">
       {children}
     </div>
   )
