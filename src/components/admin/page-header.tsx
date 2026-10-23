@@ -30,7 +30,12 @@ export function PageHeader({ titulo, descripcion, volver, acciones }: Props) {
         </h1>
         {descripcion && <p className="text-base text-white/55">{descripcion}</p>}
       </div>
-      {acciones && <div className="flex flex-wrap items-center gap-2 shrink-0">{acciones}</div>}
+      {/* En mobile las acciones ocupan el ancho completo, repartidas en partes iguales */}
+      {acciones && (
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0 [&>*]:flex-1 sm:[&>*]:flex-none">
+          {acciones}
+        </div>
+      )}
     </header>
   )
 }

@@ -26,7 +26,7 @@ export function CopyLinkBtn({ url, className }: { url: string; className: string
   return (
     <button type="button" onClick={copiar} className={className}>
       {copiado ? <Check className="w-4 h-4 text-[#A3FF12]" /> : <Link2 className="w-4 h-4" />}
-      {copiado ? "¡Link copiado!" : "Copiar link de reservas"}
+      {copiado ? "¡Copiado!" : <>Copiar link<span className="hidden sm:inline">&nbsp;de reservas</span></>}
     </button>
   )
 }

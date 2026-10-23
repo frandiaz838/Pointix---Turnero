@@ -132,7 +132,7 @@ export default async function SuperAdminPage({ searchParams }: Props) {
                   key={e.key}
                   href={activo ? "/admin" : `/admin?estado=${e.key}`}
                   aria-current={activo ? "true" : undefined}
-                  className={`glass-card rounded-2xl p-5 flex flex-col gap-3 border transition-colors ${
+                  className={`glass-card rounded-2xl p-4 sm:p-5 flex flex-col gap-2 sm:gap-3 border transition-colors first:col-span-2 sm:first:col-span-1 ${
                     activo
                       ? "border-[#A3FF12]/60 bg-white/[0.06]"
                       : alerta
@@ -141,7 +141,7 @@ export default async function SuperAdminPage({ searchParams }: Props) {
                   }`}
                 >
                   <span className="text-xs font-bold text-white/50 uppercase tracking-[0.14em]">{e.label}</span>
-                  <span className={`font-display font-black leading-none text-5xl ${n > 0 ? e.acento : "text-white/25"}`}>
+                  <span className={`font-display font-black leading-none text-4xl sm:text-5xl ${n > 0 ? e.acento : "text-white/25"}`}>
                     {n}
                   </span>
                   <span className="text-xs text-white/40">{e.ayuda}</span>

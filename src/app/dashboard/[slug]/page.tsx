@@ -184,13 +184,16 @@ export default async function AdminDashboardPage({ params }: Props) {
 
       <OnboardingChecklist tenantId={tenant.id} slug={slug} tieneMp={!!tenant.mpAccessToken} />
 
-      {/* Números del día: cada tarjeta lleva a su detalle */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      {/* Números del día: cada tarjeta lleva a su detalle.
+          Mobile: ingresos arriba a lo ancho y las otras dos de a pares, compactas. */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
         {kpis.map(({ label, icon: Icon, valor, detalle, href, cta, destacado }) => (
           <Link
             key={label}
             href={href}
-            className={`group glass-card rounded-2xl p-6 flex flex-col gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/[0.06] ${destacado ? "border-lime-gradient" : ""}`}
+            className={`group glass-card rounded-2xl p-4 sm:p-6 flex flex-col gap-2 sm:gap-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/[0.06] ${
+              destacado ? "border-lime-gradient col-span-2 order-first sm:col-span-1 sm:order-none" : ""
+            }`}
           >
             <div className="flex items-center justify-between">
               <p className={`text-sm font-semibold ${destacado ? "text-[#A3FF12]" : "text-white/65"}`}>{label}</p>
@@ -198,12 +201,12 @@ export default async function AdminDashboardPage({ params }: Props) {
             </div>
             <p
               className={`font-display font-black leading-none tabular-nums ${destacado ? "text-[#A3FF12] text-glow-lime" : "text-white"}`}
-              style={{ fontSize: "clamp(2.5rem,5vw,3.5rem)", overflowWrap: "anywhere" }}
+              style={{ fontSize: "clamp(2rem,5vw,3.5rem)", overflowWrap: "anywhere" }}
             >
               {valor}
             </p>
-            <p className="text-sm text-white/55" style={{ overflowWrap: "anywhere" }}>{detalle}</p>
-            <span className="mt-auto pt-3 border-t border-white/[0.07] text-sm font-semibold text-white/60 group-hover:text-white inline-flex items-center gap-1.5 transition-colors">
+            <p className="text-xs sm:text-sm text-white/55" style={{ overflowWrap: "anywhere" }}>{detalle}</p>
+            <span className="hidden sm:inline-flex mt-auto pt-3 border-t border-white/[0.07] text-sm font-semibold text-white/60 group-hover:text-white items-center gap-1.5 transition-colors">
               {cta}
               <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </span>
