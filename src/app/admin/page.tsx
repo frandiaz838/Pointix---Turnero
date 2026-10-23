@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { ExternalLink, MessageCircle, Check, X } from "lucide-react"
+import { ExternalLink, MessageCircle, Check, X, BellRing } from "lucide-react"
 import { prisma } from "@/lib/prisma"
 import { getSuperAdminSession } from "@/lib/session"
 import { estadoTenant, ESTADO_LABEL, ESTADO_BADGE, type EstadoTenant } from "@/lib/tenant-status"
@@ -34,6 +34,18 @@ function fechaCorta(d: Date): string {
   return d.toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Argentina/Buenos_Aires" })
 }
 
+// Frase que explica en qué situación está el club y hasta cuándo.
+function resumenEstado(estado: EstadoTenant, vence: Date | null, dias: number | null): string {
+  const cuenta = dias !== null && dias > 0 ? ` · ${dias === 1 ? "queda 1 día" : `quedan ${dias} días`}` : ""
+  switch (estado) {
+    case "pendiente":  return "Esperando tu aprobación. La prueba de 30 días arranca cuando lo aprobás."
+    case "prueba":     return vence ? `En prueba gratis hasta el ${fechaCorta(vence)}${cuenta}` : "En prueba, sin fecha de vencimiento"
+    case "activo":     return vence ? `Pagó hasta el ${fechaCorta(vence)}${cuenta}` : "Activo, sin fecha de vencimiento"
+    case "vencido":    return vence ? `Venció el ${fechaCorta(vence)} · panel bloqueado, sigue recibiendo reservas` : "Vencido · panel bloqueado"
+    case "suspendido": return "Suspendido · panel y página pública bloqueados"
+  }
+}
+
 export default async function SuperAdminPage({ searchParams }: Props) {
   const session = await getSuperAdminSession()
   if (!session) redirect("/dashboard")
@@ -51,7 +63,7 @@ export default async function SuperAdminPage({ searchParams }: Props) {
         id: true, name: true, slug: true, whatsappNumber: true, createdAt: true,
         pendingApproval: true, subscriptionStatus: true, subscriptionEndsAt: true,
         mpAccessToken: true, adminNotes: true,
-        users: { where: { role: "ADMIN" }, select: { name: true, email: true } },
+        users: { where: { role: { in: ["ADMIN", "SUPER_ADMIN"] } }, select: { id: true, name: true, email: true } },
         _count: {
           select: {
             courts: { where: { archivedAt: null } },
@@ -99,6 +111,24 @@ export default async function SuperAdminPage({ searchParams }: Props) {
       </header>
 
       <main className="relative z-10 max-w-5xl mx-auto p-6 space-y-8">
+        {conteo("pendiente") > 0 && filtro !== "pendiente" && (
+          <Link
+            href="/admin?estado=pendiente"
+            className="flex items-center justify-between gap-3 rounded-2xl border border-yellow-400/40 bg-yellow-400/10 px-5 py-4 hover:bg-yellow-400/15 transition-colors"
+          >
+            <span className="flex items-center gap-3">
+              <BellRing className="w-5 h-5 text-yellow-400 shrink-0" />
+              <span className="text-sm text-white">
+                <strong className="text-yellow-400">
+                  {conteo("pendiente") === 1 ? "1 complejo quiere sumarse" : `${conteo("pendiente")} complejos quieren sumarse`}
+                </strong>{" "}
+                a Pointix. Revisalos y aprobalos.
+              </span>
+            </span>
+            <span className="text-xs font-semibold text-yellow-400 whitespace-nowrap">Ver solicitudes →</span>
+          </Link>
+        )}
+
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
           {kpis.map((k) => (
             <div key={k.label} className={`glass-card rounded-2xl p-4 space-y-2 ${k.destacar ? "border border-yellow-400/40" : ""}`}>
@@ -150,7 +180,7 @@ export default async function SuperAdminPage({ searchParams }: Props) {
               const dueno = t.users[0]
               const { estado, diasRestantes } = t.info
               return (
-                <li key={t.id} className="glass-card rounded-2xl p-5 space-y-4">
+                <li key={t.id} className={`glass-card rounded-2xl p-5 space-y-4 ${estado === "pendiente" ? "border border-yellow-400/40" : ""}`}>
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -160,7 +190,11 @@ export default async function SuperAdminPage({ searchParams }: Props) {
                         </span>
                       </div>
                       <p className="text-xs text-white/45 break-all">
-                        {dueno ? `${dueno.name ?? "—"} · ${dueno.email}` : "Sin dueño asignado"}
+                        {!dueno
+                          ? "Sin dueño asignado"
+                          : dueno.id === session.user.id
+                            ? <span className="text-cyan-300 font-semibold">Vos (super admin) · club de prueba</span>
+                            : `${dueno.name ?? "—"} · ${dueno.email}`}
                       </p>
                       <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                         {estado !== "pendiente" && (
@@ -176,23 +210,13 @@ export default async function SuperAdminPage({ searchParams }: Props) {
                       </div>
                     </div>
 
-                    <dl className="grid grid-cols-4 sm:grid-cols-4 gap-4 text-xs shrink-0">
-                      <div>
-                        <dt className="text-white/35">Vence</dt>
-                        <dd className="text-white/80 font-semibold whitespace-nowrap">
-                          {t.subscriptionEndsAt
-                            ? diasRestantes !== null && diasRestantes > 0
-                              ? `${diasRestantes} d`
-                              : fechaCorta(t.subscriptionEndsAt)
-                            : "—"}
-                        </dd>
-                      </div>
+                    <dl className="grid grid-cols-3 gap-4 text-xs shrink-0">
                       <div>
                         <dt className="text-white/35">Canchas</dt>
                         <dd className="text-white/80 font-semibold">{t._count.courts}</dd>
                       </div>
                       <div>
-                        <dt className="text-white/35">Res. 30d</dt>
+                        <dt className="text-white/35" title="Reservas confirmadas en los últimos 30 días">Reservas 30d</dt>
                         <dd className="text-white/80 font-semibold">{t._count.bookings}</dd>
                       </div>
                       <div>
@@ -202,14 +226,23 @@ export default async function SuperAdminPage({ searchParams }: Props) {
                     </dl>
                   </div>
 
+                  <p className={`text-sm font-medium ${estado === "vencido" || estado === "suspendido" ? "text-orange-300" : estado === "pendiente" ? "text-yellow-300" : "text-white/75"}`}>
+                    {resumenEstado(estado, t.subscriptionEndsAt, diasRestantes)}
+                  </p>
+
                   {t.adminNotes && (
                     <p className="text-xs text-white/60 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2 whitespace-pre-wrap">
                       {t.adminNotes}
                     </p>
                   )}
 
-                  <div className="flex items-center justify-between gap-3 border-t border-white/[0.06] pt-4">
-                    <TenantActions tenantId={t.id} estado={estado} notas={t.adminNotes} />
+                  <div className="border-t border-white/[0.06] pt-4">
+                    <TenantActions
+                      tenantId={t.id}
+                      estado={estado}
+                      venceIso={t.subscriptionEndsAt?.toISOString() ?? null}
+                      notas={t.adminNotes}
+                    />
                   </div>
                   <p className="text-[11px] text-white/25">Alta: {fechaCorta(t.createdAt)}</p>
                 </li>
