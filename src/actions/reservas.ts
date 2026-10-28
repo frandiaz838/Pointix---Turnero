@@ -4,12 +4,12 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
-import { generarSlots } from "@/lib/slots"
 import { nowInArAsArtificialUtc } from "@/lib/timezone"
 import { notificarReservaConfirmada } from "@/lib/booking-notifications"
 import { checkRateLimit, getClientIp } from "@/lib/ratelimit"
 import { estadoTenant } from "@/lib/tenant-status"
 import { mediosDePago } from "@/lib/medios-pago"
+import { resolverTurno, reservarTurnoAtomico } from "@/lib/reserva-turno"
 import type { PaymentMethod } from "@/generated/prisma/client"
 
 export async function cancelarReserva(bookingId: string) {
@@ -66,7 +66,7 @@ export async function editarReserva(bookingId: string, formData: FormData) {
   const courtId    = formData.get("courtId") as string
   const fecha      = formData.get("fecha") as string
   const hora       = formData.get("hora") as string
-  const slug       = formData.get("slug") as string
+  const slug       = reservaExistente.court.tenant.slug
   const guestName  = ((formData.get("guestName")  as string | null) ?? "").trim()
   const guestPhone = ((formData.get("guestPhone") as string | null) ?? "").trim() || null
   const guestEmail = ((formData.get("guestEmail") as string | null) ?? "").trim() || null
@@ -81,52 +81,26 @@ export async function editarReserva(bookingId: string, formData: FormData) {
   if (!cancha) throw new Error("Cancha no encontrada")
   if (cancha.tenantId !== session.user.tenantId) throw new Error("No autorizado")
 
-  const [y, m, d] = fecha.split("-").map(Number)
-  const diaSemana = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
-  const schedule = cancha.schedules.find(s => s.dayOfWeek === diaSemana)
-  if (!schedule) throw new Error(`La cancha "${cancha.name}" no abre ese día`)
+  const { startTime, endTime } = resolverTurno(cancha, fecha, hora)
 
-  const slotsValidos = generarSlots(schedule.openTime, schedule.closeTime, schedule.slotMinutes)
-  if (!slotsValidos.includes(hora)) {
-    throw new Error(`El horario ${hora} no es válido para "${cancha.name}" ese día (abre ${schedule.openTime} a ${schedule.closeTime})`)
-  }
-
-  const slotMinutes = schedule.slotMinutes
-  const startTime = new Date(`${fecha}T${hora}:00.000Z`)
-  const endTime   = new Date(startTime.getTime() + slotMinutes * 60 * 1000)
-
-  // Excluimos la propia reserva del conflict check
-  const conflicto = await prisma.booking.findFirst({
-    where: {
-      id: { not: bookingId },
-      courtId,
-      status: { in: ["PENDING", "CONFIRMED"] },
-      startTime: { lt: endTime },
-      endTime:   { gt: startTime },
-    },
-  })
-  if (conflicto) throw new Error("Ese horario ya está reservado")
-
-  const bloqueo = await prisma.courtBlock.findFirst({
-    where: {
-      courtId,
-      startTime: { lt: endTime },
-      endTime:   { gt: startTime },
-    },
-  })
-  if (bloqueo) throw new Error("Esa cancha está bloqueada en ese horario")
-
-  await prisma.booking.update({
-    where: { id: bookingId },
-    data: {
-      courtId,
-      startTime,
-      endTime,
-      totalPrice: cancha.pricePerHour,
-      guestName,
-      guestPhone,
-      guestEmail,
-    },
+  // La propia reserva no cuenta como conflicto (se está moviendo)
+  await reservarTurnoAtomico({
+    courtId,
+    startTime,
+    endTime,
+    excluirBookingId: bookingId,
+    escribir: (tx) => tx.booking.update({
+      where: { id: bookingId },
+      data: {
+        courtId,
+        startTime,
+        endTime,
+        totalPrice: cancha.pricePerHour,
+        guestName,
+        guestPhone,
+        guestEmail,
+      },
+    }),
   })
 
   revalidatePath(`/dashboard/${slug}/reservas`)
@@ -206,10 +180,11 @@ const RL_RESERVAS_PUBLICAS_WINDOW_MS = 10 * 60 * 1000
 export async function crearReserva(formData: FormData) {
   const session = await auth()
 
-  const courtId = formData.get("courtId") as string
-  const fecha = formData.get("fecha") as string
-  const hora = formData.get("hora") as string
-  const slug = formData.get("slug") as string
+  // Del formulario solo tomamos qué turno y quién reserva. Duración, precio y
+  // slug salen de la DB: el navegador no decide cuánto dura ni a dónde redirigir.
+  const courtId = String(formData.get("courtId") ?? "")
+  const fecha = String(formData.get("fecha") ?? "")
+  const hora = String(formData.get("hora") ?? "")
   const guestName = formData.get("guestName") as string | null
   const guestPhone = formData.get("guestPhone") as string | null
   const guestEmail = ((formData.get("guestEmail") as string | null) ?? "").trim() || null
@@ -236,39 +211,21 @@ export async function crearReserva(formData: FormData) {
     }
   }
 
+  if (!courtId) throw new Error("Cancha no disponible")
   const cancha = await prisma.court.findUnique({
     where: { id: courtId },
-    include: { tenant: true },
+    include: { tenant: true, schedules: true },
   })
   if (!cancha || !cancha.isActive || cancha.archivedAt) throw new Error("Cancha no disponible")
   if (!estadoTenant(cancha.tenant).publicoHabilitado) throw new Error("Este complejo no está recibiendo reservas")
+  const slug = cancha.tenant.slug
 
-  const slotMinutes = parseInt((formData.get("slotMinutes") as string) || "60")
-  const startTime = new Date(`${fecha}T${hora}:00.000Z`)
-  const endTime = new Date(startTime.getTime() + slotMinutes * 60 * 1000)
-
-  const conflicto = await prisma.booking.findFirst({
-    where: {
-      courtId,
-      status: { in: ["PENDING", "CONFIRMED"] },
-      startTime: { lt: endTime },
-      endTime: { gt: startTime },
-    },
-  })
-  if (conflicto) throw new Error("Ese horario ya está reservado")
-
-  const bloqueo = await prisma.courtBlock.findFirst({
-    where: {
-      courtId,
-      startTime: { lt: endTime },
-      endTime:   { gt: startTime },
-    },
-  })
-  if (bloqueo) throw new Error("Ese horario no está disponible")
+  const { startTime, endTime } = resolverTurno(cancha, fecha, hora)
+  if (startTime < nowInArAsArtificialUtc()) throw new Error("Ese horario ya pasó")
 
   const datosCliente = session?.user?.id
     ? { userId: session.user.id }
-    : { guestName: guestName!, guestPhone: guestPhone!, guestEmail }
+    : { guestName: guestName!.trim(), guestPhone: guestPhone!.trim(), guestEmail }
 
   // Medio de pago de la seña:
   //   - MERCADOPAGO → checkout en /pagar, se confirma sola por webhook
@@ -290,18 +247,23 @@ export async function crearReserva(formData: FormData) {
     : null
   const expiresAt = minutosParaPagar ? new Date(Date.now() + minutosParaPagar * 60 * 1000) : null
 
-  const nuevaReserva = await prisma.booking.create({
-    data: {
-      courtId,
-      tenantId: cancha.tenantId,
-      startTime,
-      endTime,
-      totalPrice: cancha.pricePerHour,
-      status: "PENDING",
-      paymentMethod: metodo,
-      expiresAt,
-      ...datosCliente,
-    },
+  const nuevaReserva = await reservarTurnoAtomico({
+    courtId,
+    startTime,
+    endTime,
+    escribir: (tx) => tx.booking.create({
+      data: {
+        courtId,
+        tenantId: cancha.tenantId,
+        startTime,
+        endTime,
+        totalPrice: cancha.pricePerHour,
+        status: "PENDING",
+        paymentMethod: metodo,
+        expiresAt,
+        ...datosCliente,
+      },
+    }),
   })
 
   revalidatePath(`/${slug}`)
@@ -319,7 +281,6 @@ export async function crearReservaManual(formData: FormData) {
   const courtId   = formData.get("courtId") as string
   const fecha     = formData.get("fecha") as string
   const hora      = formData.get("hora") as string
-  const slug      = formData.get("slug") as string
   const guestName  = ((formData.get("guestName")  as string | null) ?? "").trim()
   const guestPhone = ((formData.get("guestPhone") as string | null) ?? "").trim() || null
   const guestEmail = ((formData.get("guestEmail") as string | null) ?? "").trim() || null
@@ -329,60 +290,34 @@ export async function crearReservaManual(formData: FormData) {
 
   const cancha = await prisma.court.findUnique({
     where: { id: courtId },
-    include: { schedules: true },
+    include: { schedules: true, tenant: { select: { slug: true } } },
   })
   if (!cancha) throw new Error("Cancha no encontrada")
   if (cancha.tenantId !== session.user.tenantId) throw new Error("No autorizado")
+  const slug = cancha.tenant.slug
 
-  const [y, m, d] = fecha.split("-").map(Number)
-  const diaSemana = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
-  const schedule = cancha.schedules.find(s => s.dayOfWeek === diaSemana)
-  if (!schedule) throw new Error(`La cancha "${cancha.name}" no abre ese día`)
-
-  const slotsValidos = generarSlots(schedule.openTime, schedule.closeTime, schedule.slotMinutes)
-  if (!slotsValidos.includes(hora)) {
-    throw new Error(`El horario ${hora} no es válido para "${cancha.name}" ese día (abre ${schedule.openTime} a ${schedule.closeTime})`)
-  }
-
-  const slotMinutes = schedule.slotMinutes
-  const startTime = new Date(`${fecha}T${hora}:00.000Z`)
-  const endTime   = new Date(startTime.getTime() + slotMinutes * 60 * 1000)
-
+  const { startTime, endTime } = resolverTurno(cancha, fecha, hora)
   if (startTime < nowInArAsArtificialUtc()) {
     throw new Error("Ese horario ya pasó")
   }
 
-  const conflicto = await prisma.booking.findFirst({
-    where: {
-      courtId,
-      status: { in: ["PENDING", "CONFIRMED"] },
-      startTime: { lt: endTime },
-      endTime:   { gt: startTime },
-    },
-  })
-  if (conflicto) throw new Error("Ese horario ya está reservado")
-
-  const bloqueo = await prisma.courtBlock.findFirst({
-    where: {
-      courtId,
-      startTime: { lt: endTime },
-      endTime:   { gt: startTime },
-    },
-  })
-  if (bloqueo) throw new Error("Esa cancha está bloqueada en ese horario")
-
-  const nueva = await prisma.booking.create({
-    data: {
-      courtId,
-      tenantId: cancha.tenantId,
-      startTime,
-      endTime,
-      totalPrice: cancha.pricePerHour,
-      status: "CONFIRMED",
-      guestName,
-      guestPhone,
-      guestEmail,
-    },
+  const nueva = await reservarTurnoAtomico({
+    courtId,
+    startTime,
+    endTime,
+    escribir: (tx) => tx.booking.create({
+      data: {
+        courtId,
+        tenantId: cancha.tenantId,
+        startTime,
+        endTime,
+        totalPrice: cancha.pricePerHour,
+        status: "CONFIRMED",
+        guestName,
+        guestPhone,
+        guestEmail,
+      },
+    }),
   })
 
   revalidatePath(`/dashboard/${slug}/reservas`)
