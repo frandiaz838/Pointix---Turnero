@@ -15,6 +15,14 @@ async function verificarAdmin(tenantId: string) {
   return session
 }
 
+// Verifica que la cancha pertenezca al tenant. Sin esto, un admin podría
+// operar sobre canchas de otro club pasando su courtId (visible en la página
+// pública) junto con su propio tenantId.
+async function verificarCanchaDelTenant(courtId: string, tenantId: string) {
+  const cancha = await prisma.court.findFirst({ where: { id: courtId, tenantId }, select: { id: true } })
+  if (!cancha) throw new Error("Cancha no encontrada")
+}
+
 export async function crearCancha(tenantId: string, slug: string, formData: FormData) {
   await verificarAdmin(tenantId)
 
@@ -34,14 +42,15 @@ export async function crearCancha(tenantId: string, slug: string, formData: Form
 export async function editarCancha(courtId: string, tenantId: string, slug: string, formData: FormData) {
   await verificarAdmin(tenantId)
 
-  await prisma.court.update({
-    where: { id: courtId },
+  const { count } = await prisma.court.updateMany({
+    where: { id: courtId, tenantId },
     data: {
       name: formData.get("name") as string,
       sport: formData.get("sport") as Sport,
       pricePerHour: parseFloat(formData.get("pricePerHour") as string),
     },
   })
+  if (count === 0) throw new Error("Cancha no encontrada")
 
   revalidatePath(`/dashboard/${slug}`, "layout")
   redirect(`/dashboard/${slug}/canchas`)
@@ -54,6 +63,7 @@ export async function contarReservasFuturasCancha(courtId: string, tenantId: str
   return prisma.booking.count({
     where: {
       courtId,
+      tenantId,
       startTime: { gte: new Date() },
       status: { in: ["PENDING", "CONFIRMED"] },
     },
@@ -63,10 +73,11 @@ export async function contarReservasFuturasCancha(courtId: string, tenantId: str
 export async function toggleCanchaActiva(courtId: string, isActive: boolean, tenantId: string, slug: string) {
   await verificarAdmin(tenantId)
 
-  await prisma.court.update({
-    where: { id: courtId },
+  const { count } = await prisma.court.updateMany({
+    where: { id: courtId, tenantId },
     data: { isActive: !isActive },
   })
+  if (count === 0) throw new Error("Cancha no encontrada")
 
   revalidatePath(`/dashboard/${slug}`, "layout")
 }
@@ -136,6 +147,7 @@ export async function eliminarCancha(
 
 export async function guardarHorarios(courtId: string, tenantId: string, slug: string, formData: FormData) {
   await verificarAdmin(tenantId)
+  await verificarCanchaDelTenant(courtId, tenantId)
 
   const schedules: { courtId: string; dayOfWeek: number; openTime: string; closeTime: string; slotMinutes: number }[] = []
   for (let dia = 0; dia < 7; dia++) {
