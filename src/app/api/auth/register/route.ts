@@ -24,7 +24,7 @@ export async function POST(request: Request) {
 
     const body = await request.json()
     const name      = String(body.name ?? "").trim()
-    const email     = String(body.email ?? "").trim()
+    const email     = String(body.email ?? "").trim().toLowerCase()
     const password  = String(body.password ?? "")
     const clubName  = String(body.clubName ?? "").trim()
     const whatsappRaw = String(body.whatsapp ?? "").trim()
@@ -40,7 +40,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "El número de WhatsApp no parece válido." }, { status: 400 })
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } })
+    // Sin distinguir mayúsculas: puede haber cuentas viejas guardadas con mayúsculas
+    const existing = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } })
     if (existing) {
       return NextResponse.json({ error: "Ya existe una cuenta con ese email." }, { status: 409 })
     }
