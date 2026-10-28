@@ -348,3 +348,18 @@ export async function sendComplejoAprobado(d: {
     cta: { label: "Entrar a mi panel", url: `${appUrl}/login` },
   })
 }
+
+/** Link para elegir una contraseña nueva (vence en `minutos`). */
+export async function sendResetPassword(d: { to: string; nombre: string | null; url: string; minutos: number }) {
+  return sendSimpleEmail({
+    to: d.to,
+    subject: "Elegí tu nueva contraseña de Pointix",
+    titulo: `Hola${d.nombre ? `, ${d.nombre}` : ""}`,
+    parrafos: [
+      "Pediste cambiar la contraseña de tu cuenta de Pointix. Tocá el botón para elegir una nueva.",
+      `El link vence en ${d.minutos} minutos y sirve una sola vez.`,
+      "Si no lo pediste vos, ignorá este mail: tu contraseña sigue siendo la misma.",
+    ],
+    cta: { label: "Elegir nueva contraseña", url: d.url },
+  })
+}

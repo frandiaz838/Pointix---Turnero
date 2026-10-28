@@ -1,6 +1,7 @@
 import { LoginForm } from "@/components/auth/login-form"
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ reset?: string }> }) {
+  const { reset } = await searchParams
   return (
     <main className="relative min-h-screen flex items-center justify-center bg-[#0C0E14] overflow-hidden px-6 py-12">
       {/* Orbs mesh gradient */}
@@ -18,7 +19,7 @@ export default function LoginPage() {
       />
       <div className="bg-court-lines absolute inset-0 pointer-events-none opacity-30" />
       <div className="relative z-10 w-full">
-        <LoginForm />
+        <LoginForm resetOk={reset === "ok"} />
       </div>
     </main>
   )

@@ -6,10 +6,10 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, AlertCircle } from "lucide-react"
+import { Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
 import Link from "next/link"
 
-export function LoginForm() {
+export function LoginForm({ resetOk = false }: { resetOk?: boolean }) {
   const [error, setError] = useState("")
   const [isPending, setIsPending] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -64,6 +64,12 @@ export function LoginForm() {
 
       {/* Card */}
       <div className="glass-card rounded-2xl p-8 space-y-5">
+        {resetOk && (
+          <div role="status" className="flex items-center gap-2.5 bg-[#A3FF12]/10 border border-[#A3FF12]/25 text-[#A3FF12] text-sm rounded-lg px-4 py-3">
+            <CheckCircle className="w-4 h-4 shrink-0" />
+            Listo, ya cambiaste tu contraseña. Ingresá con la nueva.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="email" className="text-white/60 text-sm font-medium">
@@ -80,9 +86,14 @@ export function LoginForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="text-white/60 text-sm font-medium">
-              Contraseña
-            </Label>
+            <div className="flex items-center justify-between gap-3">
+              <Label htmlFor="password" className="text-white/60 text-sm font-medium">
+                Contraseña
+              </Label>
+              <Link href="/recuperar" className="text-sm text-[#A3FF12]/90 hover:text-[#A3FF12] hover:underline py-1">
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
             <div className="relative">
               <Input
                 id="password"
