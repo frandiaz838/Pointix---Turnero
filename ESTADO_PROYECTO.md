@@ -126,7 +126,9 @@ Tenant        → slug único, nombre, descripción, dirección, whatsappNumber
   1. Webhook `POST /api/mp/webhook` (busca el tenant probando cada token — escala a ~50-100 clubs)
   2. Fallback sincrónico en la URL de éxito (`verificarPagoReserva`)
   3. Cron `GET /api/cron/verify-payments` (revisa PENDING de las últimas 24h) — **ver pendientes: hoy no está programado**
-- Sin MP conectado → flujo "Pago en el complejo"
+- **Seña por transferencia** (`Tenant.transfer*`, `Booking.paymentMethod`): el jugador transfiere al alias/CBU del club y manda el comprobante por WhatsApp desde `/{slug}/transferir/{id}`; el club confirma con "Recibí la transferencia". Vence en `transferExpiryMinutes` (30 min–24 h). Requiere WhatsApp cargado
+- La seña (`mpSenaPercentage`) es común a MP y transferencia: se paga por adelantado y el resto siempre en el complejo. Si el club tiene los dos medios, el jugador elige. Lógica en `lib/medios-pago.ts`
+- Club sin ningún medio online → reserva PENDING sin seña ("Pago en el complejo")
 
 ### Notificaciones
 - Email de confirmación vía Resend (con desglose de seña y botón de WhatsApp), disparado por:
