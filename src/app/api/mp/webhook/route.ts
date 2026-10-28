@@ -4,13 +4,16 @@ import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { notificarReservaConfirmada } from "@/lib/booking-notifications"
 import { decryptToken } from "@/lib/crypto"
+import { MP_STATUS_APROBADO_TARDE } from "@/lib/medios-pago"
+
 
 // MercadoPago llama a este endpoint cuando hay novedades de pago.
 // Body típico:
 // { action: "payment.created" | "payment.updated", data: { id: "12345" } }
 //
-// El paymentId nos sirve para consultar el detalle a la API de MP y obtener
-// el external_reference (que es el id de la reserva en nuestra DB).
+// No confiamos en el body: con el paymentId consultamos el pago a la API de MP
+// con el token del club, y de ahí sale el external_reference (= bookingId) y
+// el estado real. Así una notificación falsa no puede confirmar nada.
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null)
@@ -22,22 +25,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
 
-    // Para consultar el pago necesitamos un accessToken. Pero hasta no buscar
-    // por preferenceId no sabemos qué tenant es. Estrategia: buscamos en TODOS los
-    // bookings que tengan ese paymentId, y si no encontramos, hacemos una primera
-    // consulta sin auth para obtener el external_reference.
-    //
-    // En realidad MP no permite consultar payments sin token. Lo que hacemos:
-    // 1. Recorremos tenants con MP configurado e intentamos consultar el payment
-    //    hasta que alguno responda 200.
-    // 2. Una vez identificado el tenant y obtenido el external_reference, actualizamos
-    //    el booking correspondiente.
-    //
-    // Esto funciona para tenants pocos. Para escalar habría que armar un mapping
-    // explícito payment → tenant, pero por ahora el cliente sigue siendo este.
-
+    // Las Preferences nuevas mandan ?t=<tenantId> en notification_url: así
+    // consultamos solo con el token de ese club. Las viejas (sin ?t) caen al
+    // recorrido de todos los clubes con MP.
+    const tenantParam = req.nextUrl.searchParams.get("t")
     const tenantsConMp = await prisma.tenant.findMany({
-      where: { mpAccessToken: { not: null } },
+      where: { mpAccessToken: { not: null }, ...(tenantParam ? { id: tenantParam } : {}) },
       select: { id: true, mpAccessToken: true, slug: true },
     })
 
@@ -68,34 +61,61 @@ export async function POST(req: NextRequest) {
     }
 
     const bookingId = paymentData.external_reference
+    const tenantId  = tenantUsado.id
     const mpStatus  = paymentData.status ?? "unknown"
+    const pagoId    = String(paymentData.id ?? paymentId)
 
-    // Estados MP: approved / pending / in_process / rejected / cancelled / refunded / charged_back
-    let nuevoStatus: "PENDING" | "CONFIRMED" | "CANCELLED" | null = null
-    if (mpStatus === "approved")  nuevoStatus = "CONFIRMED"
-    else if (mpStatus === "rejected" || mpStatus === "cancelled") nuevoStatus = "CANCELLED"
-    // "pending" / "in_process" → no cambiamos (sigue PENDING)
-
-    const updateData: Record<string, unknown> = {
-      mpPaymentId: String(paymentData.id ?? paymentId),
-      mpStatus,
-    }
-    if (nuevoStatus) updateData.status = nuevoStatus
-
-    await prisma.booking.update({
-      where: { id: bookingId, tenantId: tenantUsado.id },
-      data: updateData,
+    const booking = await prisma.booking.findFirst({
+      where: { id: bookingId, tenantId },
+      select: { status: true, mpPaymentId: true },
     })
+    if (!booking) return NextResponse.json({ ok: true, note: "booking not found" })
+
+    // Regla: el webhook solo mueve reservas PENDING. Los updates son
+    // condicionales (status: "PENDING") para que dos notificaciones
+    // simultáneas no pisen un estado que otra ya resolvió.
+    let resultado = "unchanged"
+
+    if (mpStatus === "approved") {
+      if (booking.status === "PENDING") {
+        const { count } = await prisma.booking.updateMany({
+          where: { id: bookingId, tenantId, status: "PENDING" },
+          data: { status: "CONFIRMED", mpPaymentId: pagoId, mpStatus },
+        })
+        // Solo quien hizo la transición manda el mail (idempotente ante reintentos de MP)
+        if (count === 1) {
+          await notificarReservaConfirmada(bookingId)
+          resultado = "CONFIRMED"
+        }
+      } else if (booking.status === "CONFIRMED" || booking.status === "COMPLETED") {
+        if (booking.mpPaymentId && booking.mpPaymentId !== pagoId) {
+          console.warn(`[mp-webhook] reserva ${bookingId} ya confirmada con otro pago (${booking.mpPaymentId}); nuevo pago aprobado ${pagoId}: posible doble cobro`)
+        }
+      } else {
+        // EXPIRED / CANCELLED / NO_SHOW: pagó tarde. No confirmamos (el turno
+        // pudo haberse reservado por otra persona); dejamos rastro para que el
+        // club lo vea y devuelva la plata.
+        await prisma.booking.updateMany({
+          where: { id: bookingId, tenantId, status: booking.status },
+          data: { mpPaymentId: pagoId, mpStatus: MP_STATUS_APROBADO_TARDE },
+        })
+        console.warn(`[mp-webhook] pago ${pagoId} aprobado sobre reserva ${bookingId} en estado ${booking.status}: requiere devolución manual`)
+        resultado = "approved_late"
+      }
+    } else if (booking.status === "PENDING") {
+      // pending / in_process / rejected / cancelled: solo registramos el estado.
+      // Un rechazo NO cancela la reserva: el cliente puede reintentar el pago
+      // y el turno se libera solo cuando vence (expiresAt).
+      await prisma.booking.updateMany({
+        where: { id: bookingId, tenantId, status: "PENDING" },
+        data: { mpPaymentId: pagoId, mpStatus },
+      })
+    }
 
     revalidatePath(`/dashboard/${tenantUsado.slug}/reservas`)
     revalidatePath(`/${tenantUsado.slug}`)
 
-    // Si el pago se acreditó, mandar email de confirmación al cliente
-    if (nuevoStatus === "CONFIRMED") {
-      await notificarReservaConfirmada(bookingId)
-    }
-
-    return NextResponse.json({ ok: true, bookingId, newStatus: nuevoStatus ?? "unchanged" })
+    return NextResponse.json({ ok: true, bookingId, resultado })
   } catch (e) {
     console.error("[mp-webhook] error:", e)
     // Devolvemos 200 igual para evitar reintentos en bucle de MP

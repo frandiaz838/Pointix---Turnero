@@ -30,3 +30,8 @@ export const TRANSFER_EXPIRY_OPCIONES = [
   { minutos: 720,  label: "12 horas" },
   { minutos: 1440, label: "24 horas" },
 ]
+
+// mpStatus que marca un pago de MP aprobado sobre una reserva que ya no estaba
+// PENDING (venció o se canceló): no se confirma porque el turno pudo haberse
+// reasignado; el club lo ve en el panel para devolver la plata.
+export const MP_STATUS_APROBADO_TARDE = "approved_tardio"

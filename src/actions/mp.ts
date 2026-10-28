@@ -87,7 +87,8 @@ export async function crearPreferenciaParaReserva(
         pending: `${appUrl}/${booking.tenant.slug}/pagar/${booking.id}?status=pending`,
       },
       auto_return: "approved",
-      notification_url: `${appUrl}/api/mp/webhook`,
+      // ?t= identifica al club: el webhook consulta el pago solo con su token
+      notification_url: `${appUrl}/api/mp/webhook?t=${booking.tenant.id}`,
       // Expira automáticamente cuando el slot pasa
       expires: true,
       expiration_date_to: booking.expiresAt?.toISOString(),
@@ -152,19 +153,19 @@ export async function verificarPagoReserva(bookingId: string): Promise<boolean> 
     const approved = results.find(p => p.status === "approved")
     if (!approved) return false
 
-    await prisma.booking.update({
-      where: { id: bookingId },
+    // Condicional a PENDING: si el webhook (o el cron) la confirmó entre la
+    // lectura de arriba y acá, count es 0 y no se manda un segundo mail.
+    const { count } = await prisma.booking.updateMany({
+      where: { id: bookingId, status: "PENDING" },
       data: {
         status: "CONFIRMED",
         mpPaymentId: String(approved.id ?? ""),
         mpStatus: "approved",
       },
     })
+    if (count === 0) return false
 
-    // Email de confirmación — el webhook hace lo mismo si llega.
-    // notificarReservaConfirmada es idempotente respecto a duplicados de envío:
-    // ya hubo "race conditions" en el pasado, pero no envía 2 mails seguidos
-    // si la reserva ya estaba CONFIRMED antes de este path.
+    // Email de confirmación — solo quien hizo la transición lo manda.
     await notificarReservaConfirmada(bookingId)
 
     return true

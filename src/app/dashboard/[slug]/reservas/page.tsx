@@ -18,6 +18,7 @@ import { UndoConfirmacionToast } from "@/components/admin/undo-confirmacion-toas
 import { nowInArAsArtificialUtc, todayInArIso } from "@/lib/timezone"
 import { expireStalePendings } from "@/lib/bookings"
 import { PageHeader, PageBody, btnPrimario } from "@/components/admin/page-header"
+import { MP_STATUS_APROBADO_TARDE } from "@/lib/medios-pago"
 
 export const dynamic = "force-dynamic"
 
@@ -60,6 +61,7 @@ const estadoBadge: Record<string, string> = {
   CANCELLED: "bg-red-500/10 text-red-400 border-red-500/20",
   COMPLETED: "bg-white/[0.05] text-white/55 border-white/[0.1]",
   NO_SHOW:   "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  EXPIRED:   "bg-white/[0.05] text-white/50 border-white/[0.08]",
 }
 
 const estadoLabel: Record<string, string> = {
@@ -68,6 +70,7 @@ const estadoLabel: Record<string, string> = {
   CANCELLED: "Cancelada",
   COMPLETED: "Completada",
   NO_SHOW:   "No vino",
+  EXPIRED:   "Vencida",
 }
 
 // Para reservas que ya pasaron (endTime < now), reinterpretamos el estado
@@ -78,6 +81,7 @@ const estadoBadgePasado: Record<string, string> = {
   CANCELLED: "bg-red-500/[0.05] text-red-400/50 border-red-500/[0.12]",
   COMPLETED: "bg-white/[0.05] text-white/55 border-white/[0.1]",
   NO_SHOW:   "bg-orange-500/[0.05] text-orange-400/55 border-orange-500/[0.15]",
+  EXPIRED:   "bg-white/[0.05] text-white/50 border-white/[0.08]",
 }
 
 const estadoLabelPasado: Record<string, string> = {
@@ -86,6 +90,7 @@ const estadoLabelPasado: Record<string, string> = {
   CANCELLED: "Cancelada",
   COMPLETED: "Cumplida",
   NO_SHOW:   "No vino",
+  EXPIRED:   "Vencida",
 }
 
 export default async function ReservasAdminPage({ params, searchParams }: Props) {
@@ -356,6 +361,7 @@ type Reserva = {
   guestPhone: string | null
   paymentMethod: string | null
   expiresAt: Date | null
+  mpStatus: string | null
   user: { name: string | null } | null
   court: { name: string; sport: string }
 }
@@ -412,6 +418,12 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
             {badgeLabel}
           </span>
         </div>
+
+        {r.mpStatus === MP_STATUS_APROBADO_TARDE && (
+          <p className="text-sm font-semibold text-red-400">
+            Pagó por MercadoPago después de que la reserva venció. Devolvele la plata o reprogramá el turno.
+          </p>
+        )}
 
         {esperandoTransfer && (
           <p className="text-sm text-yellow-300">
