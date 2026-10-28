@@ -40,8 +40,8 @@ export async function OnboardingChecklist({ tenantId, slug, tieneMp }: Props) {
     },
     {
       hecho: tieneMp,
-      titulo: "Conectá MercadoPago (opcional)",
-      desc: "Para cobrar la reserva o una seña por adelantado.",
+      titulo: "Configurá cómo cobrar la seña (opcional)",
+      desc: "MercadoPago o transferencia, para cobrar por adelantado.",
       href: `/dashboard/${slug}/configuracion`,
     },
     {

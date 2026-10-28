@@ -354,8 +354,17 @@ type Reserva = {
   status: string
   guestName: string | null
   guestPhone: string | null
+  paymentMethod: string | null
+  expiresAt: Date | null
   user: { name: string | null } | null
   court: { name: string; sport: string }
+}
+
+// Hora límite de una reserva pendiente (expiresAt es un instante real → hora AR)
+function horaLimite(d: Date) {
+  return new Intl.DateTimeFormat("es-AR", {
+    timeZone: "America/Argentina/Buenos_Aires", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(d)
 }
 
 function formatTelefono(tel: string) {
@@ -377,7 +386,11 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
   const badgeClasses = esPasada
     ? estadoBadgePasado[r.status] ?? estadoBadgePasado.PENDING
     : estadoBadge[r.status]    ?? estadoBadge.PENDING
-  const badgeLabel = esPasada
+  // Seña por transferencia sin confirmar: el club tiene que revisar el comprobante
+  const esperandoTransfer = !esPasada && r.status === "PENDING" && r.paymentMethod === "TRANSFER"
+  const badgeLabel = esperandoTransfer
+    ? "Esperando transferencia"
+    : esPasada
     ? estadoLabelPasado[r.status] ?? r.status
     : estadoLabel[r.status]    ?? r.status
 
@@ -399,6 +412,13 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
             {badgeLabel}
           </span>
         </div>
+
+        {esperandoTransfer && (
+          <p className="text-sm text-yellow-300">
+            Confirmala cuando te llegue el comprobante por WhatsApp
+            {r.expiresAt && <> · se libera a las {horaLimite(r.expiresAt)} hs</>}
+          </p>
+        )}
 
         {/* Cancha + deporte */}
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -433,7 +453,11 @@ function ReservaCard({ reserva: r, nowAr, slug }: { reserva: Reserva; nowAr: Dat
         </p>
         {mostrarAcciones && (
           <div className="flex flex-wrap items-center gap-2 sm:justify-end w-full sm:w-auto">
-            {r.status === "PENDING" && <ConfirmarReservaBtn bookingId={r.id} />}
+            {r.status === "PENDING" && (
+              esperandoTransfer
+                ? <ConfirmarReservaBtn bookingId={r.id} label="Recibí la transferencia" destacado />
+                : <ConfirmarReservaBtn bookingId={r.id} />
+            )}
             <Link
               href={`/dashboard/${slug}/reservas/${r.id}/editar`}
               className="inline-flex items-center gap-1.5 text-sm font-semibold px-3.5 py-2 rounded-xl border border-white/12 text-white/80 hover:text-white hover:border-white/30 transition-colors"

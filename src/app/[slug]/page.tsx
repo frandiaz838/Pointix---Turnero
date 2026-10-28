@@ -17,6 +17,7 @@ import { sportLabel } from "@/lib/sports"
 import { expireStalePendings } from "@/lib/bookings"
 import { verificarPagoReserva } from "@/actions/mp"
 import { estadoTenant } from "@/lib/tenant-status"
+import { mediosDePago } from "@/lib/medios-pago"
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -313,6 +314,7 @@ export default async function TenantPage({ params, searchParams }: Props) {
           deporte={deporte}
           deportesDisponibles={deportesDisponibles}
           isLoggedIn={!!session?.user}
+          pagos={{ ...mediosDePago(tenant), senaPct: tenant.mpSenaPercentage }}
         />
       </div>
 

@@ -9,6 +9,8 @@ import { nowInArAsArtificialUtc } from "@/lib/timezone"
 import { notificarReservaConfirmada } from "@/lib/booking-notifications"
 import { checkRateLimit, getClientIp } from "@/lib/ratelimit"
 import { estadoTenant } from "@/lib/tenant-status"
+import { mediosDePago } from "@/lib/medios-pago"
+import type { PaymentMethod } from "@/generated/prisma/client"
 
 export async function cancelarReserva(bookingId: string) {
   const session = await auth()
@@ -268,16 +270,25 @@ export async function crearReserva(formData: FormData) {
     ? { userId: session.user.id }
     : { guestName: guestName!, guestPhone: guestPhone!, guestEmail }
 
-  // Si el tenant tiene MercadoPago configurado, seteamos expiresAt y redirigimos a /pagar.
-  // Si no, la reserva queda PENDING para que el admin confirme al pagar en el complejo.
-  const tenantConfig = await prisma.tenant.findUnique({
-    where: { id: cancha.tenantId },
-    select: { mpAccessToken: true, mpExpiryMinutes: true },
-  })
-  const tieneMp = !!tenantConfig?.mpAccessToken
-  const expiresAt = tieneMp && tenantConfig
-    ? new Date(Date.now() + (tenantConfig.mpExpiryMinutes ?? 30) * 60 * 1000)
+  // Medio de pago de la seña:
+  //   - MERCADOPAGO → checkout en /pagar, se confirma sola por webhook
+  //   - TRANSFER    → datos del alias en /transferir, el admin confirma al recibir el comprobante
+  //   - null        → el club no tiene medios online: PENDING hasta que el admin confirme
+  // Si el club tiene los dos, decide el cliente (metodoPago); por defecto MP.
+  // Cualquier PENDING con medio online vence en expiresAt y libera el turno.
+  const medios = mediosDePago(cancha.tenant)
+  const pedido = formData.get("metodoPago")
+  const metodo: PaymentMethod | null =
+    medios.mp && medios.transfer ? (pedido === "transfer" ? "TRANSFER" : "MERCADOPAGO")
+    : medios.mp ? "MERCADOPAGO"
+    : medios.transfer ? "TRANSFER"
     : null
+
+  const minutosParaPagar =
+    metodo === "MERCADOPAGO" ? cancha.tenant.mpExpiryMinutes ?? 30
+    : metodo === "TRANSFER" ? cancha.tenant.transferExpiryMinutes ?? 120
+    : null
+  const expiresAt = minutosParaPagar ? new Date(Date.now() + minutosParaPagar * 60 * 1000) : null
 
   const nuevaReserva = await prisma.booking.create({
     data: {
@@ -287,17 +298,16 @@ export async function crearReserva(formData: FormData) {
       endTime,
       totalPrice: cancha.pricePerHour,
       status: "PENDING",
+      paymentMethod: metodo,
       expiresAt,
       ...datosCliente,
     },
   })
 
   revalidatePath(`/${slug}`)
-  if (tieneMp) {
-    redirect(`/${slug}/pagar/${nuevaReserva.id}`)
-  } else {
-    redirect(`/${slug}?reservado=true`)
-  }
+  if (metodo === "MERCADOPAGO") redirect(`/${slug}/pagar/${nuevaReserva.id}`)
+  if (metodo === "TRANSFER") redirect(`/${slug}/transferir/${nuevaReserva.id}`)
+  redirect(`/${slug}?reservado=true`)
 }
 
 // Crear reserva manual desde el admin (cliente llamó por teléfono, etc.)

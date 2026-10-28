@@ -38,6 +38,11 @@ enum BookingStatus {
   EXPIRED
 }
 
+enum PaymentMethod {
+  MERCADOPAGO
+  TRANSFER
+}
+
 enum SubscriptionStatus {
   TRIALING
   ACTIVE
@@ -86,6 +91,17 @@ model Tenant {
   // Si está seteado, ej: 20 → cobra 20% por MP, deja 80% para el complejo.
   // El monto online siempre tiene un piso de $5 (límite mínimo razonable de MP).
   mpSenaPercentage Int?
+
+  // Seña por transferencia bancaria: el cliente transfiere al alias/CBU del
+  // club y manda el comprobante por WhatsApp; el admin confirma a mano. Usa el
+  // mismo % de seña que MP (mpSenaPercentage). Requiere whatsappNumber.
+  transferEnabled       Boolean @default(false)
+  transferAlias         String?
+  transferCbu           String?
+  transferHolder        String?
+  transferBank          String?
+  // Minutos que se guarda el turno esperando que el club confirme el pago.
+  transferExpiryMinutes Int     @default(120)
 
   // Número de WhatsApp del complejo (formato internacional sin +, ej: 5491155555555).
   // Si está seteado, después de cada reserva el cliente ve un CTA para
@@ -227,6 +243,9 @@ model Booking {
   endTime    DateTime
   totalPrice Decimal       @db.Decimal(10, 2)
   status     BookingStatus @default(PENDING)
+
+  // Cómo se paga la seña online. null = sin pago previo (club sin medios online).
+  paymentMethod PaymentMethod?
 
   mpPaymentId    String?
   mpStatus       String?

@@ -23,6 +23,8 @@ interface ReservaConfirmadaData {
   endTime: Date
   precio: number
   paidOnline: boolean  // si pagó con MP
+  /** Medio por el que pagó la seña (para el texto del mail). */
+  metodoPago?: "MERCADOPAGO" | "TRANSFER" | null
   whatsappUrl?: string | null  // link wa.me al complejo con mensaje prearmado
   /** Si hay seña parcial (esSeña true), el bloque de precio muestra el desglose. */
   desglose?: DesgloseSeña | null
@@ -44,7 +46,9 @@ function buildConfirmacionHtml(d: ReservaConfirmadaData): string {
   const horaInicio = formatHora(d.fecha)
   const horaFin    = formatHora(d.endTime)
   const fechaFmt   = formatFecha(d.fecha)
-  const pagoTxt    = d.paidOnline ? "Pago online · MercadoPago" : "Pago en el complejo"
+  const pagoTxt    = !d.paidOnline ? "Pago en el complejo"
+    : d.metodoPago === "TRANSFER" ? "Pago por transferencia"
+    : "Pago online · MercadoPago"
 
   return `<!DOCTYPE html>
 <html lang="es">
@@ -217,7 +221,7 @@ export async function sendBookingConfirmation(d: ReservaConfirmadaData): Promise
   try {
     const subject = `Reserva confirmada · ${d.clubNombre} · ${formatFecha(d.fecha)}`
     const html = buildConfirmacionHtml(d)
-    const text = `Reserva confirmada en ${d.clubNombre}\n\nCancha: ${d.canchaName} (${d.sport})\nDía: ${formatFecha(d.fecha)}\nHora: ${formatHora(d.fecha)} — ${formatHora(d.endTime)}\nTotal: $${d.precio.toLocaleString("es-AR")} (${d.paidOnline ? "pagado online" : "pago en el complejo"})\n\n¡Nos vemos en la cancha, ${d.clienteNombre}!\n\n— Pointix`
+    const text = `Reserva confirmada en ${d.clubNombre}\n\nCancha: ${d.canchaName} (${d.sport})\nDía: ${formatFecha(d.fecha)}\nHora: ${formatHora(d.fecha)} — ${formatHora(d.endTime)}\nTotal: $${d.precio.toLocaleString("es-AR")} (${!d.paidOnline ? "pago en el complejo" : d.metodoPago === "TRANSFER" ? "pagado por transferencia" : "pagado online"})\n\n¡Nos vemos en la cancha, ${d.clienteNombre}!\n\n— Pointix`
 
     const { error } = await client.emails.send({
       from: fromAddress,

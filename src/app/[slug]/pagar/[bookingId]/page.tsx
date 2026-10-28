@@ -3,7 +3,6 @@ import Link from "next/link"
 import { prisma } from "@/lib/prisma"
 import { crearPreferenciaParaReserva } from "@/actions/mp"
 import { AlertCircle, Clock, CalendarDays, Loader2, MapPin } from "lucide-react"
-import { nowInArAsArtificialUtc } from "@/lib/timezone"
 import { calcularDesglose } from "@/lib/pricing"
 import { ConfirmarPagoButton } from "@/components/booking/confirmar-pago-button"
 
@@ -91,7 +90,9 @@ export default async function PagarPage({ params, searchParams }: Props) {
   }
 
   // Si el slot ya pasó o la reserva expiró por tiempo, libera el slot
-  if (booking.expiresAt && booking.expiresAt < nowInArAsArtificialUtc()) {
+  // expiresAt es un instante real (Date.now() + minutos), se compara contra la
+  // hora real — no contra nowInArAsArtificialUtc, que va 3 h atrasada.
+  if (booking.expiresAt && booking.expiresAt < new Date()) {
     await prisma.booking.update({ where: { id: booking.id }, data: { status: "EXPIRED" } })
     redirect(`/${slug}/pagar/${booking.id}`)
   }

@@ -9,6 +9,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { es } from "date-fns/locale"
 import { sportLabel } from "@/lib/sports"
+import { calcularDesglose } from "@/lib/pricing"
 
 interface Cancha {
   id: string
@@ -32,7 +33,11 @@ interface Props {
    * cliente con la pestaña abierta cruzando medianoche o con TZ distinto. */
   hoyAr: string
   deporte: string; deportesDisponibles: string[]; isLoggedIn: boolean
+  /** Medios de pago de la seña habilitados en el club y % de seña (null/0 = total). */
+  pagos: { mp: boolean; transfer: boolean; senaPct: number | null }
 }
+
+type MetodoPago = "mp" | "transfer"
 
 const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"]
 const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"]
@@ -80,7 +85,9 @@ const MOMENTO_LABEL: Record<"manana" | "tarde" | "noche", string> = {
 
 type Estado = "disponible" | "ocupado" | "pasado" | "cerrado"
 
-export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte, deportesDisponibles, isLoggedIn }: Props) {
+export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte, deportesDisponibles, isLoggedIn, pagos }: Props) {
+  const [metodo, setMetodo] = useState<MetodoPago>(pagos.mp ? "mp" : "transfer")
+  const pagoPrevio = pagos.mp || pagos.transfer
   const router = useRouter()
   const searchParams = useSearchParams()
   const reservado = searchParams.get("reservado")
@@ -172,6 +179,7 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
     formData.set("courtId", selectedSlot.courtId)
     formData.set("fecha", fecha); formData.set("hora", selectedSlot.hora)
     formData.set("slug", slug); formData.set("slotMinutes", String(selectedSlot.slotMinutes))
+    if (pagoPrevio) formData.set("metodoPago", metodo)
     if (!isLoggedIn) {
       formData.set("guestName", guestName)
       formData.set("guestPhone", guestPhone)
@@ -376,20 +384,74 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
 
           <div className="separator-lime" />
 
-          <div>
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm font-medium text-white/35">Total a pagar</span>
-              <span
-                className="font-display font-black text-[#A3FF12] text-glow-lime"
-                style={{ fontSize: "clamp(2rem,5vw,2.8rem)" }}
-              >
-                ${selectedSlot.precio.toLocaleString("es-AR")}
-              </span>
-            </div>
-            <p className="text-xs text-white/30 text-right mt-1">
-              Pago en el complejo · {selectedSlot.slotMinutes} min
-            </p>
-          </div>
+          {(() => {
+            // Sin medios online: se paga todo en el complejo. Con medios: la
+            // seña (o el total si no hay %) se paga ahora y el resto en el complejo.
+            const d = calcularDesglose(selectedSlot.precio, pagos.senaPct)
+            if (!pagoPrevio) {
+              return (
+                <div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <span className="text-sm font-medium text-white/60">Total</span>
+                    <span className="font-display font-black text-[#A3FF12] text-glow-lime" style={{ fontSize: "clamp(2rem,5vw,2.8rem)" }}>
+                      ${d.total.toLocaleString("es-AR")}
+                    </span>
+                  </div>
+                  <p className="text-sm text-white/55 text-right mt-1">Se paga en el complejo</p>
+                </div>
+              )
+            }
+            return (
+              <div className="space-y-2">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-sm font-medium text-white/70">
+                    {d.esSeña ? `Seña a pagar ahora (${d.porcentajeSeña}%)` : "A pagar ahora"}
+                  </span>
+                  <span className="font-display font-black text-[#A3FF12] text-glow-lime" style={{ fontSize: "clamp(2rem,5vw,2.8rem)" }}>
+                    ${d.online.toLocaleString("es-AR")}
+                  </span>
+                </div>
+                {d.esSeña && (
+                  <div className="flex items-baseline justify-between gap-3 text-sm">
+                    <span className="text-white/55">Resto en el complejo</span>
+                    <span className="font-semibold text-white/80">${d.enComplejo.toLocaleString("es-AR")}</span>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
+
+          {pagos.mp && pagos.transfer && (
+            <fieldset className="space-y-2">
+              <legend className="text-sm font-semibold text-white/80 mb-2">¿Cómo querés pagar?</legend>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {([
+                  { key: "mp", titulo: "MercadoPago", desc: "Se confirma al instante" },
+                  { key: "transfer", titulo: "Transferencia", desc: "Mandás el comprobante por WhatsApp" },
+                ] as const).map((op) => (
+                  <label
+                    key={op.key}
+                    className={`flex items-start gap-3 rounded-xl border px-4 py-3 cursor-pointer transition-colors ${
+                      metodo === op.key ? "border-[#A3FF12]/60 bg-[#A3FF12]/[0.06]" : "border-white/[0.1] hover:border-white/25"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="metodoPago"
+                      value={op.key}
+                      checked={metodo === op.key}
+                      onChange={() => setMetodo(op.key)}
+                      className="mt-1 accent-[#A3FF12]"
+                    />
+                    <span>
+                      <span className="block text-sm font-bold text-white">{op.titulo}</span>
+                      <span className="block text-xs text-white/55">{op.desc}</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+          )}
 
           {!isLoggedIn && (
             <div className="space-y-3">
@@ -435,7 +497,8 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
             </div>
           )}
 
-          <div className="flex items-center justify-between gap-4 pt-1">
+          {/* Mobile: botón principal a lo ancho arriba y "Cancelar" debajo */}
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4 pt-1">
             <button
               onClick={() => { setSelectedSlot(null); setError(null) }}
               disabled={isPending}
@@ -448,7 +511,11 @@ export function GrillaReservas({ slug, canchas, reservas, fecha, hoyAr, deporte,
               disabled={isPending}
               className="btn-lime-glow flex-1 bg-[#A3FF12] hover:bg-[#d4ff1a] text-black rounded-xl py-3.5 px-6 text-sm font-bold disabled:opacity-50"
             >
-              {isPending ? "Confirmando…" : "Confirmar reserva"}
+              {isPending
+                ? "Reservando…"
+                : !pagoPrevio ? "Confirmar reserva"
+                : metodo === "mp" ? "Ir a pagar con MercadoPago"
+                : "Reservar y ver datos para transferir"}
             </button>
           </div>
         </div>

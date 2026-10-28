@@ -41,7 +41,7 @@ export async function notificarReservaConfirmada(bookingId: string): Promise<voi
     // webhook hubiera seteado mpPaymentId, lo cual fallaba cuando el admin
     // confirmaba a mano por demora del webhook → el email no mostraba el
     // desglose de seña y aparecía como "pago en complejo" del total entero.
-    const paidOnline    = booking.status === "CONFIRMED" && (!!booking.mpPaymentId || !!booking.mpPreferenceId)
+    const paidOnline    = booking.status === "CONFIRMED" && (!!booking.mpPaymentId || !!booking.mpPreferenceId || booking.paymentMethod === "TRANSFER")
     const desglose      = calcularDesglose(Number(booking.totalPrice), booking.tenant.mpSenaPercentage)
 
     const mensajeWsp = buildMensajeReserva({
@@ -70,6 +70,7 @@ export async function notificarReservaConfirmada(bookingId: string): Promise<voi
       endTime:    booking.endTime,
       precio:     Number(booking.totalPrice),
       paidOnline,
+      metodoPago: booking.paymentMethod,
       whatsappUrl,
       desglose:   paidOnline && desglose.esSeña ? desglose : null,
     })

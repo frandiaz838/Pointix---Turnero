@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { CountUp } from "@/components/admin/count-up"
 import { generarSlots } from "@/lib/slots"
-import { TrendingUp, CalendarDays, BarChart3, Inbox, ArrowRight } from "lucide-react"
+import { TrendingUp, CalendarDays, BarChart3, Inbox, ArrowRight, Banknote } from "lucide-react"
 import { EmptyState } from "@/components/admin/empty-state"
 import { todayInArIso, todayInArDayOfWeek } from "@/lib/timezone"
 import { expireStalePendings } from "@/lib/bookings"
@@ -116,6 +116,12 @@ export default async function AdminDashboardPage({ params }: Props) {
     }),
   ])
 
+  // Señas por transferencia que el club todavía no confirmó (las vencidas ya
+  // las pasó a EXPIRED expireStalePendings arriba).
+  const transferenciasPendientes = await prisma.booking.count({
+    where: { tenantId: tenant.id, status: "PENDING", paymentMethod: "TRANSFER" },
+  })
+
   const totalReservasHoy = statsHoy._count._all
   const ingresosHoy = Number(statsHoy._sum.totalPrice ?? 0)
   const ingresosMes = Number(reservasMes._sum.totalPrice ?? 0)
@@ -183,7 +189,25 @@ export default async function AdminDashboardPage({ params }: Props) {
         }
       />
 
-      <OnboardingChecklist tenantId={tenant.id} slug={slug} tieneMp={!!tenant.mpAccessToken} />
+      {transferenciasPendientes > 0 && (
+        <Link
+          href={`/dashboard/${slug}/reservas?estado=PENDING&periodo=2semanas`}
+          className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-yellow-400/40 bg-yellow-400/10 px-5 py-4 hover:bg-yellow-400/15 transition-colors"
+        >
+          <span className="flex items-center gap-3">
+            <Banknote className="w-6 h-6 text-yellow-400 shrink-0" />
+            <span className="text-base text-white">
+              <strong className="text-yellow-400">
+                {transferenciasPendientes === 1 ? "1 transferencia por confirmar" : `${transferenciasPendientes} transferencias por confirmar`}
+              </strong>
+              <span className="block sm:inline text-sm sm:text-base text-white/70"> Revisá los comprobantes que te llegaron por WhatsApp.</span>
+            </span>
+          </span>
+          <span className="text-sm font-semibold text-yellow-400 whitespace-nowrap">Revisar →</span>
+        </Link>
+      )}
+
+      <OnboardingChecklist tenantId={tenant.id} slug={slug} tieneMp={!!tenant.mpAccessToken || tenant.transferEnabled} />
 
       {/* Números del día: cada tarjeta lleva a su detalle.
           Mobile: ingresos arriba a lo ancho y las otras dos de a pares, compactas. */}
@@ -254,7 +278,7 @@ export default async function AdminDashboardPage({ params }: Props) {
                     <p className="text-sm text-white/55 truncate">{r.user?.name ?? r.guestName ?? "Invitado"}</p>
                   </div>
                   <span className={`hidden sm:inline-flex text-xs font-semibold px-2.5 py-1 rounded-full border ${estadoBadge[r.status] ?? estadoBadge.PENDING}`}>
-                    {estadoLabel[r.status] ?? r.status}
+                    {r.status === "PENDING" && r.paymentMethod === "TRANSFER" ? "Esperando transf." : estadoLabel[r.status] ?? r.status}
                   </span>
                   <span className="text-base font-bold text-white tabular-nums shrink-0">
                     ${Number(r.totalPrice).toLocaleString("es-AR")}

@@ -3,6 +3,8 @@ import { PageHeader, PageBody, SectionTitle } from "@/components/admin/page-head
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/session"
 import { MpConfigForm } from "@/components/admin/mp-config-form"
+import { SenaForm } from "@/components/admin/sena-form"
+import { TransferConfigForm } from "@/components/admin/transfer-config-form"
 import { DatosClubForm } from "@/components/admin/datos-club-form"
 import { ShareLinkCard } from "@/components/admin/share-link-card"
 import { CerrarSesionTodosBtn } from "@/components/admin/cerrar-sesion-todos-btn"
@@ -27,6 +29,13 @@ export default async function ConfiguracionPage({ params }: Props) {
       mpAccessToken: true,
       mpExpiryMinutes: true,
       mpSenaPercentage: true,
+      transferEnabled: true,
+      transferAlias: true,
+      transferCbu: true,
+      transferHolder: true,
+      transferBank: true,
+      transferExpiryMinutes: true,
+      courts: { where: { archivedAt: null }, select: { pricePerHour: true }, take: 1, orderBy: { createdAt: "asc" } },
     },
   })
   if (!tenant) notFound()
@@ -73,9 +82,19 @@ export default async function ConfiguracionPage({ params }: Props) {
           />
         </div>
 
-        {/* Sección 2: MercadoPago */}
+        {/* Sección 2: Cobro de la seña — % común + los dos medios */}
         <div className="space-y-3">
-          <SectionTitle>Cobros online</SectionTitle>
+          <SectionTitle>Seña</SectionTitle>
+          <SenaForm
+            tenantId={tenant.id}
+            slug={slug}
+            senaActual={tenant.mpSenaPercentage}
+            precioEjemplo={tenant.courts[0] ? Number(tenant.courts[0].pricePerHour) : 20000}
+          />
+        </div>
+
+        <div className="space-y-3">
+          <SectionTitle>Cobro con MercadoPago</SectionTitle>
           <MpConfigForm
             tenantId={tenant.id}
             slug={slug}
@@ -83,7 +102,23 @@ export default async function ConfiguracionPage({ params }: Props) {
               accessTokenConfigurado,
               accessTokenUltimos4,
               expiryMinutes: tenant.mpExpiryMinutes,
-              senaPercentage: tenant.mpSenaPercentage,
+            }}
+          />
+        </div>
+
+        <div className="space-y-3">
+          <SectionTitle>Cobro por transferencia</SectionTitle>
+          <TransferConfigForm
+            tenantId={tenant.id}
+            slug={slug}
+            tieneWhatsapp={!!tenant.whatsappNumber}
+            inicial={{
+              enabled: tenant.transferEnabled,
+              alias: tenant.transferAlias ?? "",
+              cbu: tenant.transferCbu ?? "",
+              holder: tenant.transferHolder ?? "",
+              bank: tenant.transferBank ?? "",
+              expiryMinutes: tenant.transferExpiryMinutes,
             }}
           />
         </div>
