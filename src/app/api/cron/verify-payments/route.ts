@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto"
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { verificarPagoReserva } from "@/actions/mp"
@@ -27,13 +28,18 @@ export const dynamic = "force-dynamic"
 const VENTANA_HORAS = 24
 
 export async function GET(req: NextRequest) {
-  // Auth opcional pero recomendado: si CRON_SECRET está seteado, exigirlo.
+  // Falla cerrado: sin CRON_SECRET configurado el endpoint no corre (antes
+  // quedaba abierto para cualquiera).
   const expectedSecret = process.env.CRON_SECRET
-  if (expectedSecret) {
-    const auth = req.headers.get("authorization")
-    if (auth !== `Bearer ${expectedSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+  if (!expectedSecret) {
+    console.error("[cron] CRON_SECRET no configurado: endpoint deshabilitado")
+    return NextResponse.json({ error: "Cron no configurado" }, { status: 500 })
+  }
+  const recibido = Buffer.from(req.headers.get("authorization") ?? "")
+  const esperado = Buffer.from(`Bearer ${expectedSecret}`)
+  // Comparación en tiempo constante para no filtrar el secreto por timing
+  if (recibido.length !== esperado.length || !timingSafeEqual(recibido, esperado)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
   const desde = new Date(Date.now() - VENTANA_HORAS * 60 * 60 * 1000)
